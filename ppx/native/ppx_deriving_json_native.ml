@@ -192,13 +192,18 @@ module Of_json = struct
        - [@json.catch_all] (catches any string)
        - specific constructor cases
    *)
-  let cmp_sort_vcs vcs1 vcs2 =
-    let key vcs =
-      if vcs_attr_json_allow_any vcs then 0
-      else if vcs_attr_json_catch_all vcs then 1
-      else 2
+  let case_sort_key case =
+    let attr = case_attr case in
+    if attr.allow_any then 0 else if attr.catch_all then 1 else 2
+
+  let cmp_sort_cases c1 c2 = compare (case_sort_key c1) (case_sort_key c2)
+
+  let cmp_sort_pvcs p1 p2 =
+    let key = function
+      | Pvc_case case -> case_sort_key case
+      | Pvc_inherit _ -> 2
     in
-    compare (key vcs1) (key vcs2)
+    compare (key p1) (key p2)
 
   (* of_json for native: JSON is [Yojson.Basic.t], a matchable ADT, so the
      variant decoder is a single [match] expression. This object plugs the
@@ -228,21 +233,17 @@ module Of_json = struct
        method! derive_of_variant td cs x =
          let loc = td.ptype_loc in
          let compact = Attrs.Json.is_compact_variants td in
+         let cases = resolve_variant_cases ~loc cs in
          let error_message =
            Printf.sprintf "expected %s"
-             (get_constructor_names ~compact cs
+             (List.map cases ~f:(case_wire_shape ~compact)
              |> String.concat ~sep:" or ")
          in
-         let cs = repr_variant_cases cs in
-         let cs =
-           List.stable_sort
-             ~cmp:(fun cs1 cs2 ->
-               let vcs1 = `Variant_ctx cs1 and vcs2 = `Variant_ctx cs2 in
-               cmp_sort_vcs vcs1 vcs2)
-             cs
+         let cases =
+           List.stable_sort ~cmp:cmp_sort_cases (List.rev cases)
          in
          let cases =
-           List.fold_left cs
+           List.fold_left cases
              ~init:
                [
                  [%pat? _]
@@ -250,35 +251,14 @@ module Of_json = struct
                        Jsonkit.of_json_error ~json:x
                          [%e estring ~loc error_message]];
                ]
-             ~f:(fun next (c : constructor_declaration) ->
-               let construct (n : label loc) arg =
+             ~f:(fun next case ->
+               let n = case_name case in
+               let construct arg =
                  pexp_construct (map_loc lident n) ~loc:n.loc arg
                in
-               let n = c.pcd_name in
-               let attr = resolve_attr (`Variant_ctx c) in
-               match c.pcd_args with
-               | Pcstr_record fields ->
-                   let case =
-                     Vcs_record
-                       {
-                         name = n;
-                         loc;
-                         fields = Record.resolve_fields fields;
-                         attr;
-                         allow_extra_fields =
-                           Attrs.Json.cd_allow_extra_fields c;
-                       }
-                   in
-                   validate_case case;
-                   derive_of_variant_case self#derive_of_core_type
-                     ~is_compact_variants:compact (construct n) case
-                   :: next
-               | Pcstr_tuple types ->
-                   let case = Vcs_tuple { name = n; loc; types; attr } in
-                   validate_case case;
-                   derive_of_variant_case self#derive_of_core_type
-                     ~is_compact_variants:compact (construct n) case
-                   :: next)
+               derive_of_variant_case self#derive_of_core_type
+                 ~is_compact_variants:compact construct case
+               :: next)
          in
          pexp_match ~loc x cases
 
@@ -287,26 +267,14 @@ module Of_json = struct
          let compact =
            Option.fold ~none:false ~some:Attrs.Json.is_compact_variants td
          in
-         let cases = repr_polyvariant_cases cs in
          let cases =
-           List.stable_sort
-             ~cmp:(fun (cs1, _) (cs2, _) ->
-               let vcs1 = `Polyvariant_ctx cs1
-               and vcs2 = `Polyvariant_ctx cs2 in
-               cmp_sort_vcs vcs1 vcs2)
-             cases
+           List.stable_sort ~cmp:cmp_sort_pvcs
+             (List.rev (resolve_polyvariant_cases ~loc cs))
          in
          let ctors, inherits =
-           List.partition_map cases ~f:(fun (c, r) ->
-               let attr = resolve_attr (`Polyvariant_ctx c) in
-               match r with
-               | `Rtag (n, ts) ->
-                   let case =
-                     Vcs_tuple { name = n; loc; types = ts; attr }
-                   in
-                   validate_case case;
-                   Left (n, case)
-               | `Rinherit (n, ts) -> Right (n, ts))
+           List.partition_map cases ~f:(function
+             | Pvc_case case -> Left case
+             | Pvc_inherit (n, ts) -> Right (n, ts))
          in
          let catch_all =
            [%pat? x]
@@ -336,8 +304,8 @@ module Of_json = struct
                          [%e next]])
          in
          let cases =
-           List.fold_left ctors ~init:[ catch_all ]
-             ~f:(fun next ((n : label loc), case) ->
+           List.fold_left ctors ~init:[ catch_all ] ~f:(fun next case ->
+               let n = case_name case in
                let construct arg = pexp_variant ~loc:n.loc n.txt arg in
                derive_of_variant_case ~is_compact_variants:compact
                  self#derive_of_core_type construct case

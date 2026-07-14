@@ -334,22 +334,21 @@ module Of_json = struct
 
        method! derive_of_variant td cs x =
          let loc = td.ptype_loc in
-         let cs = repr_variant_cases cs in
-         let allow_any_constr =
-           cs
-           |> List.find_opt ~f:(fun cs ->
-               vcs_attr_json_allow_any (`Variant_ctx cs))
-           |> Option.map (fun cs e -> econstruct cs (Some e))
-         in
-         let cs =
-           List.filter
-             ~f:(fun cs ->
-               not (vcs_attr_json_allow_any (`Variant_ctx cs)))
-             cs
-         in
          let compact = Attrs.Json.is_compact_variants td in
+         let cases = List.rev (resolve_variant_cases ~loc cs) in
+         let allow_any_constr =
+           cases
+           |> List.find_opt ~f:(fun case -> (case_attr case).allow_any)
+           |> Option.map (fun case e ->
+               let n = case_name case in
+               pexp_construct ~loc:n.loc (map_loc lident n) (Some e))
+         in
+         let cases =
+           List.filter cases ~f:(fun case ->
+               not (case_attr case).allow_any)
+         in
          let body =
-           List.fold_left cs
+           List.fold_left cases
              ~init:
                (match allow_any_constr with
                | Some allow_any_constr ->
@@ -357,38 +356,19 @@ module Of_json = struct
                | None ->
                    let error_message =
                      Printf.sprintf "expected %s"
-                       (get_constructor_names ~compact cs
+                       (List.map cases ~f:(case_wire_shape ~compact)
                        |> String.concat ~sep:" or ")
                    in
                    fun ~array:_ ~len:_ ~tag:_ ->
                      [%expr
                        Jsonkit.of_json_error ~json:[%e x]
                          [%e estring ~loc error_message]])
-             ~f:(fun next c ->
-               let name = c.pcd_name in
+             ~f:(fun next case ->
+               let name = case_name case in
                let construct ~array ~len payload =
                  let arg = Option.map (fun f -> f ~array ~len) payload in
                  pexp_construct (map_loc lident name) ~loc:name.loc arg
                in
-               let attr = resolve_attr (`Variant_ctx c) in
-               let case =
-                 match c.pcd_args with
-                 | Pcstr_record fields ->
-                     let allow_extra_fields =
-                       Attrs.Json.cd_allow_extra_fields c
-                     in
-                     Vcs_record
-                       {
-                         name;
-                         loc;
-                         fields = Record.resolve_fields fields;
-                         attr;
-                         allow_extra_fields;
-                       }
-                 | Pcstr_tuple types ->
-                     Vcs_tuple { name; loc; types; attr }
-               in
-               validate_case case;
                self#variant_case_link ~compact ~allow_any_constr
                  ~construct ~case next)
          in
@@ -400,24 +380,27 @@ module Of_json = struct
          let compact =
            Option.fold ~none:false ~some:Attrs.Json.is_compact_variants td
          in
+         (* the raw rows are kept paired with their resolved cases: the
+            inherited-case coercion type and the "expected ..." message
+            below are built from the raw rows sans the allow_any case *)
+         let all = List.combine cs (resolve_polyvariant_cases ~loc cs) in
          let allow_any_constr =
-           cs
-           |> List.find_opt ~f:(fun cs ->
-               vcs_attr_json_allow_any (`Polyvariant_ctx cs))
-           |> Option.map (fun cs ->
-               match cs.prf_desc with
-               | Rinherit _ ->
-                   failwith "[@allow_any] placed on inherit clause"
-               | Rtag (n, _, _) ->
-                   fun e -> pexp_variant ~loc:n.loc n.txt (Some e))
+           List.find_map all ~f:(fun (_, pvc) ->
+               match pvc with
+               | Pvc_case
+                   (Vcs_tuple
+                      { name = n; attr = { allow_any = true; _ }; _ }) ->
+                   Some (fun e -> pexp_variant ~loc:n.loc n.txt (Some e))
+               | _ -> None)
          in
-         let cs =
-           List.filter
-             ~f:(fun cs ->
-               not (vcs_attr_json_allow_any (`Polyvariant_ctx cs)))
-             cs
+         let all =
+           List.filter all ~f:(fun (_, pvc) ->
+               match pvc with
+               | Pvc_case case -> not (case_attr case).allow_any
+               | Pvc_inherit _ -> true)
          in
-         let cases = repr_polyvariant_cases cs in
+         let cs = List.map all ~f:fst in
+         let cases = List.rev_map all ~f:snd in
          let body =
            List.fold_left cases
              ~init:
@@ -436,23 +419,21 @@ module Of_json = struct
                      [%expr
                        Jsonkit.of_json_unexpected_variant ~json:x
                          [%e estring ~loc error_message]])
-             ~f:(fun next (c, r) ->
-               match r with
-               | `Rtag (n, ts) ->
+             ~f:(fun next pvc ->
+               match pvc with
+               | Pvc_case (Vcs_tuple { name = n; _ } as case) ->
                    let construct ~array ~len payload =
                      let arg =
                        Option.map (fun f -> f ~array ~len) payload
                      in
                      pexp_variant ~loc:n.loc n.txt arg
                    in
-                   let attr = resolve_attr (`Polyvariant_ctx c) in
-                   let case =
-                     Vcs_tuple { name = n; loc; types = ts; attr }
-                   in
-                   validate_case case;
                    self#variant_case_link ~compact ~allow_any_constr
                      ~construct ~case next
-               | `Rinherit (n, ts) ->
+               | Pvc_case (Vcs_record _) ->
+                   (* polymorphic-variant tags carry no inline records *)
+                   assert false
+               | Pvc_inherit (n, ts) ->
                    let maybe_e =
                      self#derive_type_ref ~loc self#name n ts x
                    in

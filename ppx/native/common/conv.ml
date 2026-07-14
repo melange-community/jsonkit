@@ -240,19 +240,6 @@ let rec get_variant_names ?(compact = false) ~loc c =
           List.concat_map fields ~f:(get_variant_names ~compact ~loc)
       | _ -> [])
 
-let get_constructor_names ?(compact = false) cs =
-  List.map cs ~f:(fun c ->
-      let name =
-        Option.value ~default:c.pcd_name
-          (Attribute.get Attrs.Json.attr_json_name_cd c)
-      in
-      match c.pcd_args with
-      | Pcstr_record _fs -> Printf.sprintf {|["%s", { _ }]|} name.txt
-      | Pcstr_tuple [] when compact -> Printf.sprintf {|"%s"|} name.txt
-      | Pcstr_tuple li ->
-          Printf.sprintf {|["%s"%s]|} name.txt
-            (li |> List.map ~f:(fun _ -> ", _") |> String.concat ~sep:""))
-
 module Record = struct
   (* A record field with its [@json.*] attributes resolved to plain data:
      [key] is the JSON object key ([@json.key], falling back to the OCaml
@@ -352,10 +339,66 @@ module Variant = struct
            `string` and `Jsonkit.t list option`"
     | Vcs_tuple _ | Vcs_record _ -> ()
 
-  let repr_polyvariant_cases cs =
-    List.rev cs |> List.map ~f:(fun c -> c, repr_row_field c)
+  let case_name = function
+    | Vcs_tuple { name; _ } | Vcs_record { name; _ } -> name
 
-  let repr_variant_cases cs = List.rev cs
+  let case_attr = function
+    | Vcs_tuple { attr; _ } | Vcs_record { attr; _ } -> attr
+
+  (* Wire shape of a case, as shown in "expected ..." decode errors. *)
+  let case_wire_shape ~compact case =
+    match case with
+    | Vcs_record { name; attr; _ } ->
+        let name = Option.value ~default:name attr.json_name in
+        Printf.sprintf {|["%s", { _ }]|} name.txt
+    | Vcs_tuple { name; types; attr; _ } ->
+        let name = Option.value ~default:name attr.json_name in
+        if compact && types = [] then Printf.sprintf {|"%s"|} name.txt
+        else
+          Printf.sprintf {|["%s"%s]|} name.txt
+            (types
+            |> List.map ~f:(fun _ -> ", _")
+            |> String.concat ~sep:"")
+
+  type polyvariant_case =
+    | Pvc_case of case
+    | Pvc_inherit of longident loc * core_type list
+
+  (* Resolve variant constructors / polymorphic-variant rows into plain
+     [case] data (attributes resolved, shapes validated), in declaration
+     order. *)
+  let resolve_variant_cases ~loc cs =
+    List.map cs ~f:(fun (c : constructor_declaration) ->
+        let attr = resolve_attr (`Variant_ctx c) in
+        let case =
+          match c.pcd_args with
+          | Pcstr_record fields ->
+              Vcs_record
+                {
+                  name = c.pcd_name;
+                  loc;
+                  fields = Record.resolve_fields fields;
+                  attr;
+                  allow_extra_fields = Attrs.Json.cd_allow_extra_fields c;
+                }
+          | Pcstr_tuple types ->
+              Vcs_tuple { name = c.pcd_name; loc; types; attr }
+        in
+        validate_case case;
+        case)
+
+  let resolve_polyvariant_cases ~loc cs =
+    List.map cs ~f:(fun c ->
+        let attr = resolve_attr (`Polyvariant_ctx c) in
+        match repr_row_field c with
+        | `Rtag (n, ts) ->
+            let case = Vcs_tuple { name = n; loc; types = ts; attr } in
+            validate_case case;
+            Pvc_case case
+        | `Rinherit (n, ts) ->
+            if attr.allow_any then
+              failwith "[@allow_any] placed on inherit clause";
+            Pvc_inherit (n, ts))
 end
 
 open Variant
@@ -409,33 +452,19 @@ let deriving_to ~name ~t_to ~derive_of_tuple ~derive_of_labeled_tuple
        let ctor_pat (n : label loc) pat =
          ppat_construct ~loc:n.loc (map_loc lident n) pat
        in
-       let cs = Variant.repr_variant_cases cs in
        pexp_match ~loc x
-         (List.rev_map cs ~f:(fun c ->
-              let n = c.pcd_name in
-              let attr = Variant.resolve_attr (`Variant_ctx c) in
-              match c.pcd_args with
-              | Pcstr_record fields ->
-                  let p, es = gen_pat_record ~loc "x" fields in
-                  let case =
-                    Vcs_record
-                      {
-                        name = n;
-                        loc;
-                        fields = Record.resolve_fields fields;
-                        attr;
-                        allow_extra_fields =
-                          Attrs.Json.cd_allow_extra_fields c;
-                      }
+         (List.map (resolve_variant_cases ~loc cs) ~f:(fun case ->
+              match case with
+              | Vcs_record { name = n; fields; _ } ->
+                  let p, es =
+                    gen_pat_record ~loc "x"
+                      (List.map fields ~f:(fun (f : Record.field) -> f.ld))
                   in
-                  validate_case case;
                   ctor_pat n (Some p)
                   --> derive_of_variant_case ~is_compact_variants:compact
                         self#derive_of_core_type case es
-              | Pcstr_tuple types ->
+              | Vcs_tuple { name = n; types; _ } ->
                   let arity = List.length types in
-                  let case = Vcs_tuple { name = n; loc; types; attr } in
-                  validate_case case;
                   let p, es = gen_pat_tuple ~loc "x" arity in
                   ctor_pat n (if arity = 0 then None else Some p)
                   --> derive_of_variant_case ~is_compact_variants:compact
@@ -446,34 +475,27 @@ let deriving_to ~name ~t_to ~derive_of_tuple ~derive_of_labeled_tuple
        let compact =
          Option.fold ~none:false ~some:Attrs.Json.is_compact_variants td
        in
-       let cases = repr_polyvariant_cases cs in
-       let cases =
-         List.rev_map cases ~f:(fun (c, r) ->
-             let attr = resolve_attr (`Polyvariant_ctx c) in
-             match r with
-             | `Rtag (n, []) ->
-                 let case =
-                   Vcs_tuple { name = n; loc; types = []; attr }
-                 in
-                 validate_case case;
-                 ppat_variant ~loc n.txt None
-                 --> derive_of_variant_case ~is_compact_variants:compact
-                       self#derive_of_core_type case []
-             | `Rtag (n, ts) ->
-                 let case =
-                   Vcs_tuple { name = n; loc; types = ts; attr }
-                 in
-                 validate_case case;
-                 let ps, es = gen_pat_tuple ~loc "x" (List.length ts) in
-                 ppat_variant ~loc n.txt (Some ps)
-                 --> derive_of_variant_case ~is_compact_variants:compact
-                       self#derive_of_core_type case es
-             | `Rinherit (n, ts) ->
-                 [%pat? [%p ppat_type ~loc n] as x]
-                 --> self#derive_of_core_type
-                       (ptyp_constr ~loc:n.loc n ts)
-                       [%expr x])
-       in
-       pexp_match ~loc x cases
+       pexp_match ~loc x
+         (List.map (resolve_polyvariant_cases ~loc cs) ~f:(fun pvc ->
+              match pvc with
+              | Pvc_case (Vcs_tuple { name = n; types = []; _ } as case)
+                ->
+                  ppat_variant ~loc n.txt None
+                  --> derive_of_variant_case ~is_compact_variants:compact
+                        self#derive_of_core_type case []
+              | Pvc_case (Vcs_tuple { name = n; types = ts; _ } as case)
+                ->
+                  let ps, es = gen_pat_tuple ~loc "x" (List.length ts) in
+                  ppat_variant ~loc n.txt (Some ps)
+                  --> derive_of_variant_case ~is_compact_variants:compact
+                        self#derive_of_core_type case es
+              | Pvc_case (Vcs_record _) ->
+                  (* polymorphic-variant tags carry no inline records *)
+                  assert false
+              | Pvc_inherit (n, ts) ->
+                  [%pat? [%p ppat_type ~loc n] as x]
+                  --> self#derive_of_core_type
+                        (ptyp_constr ~loc:n.loc n ts)
+                        [%expr x]))
    end
     :> deriving)
