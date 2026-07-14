@@ -140,57 +140,23 @@ module Of_json = struct
     | Vcs_tuple { name; attr = { allow_any = true; _ }; _ } ->
         let loc = name.loc in
         [%pat? _] --> construct (Some [%expr x])
-    | Vcs_tuple { name; types; attr = { catch_all = true; _ }; _ } -> (
+    | Vcs_tuple { name; attr = { catch_all = true; _ }; _ }
+    | Vcs_record { name; attr = { catch_all = true; _ }; _ } ->
         let loc = name.loc in
-        match types with
-        | [ _ ] ->
-            [%pat? (`String _ | `List (`String _ :: _)) as v]
-            --> [%expr
-                  let tag, payload =
-                    match v with
-                    | `String s -> s, Stdlib.Option.None
-                    | `List (`String s :: payload) ->
-                        s, Stdlib.Option.Some payload
-                    | _ -> assert false
-                  in
-                  [%e
-                    construct
-                      (Some
-                         [%expr
-                           ({ tag; payload }
-                             : Jsonkit.unknown_variant_case)])]]
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] requires exactly one argument: a record \
-               type with fields `tag : string` and `payload : \
-               Yojson.Basic.t list option` (typically \
-               [Jsonkit.unknown_variant_case])")
-    | Vcs_record { loc; fields; attr = { catch_all = true; _ }; _ } -> (
-        match fields with
-        | [
-         { name = { txt = "tag"; _ }; _ };
-         { name = { txt = "payload"; _ }; _ };
-        ] ->
-            [%pat? (`String _ | `List (`String _ :: _)) as v]
-            --> [%expr
-                  let tag, payload =
-                    match v with
-                    | `String s -> s, Stdlib.Option.None
-                    | `List (`String s :: payload) ->
-                        s, Stdlib.Option.Some payload
-                    | _ -> assert false
-                  in
-                  [%e
-                    construct
-                      (Some
-                         [%expr
-                           ({ tag; payload }
-                             : Jsonkit.unknown_variant_case)])]]
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] inline record must have exactly two \
-               fields named `tag` and `payload` (in that order), with \
-               types `string` and `Yojson.Basic.t list option`")
+        [%pat? (`String _ | `List (`String _ :: _)) as v]
+        --> [%expr
+              let tag, payload =
+                match v with
+                | `String s -> s, Stdlib.Option.None
+                | `List (`String s :: payload) ->
+                    s, Stdlib.Option.Some payload
+                | _ -> assert false
+              in
+              [%e
+                construct
+                  (Some
+                     [%expr
+                       ({ tag; payload } : Jsonkit.unknown_variant_case)])]]
     | Vcs_tuple { name; types; attr; _ } ->
         let loc = name.loc in
         let n = Option.value ~default:name attr.json_name in
@@ -303,11 +269,13 @@ module Of_json = struct
                            Attrs.Json.cd_allow_extra_fields c;
                        }
                    in
+                   validate_case case;
                    derive_of_variant_case self#derive_of_core_type
                      ~is_compact_variants:compact (construct n) case
                    :: next
                | Pcstr_tuple types ->
                    let case = Vcs_tuple { name = n; loc; types; attr } in
+                   validate_case case;
                    derive_of_variant_case self#derive_of_core_type
                      ~is_compact_variants:compact (construct n) case
                    :: next)
@@ -333,7 +301,11 @@ module Of_json = struct
                let attr = resolve_attr (`Polyvariant_ctx c) in
                match r with
                | `Rtag (n, ts) ->
-                   Left (n, Vcs_tuple { name = n; loc; types = ts; attr })
+                   let case =
+                     Vcs_tuple { name = n; loc; types = ts; attr }
+                   in
+                   validate_case case;
+                   Left (n, case)
                | `Rinherit (n, ts) -> Right (n, ts))
          in
          let catch_all =
@@ -430,37 +402,25 @@ module To_json = struct
             failwith
               (sprintf "expected a tuple of length 1, got %i"
                  (List.length es)))
-    | Vcs_tuple { name; types; attr = { catch_all = true; _ }; _ } -> (
+    | Vcs_tuple { name; attr = { catch_all = true; _ }; _ } -> (
         let loc = name.loc in
-        match types, es with
-        | [ _ ], [ arg_e ] ->
+        match es with
+        | [ arg_e ] ->
             [%expr
               match [%e arg_e].payload with
               | Stdlib.Option.None -> `String [%e arg_e].tag
               | Stdlib.Option.Some xs ->
                   `List (`String [%e arg_e].tag :: xs)]
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] requires exactly one argument: a record \
-               type with fields `tag : string` and `payload : \
-               Yojson.Basic.t list option` (typically \
-               [Jsonkit.unknown_variant_case])")
-    | Vcs_record { loc; fields; attr = { catch_all = true; _ }; _ } -> (
-        match fields, es with
-        | ( [
-              { name = { txt = "tag"; _ }; _ };
-              { name = { txt = "payload"; _ }; _ };
-            ],
-            [ tag_e; payload_e ] ) ->
+        | _ -> assert false)
+    | Vcs_record { name; attr = { catch_all = true; _ }; _ } -> (
+        let loc = name.loc in
+        match es with
+        | [ tag_e; payload_e ] ->
             [%expr
               match [%e payload_e] with
               | Stdlib.Option.None -> `String [%e tag_e]
               | Stdlib.Option.Some xs -> `List (`String [%e tag_e] :: xs)]
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] inline record must have exactly two \
-               fields named `tag` and `payload` (in that order), with \
-               types `string` and `Yojson.Basic.t list option`")
+        | _ -> assert false)
     | Vcs_tuple { name; types; attr; _ } ->
         let loc = name.loc in
         let n = Option.value ~default:name attr.json_name in

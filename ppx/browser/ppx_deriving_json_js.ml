@@ -202,28 +202,10 @@ module Of_json = struct
   let derive_of_variant_case ?(is_compact_variants = false) ~tag ~array
       ~len ~allow_any_constr derive construct case next =
     match case with
-    | Vcs_tuple { name; types; attr = { catch_all = true; _ }; _ } -> (
-        let loc = name.loc in
-        match types with
-        | [ _ ] ->
-            construct (Some (build_unknown_variant_case_record ~loc ~tag))
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] requires exactly one argument: a record \
-               type with fields `tag : string` and `payload : Jsonkit.t \
-               list option` (typically [Jsonkit.unknown_variant_case])")
-    | Vcs_record { loc; fields; attr = { catch_all = true; _ }; _ } -> (
-        match fields with
-        | [
-         { name = { txt = "tag"; _ }; _ };
-         { name = { txt = "payload"; _ }; _ };
-        ] ->
-            construct (Some (build_unknown_variant_case_record ~loc ~tag))
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] inline record must have exactly two \
-               fields named `tag` and `payload` (in that order), with \
-               types `string` and `Jsonkit.t list option`")
+    | Vcs_tuple { name; attr = { catch_all = true; _ }; _ }
+    | Vcs_record { name; attr = { catch_all = true; _ }; _ } ->
+        construct
+          (Some (build_unknown_variant_case_record ~loc:name.loc ~tag))
     | Vcs_record _ when len_never 2 len ->
         (* Record variants need [["Name", {...}]] (length 2); unreachable for
            the bare-string form, so skip straight to the next case. *)
@@ -406,6 +388,7 @@ module Of_json = struct
                  | Pcstr_tuple types ->
                      Vcs_tuple { name; loc; types; attr }
                in
+               validate_case case;
                self#variant_case_link ~compact ~allow_any_constr
                  ~construct ~case next)
          in
@@ -466,6 +449,7 @@ module Of_json = struct
                    let case =
                      Vcs_tuple { name = n; loc; types = ts; attr }
                    in
+                   validate_case case;
                    self#variant_case_link ~compact ~allow_any_constr
                      ~construct ~case next
                | `Rinherit (n, ts) ->
@@ -526,10 +510,10 @@ module To_json = struct
 
   let derive_of_variant_case ?(is_compact_variants = false) derive c es =
     match c with
-    | Vcs_tuple { name; types; attr = { catch_all = true; _ }; _ } -> (
+    | Vcs_tuple { name; attr = { catch_all = true; _ }; _ } -> (
         let loc = name.loc in
-        match types, es with
-        | [ _ ], [ arg_e ] ->
+        match es with
+        | [ arg_e ] ->
             [%expr
               match [%e arg_e].payload with
               | Stdlib.Option.None ->
@@ -547,18 +531,11 @@ module To_json = struct
                      (Stdlib.Array.of_list (head :: rest)
                        : Js.Json.t array)
                     : Js.Json.t)]
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] requires exactly one argument: a record \
-               type with fields `tag : string` and `payload : Jsonkit.t \
-               list option` (typically [Jsonkit.unknown_variant_case])")
-    | Vcs_record { loc; fields; attr = { catch_all = true; _ }; _ } -> (
-        match fields, es with
-        | ( [
-              { name = { txt = "tag"; _ }; _ };
-              { name = { txt = "payload"; _ }; _ };
-            ],
-            [ tag_e; payload_e ] ) ->
+        | _ -> assert false)
+    | Vcs_record { name; attr = { catch_all = true; _ }; _ } -> (
+        let loc = name.loc in
+        match es with
+        | [ tag_e; payload_e ] ->
             [%expr
               match [%e payload_e] with
               | Stdlib.Option.None ->
@@ -576,11 +553,7 @@ module To_json = struct
                      (Stdlib.Array.of_list (head :: rest)
                        : Js.Json.t array)
                     : Js.Json.t)]
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] inline record must have exactly two \
-               fields named `tag` and `payload` (in that order), with \
-               types `string` and `Jsonkit.t list option`")
+        | _ -> assert false)
     | Vcs_record { name; loc; fields; attr; _ } ->
         let n = Option.value ~default:name attr.json_name in
         let tag =

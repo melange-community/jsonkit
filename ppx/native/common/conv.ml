@@ -322,6 +322,36 @@ module Variant = struct
       json_name = Attrs.Json.vcs_attr_json_name ctx;
     }
 
+  (* A [@json.catch_all] case must be able to hold the unknown tag and its
+     payload: either a single argument (typically
+     [Jsonkit.unknown_variant_case]) or an inline record with exactly
+     the fields [tag] and [payload]. Validated once here so the backends
+     can assume the shape. *)
+  let validate_case = function
+    | Vcs_tuple { attr = { catch_all = true; _ }; types = [ _ ]; _ } -> ()
+    | Vcs_tuple { name; attr = { catch_all = true; _ }; _ } ->
+        Location.raise_errorf ~loc:name.loc
+          "[@json.catch_all] requires exactly one argument: a record \
+           type with fields `tag : string` and `payload : Jsonkit.t list \
+           option` (typically [Jsonkit.unknown_variant_case])"
+    | Vcs_record
+        {
+          attr = { catch_all = true; _ };
+          fields =
+            [
+              { name = { txt = "tag"; _ }; _ };
+              { name = { txt = "payload"; _ }; _ };
+            ];
+          _;
+        } ->
+        ()
+    | Vcs_record { loc; attr = { catch_all = true; _ }; _ } ->
+        Location.raise_errorf ~loc
+          "[@json.catch_all] inline record must have exactly two fields \
+           named `tag` and `payload` (in that order), with types \
+           `string` and `Jsonkit.t list option`"
+    | Vcs_tuple _ | Vcs_record _ -> ()
+
   let repr_polyvariant_cases cs =
     List.rev cs |> List.map ~f:(fun c -> c, repr_row_field c)
 
@@ -398,12 +428,14 @@ let deriving_to ~name ~t_to ~derive_of_tuple ~derive_of_labeled_tuple
                           Attrs.Json.cd_allow_extra_fields c;
                       }
                   in
+                  validate_case case;
                   ctor_pat n (Some p)
                   --> derive_of_variant_case ~is_compact_variants:compact
                         self#derive_of_core_type case es
               | Pcstr_tuple types ->
                   let arity = List.length types in
                   let case = Vcs_tuple { name = n; loc; types; attr } in
+                  validate_case case;
                   let p, es = gen_pat_tuple ~loc "x" arity in
                   ctor_pat n (if arity = 0 then None else Some p)
                   --> derive_of_variant_case ~is_compact_variants:compact
@@ -423,6 +455,7 @@ let deriving_to ~name ~t_to ~derive_of_tuple ~derive_of_labeled_tuple
                  let case =
                    Vcs_tuple { name = n; loc; types = []; attr }
                  in
+                 validate_case case;
                  ppat_variant ~loc n.txt None
                  --> derive_of_variant_case ~is_compact_variants:compact
                        self#derive_of_core_type case []
@@ -430,6 +463,7 @@ let deriving_to ~name ~t_to ~derive_of_tuple ~derive_of_labeled_tuple
                  let case =
                    Vcs_tuple { name = n; loc; types = ts; attr }
                  in
+                 validate_case case;
                  let ps, es = gen_pat_tuple ~loc "x" (List.length ts) in
                  ppat_variant ~loc n.txt (Some ps)
                  --> derive_of_variant_case ~is_compact_variants:compact
