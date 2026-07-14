@@ -103,6 +103,12 @@ module Json = struct
     let deriver = "json"
   end)
 
+  (* A variant case as seen by the attribute readers: either a regular variant
+     constructor or a polymorphic-variant tag. *)
+  type case_ctx =
+    [ `Variant_ctx of constructor_declaration
+    | `Polyvariant_ctx of row_field ]
+
   (* Read an attribute off a variant case regardless of whether it is a regular
      variant constructor or a polymorphic-variant tag, dispatching on the source
      node to the appropriately-typed attribute declaration. *)

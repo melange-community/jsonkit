@@ -4,8 +4,6 @@ open Ppxlib
 open Ast_builder.Default
 open Ast_helpers
 open Conv
-open Conv.Variant
-open Attrs.Json
 open Json_string_deriver
 
 module Of_json = struct
@@ -41,8 +39,8 @@ module Of_json = struct
     in
     pexp_tuple ~loc args
 
-  let build_record ~loc ~allow_extra_fields ~json_fields of_json fields
-      make =
+  let build_record ~loc ~json_fields of_json (record : Record.t) make =
+    let fields = record.fields in
     with_refs ~loc "x" fields @@ fun ename ->
     let store_case value (f : Record.field) =
       let key = f.key in
@@ -52,7 +50,7 @@ module Of_json = struct
               Stdlib.Option.Some [%e of_json f.type_ value]]
     in
     let fail_case =
-      if allow_extra_fields then [%pat? _] --> [%expr ()]
+      if record.allow_extra_fields then [%pat? _] --> [%expr ()]
       else
         [%pat? name]
         --> [%expr
@@ -106,36 +104,35 @@ module Of_json = struct
                     (sprintf "expected a JSON array of length %i" length)]];
       ]
 
-  let derive_of_record' ~loc ~allow_extra_fields ~build of_json fields x =
+  let derive_of_record' ~loc ~build of_json record x =
     pexp_match ~loc x
       [
         [%pat? `Assoc fs]
-        --> build_record ~allow_extra_fields ~json_fields:[%expr fs] ~loc
-              of_json fields build;
+        --> build_record ~json_fields:[%expr fs] ~loc of_json record build;
         [%pat? _]
         --> [%expr
               Jsonkit.of_json_error ~json:[%e x]
                 [%e estring ~loc (sprintf "expected a JSON object")]];
       ]
 
-  let derive_of_record ~loc ~allow_extra_fields derive fields x =
+  let derive_of_record ~loc derive record x =
     let build ~loc fs =
       let fs = List.map fs ~f:(fun (n, v) -> map_loc lident n, v) in
       pexp_record ~loc fs None
     in
-    derive_of_record' ~loc ~allow_extra_fields ~build derive fields x
+    derive_of_record' ~loc ~build derive record x
 
-  let derive_of_labeled_tuple ~loc derive fields x =
+  let derive_of_labeled_tuple ~loc derive record x =
     let build ~loc fs =
       let fs =
         List.map fs ~f:(fun (n, v) -> labeled_tuple_arg_label n, v)
       in
       pexp_labeled_tuple ~loc fs
     in
-    derive_of_record' ~loc ~allow_extra_fields:true ~build derive fields x
+    derive_of_record' ~loc ~build derive record x
 
-  let derive_of_variant_case ?(is_compact_variants = false) of_json
-      construct case =
+  let derive_of_variant_case ?(is_compact_variants = false) of_json case =
+    let construct = Variant.case_construct case in
     match case with
     | Vcs_tuple { name; attr = { allow_any = true; _ }; _ } ->
         let loc = name.loc in
@@ -157,28 +154,27 @@ module Of_json = struct
                   (Some
                      [%expr
                        ({ tag; payload } : Jsonkit.unknown_variant_case)])]]
-    | Vcs_tuple { name; types; attr; _ } ->
+    | Vcs_tuple { name; tag; types; _ } ->
         let loc = name.loc in
-        let n = Option.value ~default:name attr.json_name in
         let arity = List.length types in
         if is_compact_variants && arity = 0 then
           [%pat?
-            ( `String [%p pstring ~loc:n.loc n.txt]
-            | `List [ `String [%p pstring ~loc:n.loc n.txt] ] )]
+            ( `String [%p pstring ~loc:tag.loc tag.txt]
+            | `List [ `String [%p pstring ~loc:tag.loc tag.txt] ] )]
           --> construct None
         else if arity = 0 then
-          [%pat? `List [ `String [%p pstring ~loc:n.loc n.txt] ]]
+          [%pat? `List [ `String [%p pstring ~loc:tag.loc tag.txt] ]]
           --> construct None
         else
           let xpatt, xexprs = gen_pat_list ~loc "x" arity in
           [%pat?
-            `List (`String [%p pstring ~loc:n.loc n.txt] :: [%p xpatt])]
+            `List (`String [%p pstring ~loc:tag.loc tag.txt] :: [%p xpatt])]
           --> construct (Some (build_tuple ~loc of_json xexprs types))
-    | Vcs_record { name; loc; fields; attr; allow_extra_fields } ->
-        let n = Option.value ~default:name attr.json_name in
-        [%pat? `List [ `String [%p pstring ~loc:n.loc n.txt]; `Assoc fs ]]
-        --> build_record ~allow_extra_fields ~loc ~json_fields:[%expr fs]
-              of_json fields (fun ~loc fs ->
+    | Vcs_record { tag; loc; record; _ } ->
+        [%pat?
+          `List [ `String [%p pstring ~loc:tag.loc tag.txt]; `Assoc fs ]]
+        --> build_record ~loc ~json_fields:[%expr fs] of_json record
+              (fun ~loc fs ->
                 let fs =
                   List.map fs ~f:(fun (n, v) -> map_loc lident n, v)
                 in
@@ -193,25 +189,25 @@ module Of_json = struct
        - specific constructor cases
    *)
   let case_sort_key case =
-    let attr = case_attr case in
+    let attr = Variant.case_attr case in
     if attr.allow_any then 0 else if attr.catch_all then 1 else 2
 
   let cmp_sort_cases c1 c2 = compare (case_sort_key c1) (case_sort_key c2)
 
   let cmp_sort_pvcs p1 p2 =
     let key = function
-      | Pvc_case case -> case_sort_key case
+      | Variant.Pvc_tag case -> case_sort_key (Vcs_tuple case)
       | Pvc_inherit _ -> 2
     in
     compare (key p1) (key p2)
 
   (* of_json for native: JSON is [Yojson.Basic.t], a matchable ADT, so the
      variant decoder is a single [match] expression. This object plugs the
-     module-local leaf builders into the shared [Conv.deriving1] traversal;
+     module-local leaf builders into the shared [Conv.deriving_fn] traversal;
      [cmp_sort_vcs] orders the arms so the widest catch-alls come first. *)
   let deriving : Conv.deriving =
     (object (self)
-       inherit deriving1
+       inherit deriving_fn
        method name = "of_json"
        method t ~loc _name t = [%type: Yojson.Basic.t -> [%t t]]
 
@@ -220,24 +216,22 @@ module Of_json = struct
 
        method! derive_of_labeled_tuple t ts x =
          derive_of_labeled_tuple ~loc:t.ptyp_loc self#derive_of_core_type
-           (Record.fields_of_labeled_tuple ts)
+           (Record.of_labeled_tuple ts)
            x
 
        method! derive_of_record td fs x =
-         derive_of_record ~loc:td.ptype_loc
-           ~allow_extra_fields:(Attrs.Json.td_allow_extra_fields td)
-           self#derive_of_core_type
-           (Record.resolve_fields fs)
+         derive_of_record ~loc:td.ptype_loc self#derive_of_core_type
+           (Record.of_type_declaration td fs)
            x
 
        method! derive_of_variant td cs x =
          let loc = td.ptype_loc in
-         let compact = Attrs.Json.is_compact_variants td in
-         let cases = resolve_variant_cases ~loc cs in
+         let { Variant.compact; cases; _ } =
+           Variant.resolve_variant td cs
+         in
          let error_message =
-           Printf.sprintf "expected %s"
-             (List.map cases ~f:(case_wire_shape ~compact)
-             |> String.concat ~sep:" or ")
+           Variant.expected_message
+             (List.map cases ~f:(Variant.case_json_shape ~compact))
          in
          let cases =
            List.stable_sort ~cmp:cmp_sort_cases (List.rev cases)
@@ -252,44 +246,36 @@ module Of_json = struct
                          [%e estring ~loc error_message]];
                ]
              ~f:(fun next case ->
-               let n = case_name case in
-               let construct arg =
-                 pexp_construct (map_loc lident n) ~loc:n.loc arg
-               in
                derive_of_variant_case self#derive_of_core_type
-                 ~is_compact_variants:compact construct case
+                 ~is_compact_variants:compact case
                :: next)
          in
          pexp_match ~loc x cases
 
        method! derive_of_polyvariant ?td t (cs : row_field list) x =
          let loc = t.ptyp_loc in
-         let compact =
-           Option.fold ~none:false ~some:Attrs.Json.is_compact_variants td
+         let { Variant.compact; pvcs; _ } =
+           Variant.resolve_polyvariant ?td cs
+         in
+         let error_message =
+           Variant.expected_message
+             (Variant.polyvariant_json_shapes ~compact ~loc pvcs)
          in
          let cases =
-           List.stable_sort ~cmp:cmp_sort_pvcs
-             (List.rev (resolve_polyvariant_cases ~loc cs))
+           List.stable_sort ~cmp:cmp_sort_pvcs (List.rev pvcs)
          in
          let ctors, inherits =
            List.partition_map cases ~f:(function
-             | Pvc_case case -> Left case
+             | Variant.Pvc_tag case -> Left (Variant.Vcs_tuple case)
              | Pvc_inherit (n, ts) -> Right (n, ts))
          in
          let catch_all =
            [%pat? x]
            --> List.fold_left (List.rev inherits)
                  ~init:
-                   (let error_message =
-                      Printf.sprintf "expected %s"
-                        (cs
-                        |> List.concat_map
-                             ~f:(get_variant_names ~compact ~loc)
-                        |> String.concat ~sep:" or ")
-                    in
-                    [%expr
-                      Jsonkit.of_json_unexpected_variant ~json:x
-                        [%e estring ~loc error_message]])
+                   [%expr
+                     Jsonkit.of_json_unexpected_variant ~json:x
+                       [%e estring ~loc error_message]]
                  ~f:(fun next (n, ts) ->
                    let maybe =
                      self#derive_type_ref ~loc self#name n ts x
@@ -305,10 +291,8 @@ module Of_json = struct
          in
          let cases =
            List.fold_left ctors ~init:[ catch_all ] ~f:(fun next case ->
-               let n = case_name case in
-               let construct arg = pexp_variant ~loc:n.loc n.txt arg in
                derive_of_variant_case ~is_compact_variants:compact
-                 self#derive_of_core_type construct case
+                 self#derive_of_core_type case
                :: next)
          in
          pexp_match ~loc x cases
@@ -321,97 +305,58 @@ module To_json = struct
     let n = gen_symbol ~prefix () in
     evar ~loc n, pvar ~loc n
 
-  let derive_of_tuple ~loc derive types es =
-    let es = List.map2 types es ~f:derive in
-    [%expr `List [%e elist ~loc es]]
+  let json_array ~loc es = [%expr `List [%e elist ~loc es]]
+
+  let json_string ~loc (n : label loc) =
+    [%expr `String [%e estring ~loc:n.loc n.txt]]
+
+  let catch_all_encode ~loc ~tag ~payload =
+    [%expr
+      match [%e payload] with
+      | Stdlib.Option.None -> `String [%e tag]
+      | Stdlib.Option.Some xs -> `List (`String [%e tag] :: xs)]
 
   let derive_of_record ~loc derive fields es =
     let ebnds, pbnds = gen_exp_pat ~loc "bnds" in
     let e =
       List.combine fields es
-      |> List.fold_left ~init:ebnds ~f:(fun acc ((f : Record.field), x) ->
-          let k = estring ~loc:f.key.loc f.key.txt in
-          let v = derive f.type_ x in
-          let ebnds =
-            match ld_drop_default f.ld with
-            | `No -> [%expr ([%e k], [%e v]) :: [%e ebnds]]
-            | `Drop_option ->
-                [%expr
-                  match [%e x] with
-                  | Stdlib.Option.None -> [%e ebnds]
-                  | Stdlib.Option.Some _ -> ([%e k], [%e v]) :: [%e ebnds]]
-            | `Drop_default (cmp, def) ->
-                [%expr
-                  if [%e cmp] [%e x] [%e def] then [%e ebnds]
-                  else ([%e k], [%e v]) :: [%e ebnds]]
-            | `Drop_default_if_json_equal def ->
-                [%expr
-                  let json = [%e v] in
-                  if Jsonkit.equal json [%e derive f.type_ def] then
-                    [%e ebnds]
-                  else ([%e k], json) :: [%e ebnds]]
-          in
-          [%expr
-            let [%p pbnds] = [%e ebnds] in
-            [%e acc]])
+      |> List.fold_left ~init:ebnds
+           ~f:(fun acc ((f : Record.to_field), x) ->
+             let k = estring ~loc:f.key.loc f.key.txt in
+             let v = derive f.type_ x in
+             let ebnds =
+               match f.drop with
+               | `No -> [%expr ([%e k], [%e v]) :: [%e ebnds]]
+               | `Drop_option ->
+                   [%expr
+                     match [%e x] with
+                     | Stdlib.Option.None -> [%e ebnds]
+                     | Stdlib.Option.Some _ ->
+                         ([%e k], [%e v]) :: [%e ebnds]]
+               | `Drop_default (cmp, def) ->
+                   [%expr
+                     if [%e cmp] [%e x] [%e def] then [%e ebnds]
+                     else ([%e k], [%e v]) :: [%e ebnds]]
+               | `Drop_default_if_json_equal def ->
+                   [%expr
+                     let json = [%e v] in
+                     if Jsonkit.equal json [%e derive f.type_ def] then
+                       [%e ebnds]
+                     else ([%e k], json) :: [%e ebnds]]
+             in
+             [%expr
+               let [%p pbnds] = [%e ebnds] in
+               [%e acc]])
     in
     [%expr
       `Assoc
         (let [%p pbnds] = [] in
          [%e e])]
 
-  let derive_of_variant_case ?(is_compact_variants = false) derive vcs es
-      =
-    match vcs with
-    | Vcs_tuple { attr = { allow_any = true; _ }; _ } -> (
-        match es with
-        | [ x ] -> x
-        | es ->
-            failwith
-              (sprintf "expected a tuple of length 1, got %i"
-                 (List.length es)))
-    | Vcs_tuple { name; attr = { catch_all = true; _ }; _ } -> (
-        let loc = name.loc in
-        match es with
-        | [ arg_e ] ->
-            [%expr
-              match [%e arg_e].payload with
-              | Stdlib.Option.None -> `String [%e arg_e].tag
-              | Stdlib.Option.Some xs ->
-                  `List (`String [%e arg_e].tag :: xs)]
-        | _ -> assert false)
-    | Vcs_record { name; attr = { catch_all = true; _ }; _ } -> (
-        let loc = name.loc in
-        match es with
-        | [ tag_e; payload_e ] ->
-            [%expr
-              match [%e payload_e] with
-              | Stdlib.Option.None -> `String [%e tag_e]
-              | Stdlib.Option.Some xs -> `List (`String [%e tag_e] :: xs)]
-        | _ -> assert false)
-    | Vcs_tuple { name; types; attr; _ } ->
-        let loc = name.loc in
-        let n = Option.value ~default:name attr.json_name in
-        let arity = List.length types in
-        if is_compact_variants && arity = 0 then
-          [%expr `String [%e estring ~loc:n.loc n.txt]]
-        else
-          [%expr
-            `List
-              (`String [%e estring ~loc:n.loc n.txt]
-              :: [%e elist ~loc (List.map2 types es ~f:derive)])]
-    | Vcs_record { name; loc; fields; attr; _ } ->
-        let n = Option.value ~default:name attr.json_name in
-        [%expr
-          `List
-            (`String [%e estring ~loc:n.loc n.txt]
-            :: [ [%e derive_of_record ~loc derive fields es] ])]
-
   let deriving : Conv.deriving =
     deriving_to () ~name:"to_json"
       ~t_to:(fun ~loc -> [%type: Yojson.Basic.t])
-      ~derive_of_tuple ~derive_of_labeled_tuple:derive_of_record
-      ~derive_of_record ~derive_of_variant_case
+      ~json_array ~json_string ~catch_all_encode ~derive_of_record
 end
 
 let () =
