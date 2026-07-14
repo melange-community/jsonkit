@@ -28,9 +28,6 @@
    (run echo "let () = Ppxlib.Driver.standalone ()"))))
 
 (copy_files#
- (files ../native/common/source.ml))
-
-(copy_files#
  (files ../native/common/ast_helpers.ml))
 
 (copy_files#

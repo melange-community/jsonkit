@@ -97,11 +97,9 @@ module Of_json = struct
   let derive_of_tuple ~loc of_json ts json =
     let length = List.length ts in
     let xpatt, xexprs = gen_pat_list ~loc "x" length in
-    let tuple_types = ts in
     pexp_match ~loc json
       [
-        [%pat? `List [%p xpatt]]
-        --> build_tuple ~loc of_json xexprs tuple_types;
+        [%pat? `List [%p xpatt]] --> build_tuple ~loc of_json xexprs ts;
         [%pat? _]
         --> [%expr
               Jsonkit.of_json_error ~json:[%e json]

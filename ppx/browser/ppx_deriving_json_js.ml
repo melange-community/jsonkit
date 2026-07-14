@@ -279,8 +279,6 @@ module Of_json = struct
                               build_tuple ~loc derive 1 types array)))]
             else [%e next]]
 
-  let is_allow_any_constr vcs = vcs_attr_json_allow_any vcs
-
   (* of_json for the browser: JSON is an opaque [Js.Json.t], so the variant
      decoder is a nested if-else chain (see [derive_of_variant]) rather than a
      [match]. This object plugs the module-local leaf builders into the shared
@@ -363,12 +361,12 @@ module Of_json = struct
          let allow_any_constr =
            cs
            |> List.find_opt ~f:(fun cs ->
-               is_allow_any_constr (`Variant_ctx cs))
+               vcs_attr_json_allow_any (`Variant_ctx cs))
            |> Option.map (fun cs e -> econstruct cs (Some e))
          in
          let cs =
            List.filter
-             ~f:(fun cs -> not (is_allow_any_constr (`Variant_ctx cs)))
+             ~f:(fun cs -> not (vcs_attr_json_allow_any (`Variant_ctx cs)))
              cs
          in
          let compact = Attrs.Json.is_compact_variants td in
@@ -420,7 +418,7 @@ module Of_json = struct
          let allow_any_constr =
            cs
            |> List.find_opt ~f:(fun cs ->
-               is_allow_any_constr (`Polyvariant_ctx cs))
+               vcs_attr_json_allow_any (`Polyvariant_ctx cs))
            |> Option.map (fun cs ->
                match cs.prf_desc with
                | Rinherit _ ->
@@ -431,7 +429,7 @@ module Of_json = struct
          let cs =
            List.filter
              ~f:(fun cs ->
-               not (is_allow_any_constr (`Polyvariant_ctx cs)))
+               not (vcs_attr_json_allow_any (`Polyvariant_ctx cs)))
              cs
          in
          let cases = repr_polyvariant_cases cs in
