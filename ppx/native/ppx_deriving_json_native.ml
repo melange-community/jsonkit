@@ -14,8 +14,9 @@ module Of_json = struct
     let gen_expr (n : label loc) =
       pexp_ident ~loc:n.loc { loc = n.loc; txt = lident (gen_name n.txt) }
     in
-    List.fold_left (List.rev fs) ~init:(inner gen_expr) ~f:(fun next ld ->
-        let n = ld.pld_name in
+    List.fold_left (List.rev fs) ~init:(inner gen_expr)
+      ~f:(fun next (f : Record.field) ->
+        let n = f.name in
         let patt =
           ppat_var ~loc:n.loc { loc = n.loc; txt = gen_name n.txt }
         in
@@ -23,7 +24,7 @@ module Of_json = struct
           let [%p patt] =
             ref
               [%e
-                match ld_attr_default ld with
+                match f.default with
                 | Some default -> [%expr Stdlib.Option.Some [%e default]]
                 | None -> [%expr Stdlib.Option.None]]
           in
@@ -40,18 +41,15 @@ module Of_json = struct
     in
     pexp_tuple ~loc args
 
-  let build_record ~loc ~allow_extra_fields ~json_fields of_json
-      fields_label make =
-    with_refs ~loc "x" fields_label @@ fun ename ->
-    let field_key ld =
-      Option.value ~default:ld.pld_name (Attrs.Json.ld_attr_json_key ld)
-    in
-    let store_case value ld =
-      let key = field_key ld in
+  let build_record ~loc ~allow_extra_fields ~json_fields of_json fields
+      make =
+    with_refs ~loc "x" fields @@ fun ename ->
+    let store_case value (f : Record.field) =
+      let key = f.key in
       pstring ~loc:key.loc key.txt
       --> [%expr
-            [%e ename ld.pld_name] :=
-              Stdlib.Option.Some [%e of_json ld.pld_type value]]
+            [%e ename f.name] :=
+              Stdlib.Option.Some [%e of_json f.type_ value]]
     in
     let fail_case =
       if allow_extra_fields then [%pat? _] --> [%expr ()]
@@ -63,12 +61,12 @@ module Of_json = struct
     in
     let handle_field key value =
       pexp_match ~loc key
-        (List.map fields_label ~f:(store_case value) @ [ fail_case ])
+        (List.map fields ~f:(store_case value) @ [ fail_case ])
     in
-    let read_field ld =
-      let key = field_key ld in
+    let read_field (f : Record.field) =
+      let key = f.key in
       let fallback =
-        match ld_attr_default ld with
+        match f.default with
         | Some default -> default
         | None ->
             [%expr
@@ -77,13 +75,13 @@ module Of_json = struct
                   estring ~loc:key.loc
                     (sprintf "expected field %S" key.txt)]]
       in
-      ( ld.pld_name,
+      ( f.name,
         [%expr
-          match Stdlib.( ! ) [%e ename ld.pld_name] with
+          match Stdlib.( ! ) [%e ename f.name] with
           | Stdlib.Option.Some v -> v
           | Stdlib.Option.None -> [%e fallback]] )
     in
-    let built = make ~loc (List.map fields_label ~f:read_field) in
+    let built = make ~loc (List.map fields ~f:read_field) in
     [%expr
       let rec iter = function
         | [] -> ()
@@ -170,8 +168,8 @@ module Of_json = struct
     | Vcs_record { loc; fields; attr = { catch_all = true; _ }; _ } -> (
         match fields with
         | [
-         { pld_name = { txt = "tag"; _ }; _ };
-         { pld_name = { txt = "payload"; _ }; _ };
+         { name = { txt = "tag"; _ }; _ };
+         { name = { txt = "payload"; _ }; _ };
         ] ->
             [%pat? (`String _ | `List (`String _ :: _)) as v]
             --> [%expr
@@ -250,18 +248,16 @@ module Of_json = struct
          derive_of_tuple ~loc:t.ptyp_loc self#derive_of_core_type ts x
 
        method! derive_of_labeled_tuple t ts x =
-         let fs =
-           List.map ts ~f:(fun (name, type_) ->
-               let loc = type_.ptyp_loc in
-               label_declaration ~loc ~name ~type_ ~mutable_:Immutable)
-         in
          derive_of_labeled_tuple ~loc:t.ptyp_loc self#derive_of_core_type
-           fs x
+           (Record.fields_of_labeled_tuple ts)
+           x
 
        method! derive_of_record td fs x =
          derive_of_record ~loc:td.ptype_loc
            ~allow_extra_fields:(Attrs.Json.td_allow_extra_fields td)
-           self#derive_of_core_type fs x
+           self#derive_of_core_type
+           (Record.resolve_fields fs)
+           x
 
        method! derive_of_variant td cs x =
          let loc = td.ptype_loc in
@@ -301,7 +297,7 @@ module Of_json = struct
                        {
                          name = n;
                          loc;
-                         fields;
+                         fields = Record.resolve_fields fields;
                          attr;
                          allow_extra_fields =
                            Attrs.Json.cd_allow_extra_fields c;
@@ -393,15 +389,11 @@ module To_json = struct
     let ebnds, pbnds = gen_exp_pat ~loc "bnds" in
     let e =
       List.combine fields es
-      |> List.fold_left ~init:ebnds ~f:(fun acc (ld, x) ->
-          let key =
-            Option.value ~default:ld.pld_name
-              (Attrs.Json.ld_attr_json_key ld)
-          in
-          let k = estring ~loc:key.loc key.txt in
-          let v = derive ld.pld_type x in
+      |> List.fold_left ~init:ebnds ~f:(fun acc ((f : Record.field), x) ->
+          let k = estring ~loc:f.key.loc f.key.txt in
+          let v = derive f.type_ x in
           let ebnds =
-            match ld_drop_default ld with
+            match ld_drop_default f.ld with
             | `No -> [%expr ([%e k], [%e v]) :: [%e ebnds]]
             | `Drop_option ->
                 [%expr
@@ -415,7 +407,7 @@ module To_json = struct
             | `Drop_default_if_json_equal def ->
                 [%expr
                   let json = [%e v] in
-                  if Jsonkit.equal json [%e derive ld.pld_type def] then
+                  if Jsonkit.equal json [%e derive f.type_ def] then
                     [%e ebnds]
                   else ([%e k], json) :: [%e ebnds]]
           in
@@ -456,8 +448,8 @@ module To_json = struct
     | Vcs_record { loc; fields; attr = { catch_all = true; _ }; _ } -> (
         match fields, es with
         | ( [
-              { pld_name = { txt = "tag"; _ }; _ };
-              { pld_name = { txt = "payload"; _ }; _ };
+              { name = { txt = "tag"; _ }; _ };
+              { name = { txt = "payload"; _ }; _ };
             ],
             [ tag_e; payload_e ] ) ->
             [%expr

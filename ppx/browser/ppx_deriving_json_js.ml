@@ -15,10 +15,9 @@ module Of_json = struct
            derive t
              [%expr Js.Array.unsafe_get [%e e] [%e eint ~loc (si + i)]]))
 
-  let build_js_type ~loc (fs : label_declaration list) =
-    let f ld =
-      let n = ld.pld_name in
-      let n = Option.value ~default:n (Attrs.Json.ld_attr_json_key ld) in
+  let build_js_type ~loc (fs : Record.field list) =
+    let f (fld : Record.field) =
+      let n = fld.key in
       let pof_desc = Otag (n, [%type: Js.Json.t Js.undefined]) in
       { pof_loc = loc; pof_attributes = []; pof_desc }
     in
@@ -26,22 +25,19 @@ module Of_json = struct
     [%type: [%t row] Js.t]
 
   let build_record ~allow_extra_fields ~loc ~json derive
-      (fields : label_declaration list) make =
-    let field_key ld =
-      Option.value ~default:ld.pld_name (Attrs.Json.ld_attr_json_key ld)
-    in
-    let handle_field obj ld =
-      ( ld.pld_name,
-        let n = field_key ld in
+      (fields : Record.field list) make =
+    let handle_field obj (f : Record.field) =
+      ( f.name,
+        let n = f.key in
         [%expr
           match
             Js.Undefined.toOption
               [%e obj]##[%e pexp_ident ~loc:n.loc (map_loc lident n)]
           with
-          | Stdlib.Option.Some v -> [%e derive ld.pld_type [%expr v]]
+          | Stdlib.Option.Some v -> [%e derive f.type_ [%expr v]]
           | Stdlib.Option.None ->
               [%e
-                match ld_attr_default ld with
+                match f.default with
                 | Some default -> default
                 | None ->
                     [%expr
@@ -52,8 +48,9 @@ module Of_json = struct
                                n.txt)]]]] )
     in
     let is_known_field name =
-      List.fold_left fields ~init:[%expr false] ~f:(fun acc ld ->
-          let n = field_key ld in
+      List.fold_left fields ~init:[%expr false]
+        ~f:(fun acc (f : Record.field) ->
+          let n = f.key in
           [%expr
             Stdlib.( || )
               (Stdlib.( = ) [%e name] [%e estring ~loc:n.loc n.txt])
@@ -218,8 +215,8 @@ module Of_json = struct
     | Vcs_record { loc; fields; attr = { catch_all = true; _ }; _ } -> (
         match fields with
         | [
-         { pld_name = { txt = "tag"; _ }; _ };
-         { pld_name = { txt = "payload"; _ }; _ };
+         { name = { txt = "tag"; _ }; _ };
+         { name = { txt = "payload"; _ }; _ };
         ] ->
             construct (Some (build_unknown_variant_case_record ~loc ~tag))
         | _ ->
@@ -325,11 +322,7 @@ module Of_json = struct
 
        method! derive_of_labeled_tuple t ts x =
          let loc = t.ptyp_loc in
-         let fields =
-           List.map ts ~f:(fun (name, type_) ->
-               let loc = type_.ptyp_loc in
-               label_declaration ~loc ~name ~type_ ~mutable_:Immutable)
-         in
+         let fields = Record.fields_of_labeled_tuple ts in
          let build ~loc fs =
            let fs =
              List.map fs ~f:(fun (n, v) -> labeled_tuple_arg_label n, v)
@@ -353,7 +346,9 @@ module Of_json = struct
            [%e ensure_json_object ~loc x];
            [%e
              build_record ~allow_extra_fields ~loc
-               self#derive_of_core_type fs ~json:x build]]
+               self#derive_of_core_type
+               (Record.resolve_fields fs)
+               ~json:x build]]
 
        method! derive_of_variant td cs x =
          let loc = td.ptype_loc in
@@ -366,7 +361,8 @@ module Of_json = struct
          in
          let cs =
            List.filter
-             ~f:(fun cs -> not (vcs_attr_json_allow_any (`Variant_ctx cs)))
+             ~f:(fun cs ->
+               not (vcs_attr_json_allow_any (`Variant_ctx cs)))
              cs
          in
          let compact = Attrs.Json.is_compact_variants td in
@@ -400,7 +396,13 @@ module Of_json = struct
                        Attrs.Json.cd_allow_extra_fields c
                      in
                      Vcs_record
-                       { name; loc; fields; attr; allow_extra_fields }
+                       {
+                         name;
+                         loc;
+                         fields = Record.resolve_fields fields;
+                         attr;
+                         allow_extra_fields;
+                       }
                  | Pcstr_tuple types ->
                      Vcs_tuple { name; loc; types; attr }
                in
@@ -496,14 +498,10 @@ module To_json = struct
 
   let derive_of_record ~loc derive fields es =
     let fs =
-      List.map2 fields es ~f:(fun ld x ->
-          let k =
-            let k = ld.pld_name in
-            Option.value ~default:k (Attrs.Json.ld_attr_json_key ld)
-          in
+      List.map2 fields es ~f:(fun (f : Record.field) x ->
           let v =
-            let v = derive ld.pld_type x in
-            match ld_drop_default ld with
+            let v = derive f.type_ x in
+            match ld_drop_default f.ld with
             | `No -> v
             | `Drop_option ->
                 [%expr
@@ -517,11 +515,11 @@ module To_json = struct
             | `Drop_default_if_json_equal def ->
                 [%expr
                   let json = [%e v] in
-                  if Jsonkit.equal json [%e derive ld.pld_type def] then
+                  if Jsonkit.equal json [%e derive f.type_ def] then
                     Js.Undefined.empty
                   else Js.Undefined.return json]
           in
-          map_loc lident k, v)
+          map_loc lident f.key, v)
     in
     let record = pexp_record ~loc fs None in
     as_json ~loc [%expr [%mel.obj [%e record]]]
@@ -557,8 +555,8 @@ module To_json = struct
     | Vcs_record { loc; fields; attr = { catch_all = true; _ }; _ } -> (
         match fields, es with
         | ( [
-              { pld_name = { txt = "tag"; _ }; _ };
-              { pld_name = { txt = "payload"; _ }; _ };
+              { name = { txt = "tag"; _ }; _ };
+              { name = { txt = "payload"; _ }; _ };
             ],
             [ tag_e; payload_e ] ) ->
             [%expr

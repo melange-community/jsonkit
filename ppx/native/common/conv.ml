@@ -253,6 +253,42 @@ let get_constructor_names ?(compact = false) cs =
           Printf.sprintf {|["%s"%s]|} name.txt
             (li |> List.map ~f:(fun _ -> ", _") |> String.concat ~sep:""))
 
+module Record = struct
+  (* A record field with its [@json.*] attributes resolved to plain data:
+     [key] is the JSON object key ([@json.key], falling back to the OCaml
+     field name) and [default] the fallback expression for a missing field
+     ([@json.default] / [@json.option]). [ld] carries the raw declaration
+     for the drop-default resolution, which only the to_json direction
+     performs (resolving it eagerly would reject attribute combinations
+     that of_json-only derivations accept today). *)
+  type field = {
+    name : label loc;
+    key : label loc;
+    type_ : core_type;
+    default : expression option;
+    ld : label_declaration;
+  }
+
+  let resolve_field (ld : label_declaration) =
+    {
+      name = ld.pld_name;
+      key =
+        Option.value ~default:ld.pld_name (Attrs.Json.ld_attr_json_key ld);
+      type_ = ld.pld_type;
+      default = Attrs.Json.ld_attr_default ld;
+      ld;
+    }
+
+  let resolve_fields lds = List.map lds ~f:resolve_field
+
+  (* Labeled-tuple components convert like record fields without attributes. *)
+  let fields_of_labeled_tuple ts =
+    List.map ts ~f:(fun (name, type_) ->
+        resolve_field
+          (label_declaration ~loc:type_.ptyp_loc ~name ~type_
+             ~mutable_:Immutable))
+end
+
 module Variant = struct
   type case_attr = {
     allow_any : bool;
@@ -274,7 +310,7 @@ module Variant = struct
     | Vcs_record of {
         name : label loc;
         loc : location;
-        fields : label_declaration list;
+        fields : Record.field list;
         attr : case_attr;
         allow_extra_fields : bool;
       }
@@ -320,15 +356,16 @@ let deriving_to ~name ~t_to ~derive_of_tuple ~derive_of_labeled_tuple
        let loc = td.ptype_loc in
        let p, es = gen_pat_record ~loc "x" fs in
        pexp_match ~loc x
-         [ p --> derive_of_record ~loc self#derive_of_core_type fs es ]
+         [
+           p
+           --> derive_of_record ~loc self#derive_of_core_type
+                 (Record.resolve_fields fs)
+                 es;
+         ]
 
      method! derive_of_labeled_tuple t ts x =
-       let fs =
-         List.map ts ~f:(fun (name, type_) ->
-             let loc = type_.ptyp_loc in
-             label_declaration ~loc ~name ~type_ ~mutable_:Immutable)
-       in
        let loc = t.ptyp_loc in
+       let fs = Record.fields_of_labeled_tuple ts in
        let p, es = gen_pat_labeled_tuple ~loc "x" ts in
        pexp_match ~loc x
          [
@@ -355,7 +392,7 @@ let deriving_to ~name ~t_to ~derive_of_tuple ~derive_of_labeled_tuple
                       {
                         name = n;
                         loc;
-                        fields;
+                        fields = Record.resolve_fields fields;
                         attr;
                         allow_extra_fields =
                           Attrs.Json.cd_allow_extra_fields c;
