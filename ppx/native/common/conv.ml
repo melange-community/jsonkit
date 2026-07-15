@@ -359,7 +359,7 @@ let deriving_of ~name ~of_t ~is_allow_any_constr ~derive_of_tuple
                  in
                  ( (fun ~array:_ ~len:_ ~tag:_ ->
                      [%expr
-                       Melange_json.of_json_error ~json:[%e x]
+                       Jsonkit.of_json_error ~json:[%e x]
                          [%e estring ~loc error_message]]),
                    [] ))
            ~f:(fun (next, cases) c ->
@@ -441,7 +441,7 @@ let deriving_of ~name ~of_t ~is_allow_any_constr ~derive_of_tuple
                  in
                  ( (fun ~array:_ ~len:_ ~tag:_ ->
                      [%expr
-                       Melange_json.of_json_unexpected_variant ~json:x
+                       Jsonkit.of_json_unexpected_variant ~json:x
                          [%e estring ~loc error_message]]),
                    [] ))
            ~f:(fun (next, cases) (c, r) ->
@@ -475,8 +475,8 @@ let deriving_of ~name ~of_t ~is_allow_any_constr ~derive_of_tuple
                      match [%e maybe_e] with
                      | e -> (e :> [%t t])
                      | exception
-                         Melange_json.Of_json_error
-                           (Melange_json.Unexpected_variant _) ->
+                         Jsonkit.Of_json_error
+                           (Jsonkit.Unexpected_variant _) ->
                          [%e next ~array ~len ~tag]]
                  in
                  next, cases)
@@ -536,7 +536,7 @@ let deriving_of_match ~name ~of_t ~cmp_sort_vcs ~derive_of_tuple
              [
                [%pat? _]
                --> [%expr
-                     Melange_json.of_json_error ~json:x
+                     Jsonkit.of_json_error ~json:x
                        [%e estring ~loc error_message]];
              ]
            ~f:(fun next (c : constructor_declaration) ->
@@ -606,7 +606,7 @@ let deriving_of_match ~name ~of_t ~cmp_sort_vcs ~derive_of_tuple
                       |> String.concat ~sep:" or ")
                   in
                   [%expr
-                    Melange_json.of_json_unexpected_variant ~json:x
+                    Jsonkit.of_json_unexpected_variant ~json:x
                       [%e estring ~loc error_message]])
                ~f:(fun next (n, ts) ->
                  let maybe = self#derive_type_ref ~loc self#name n ts x in
@@ -615,8 +615,8 @@ let deriving_of_match ~name ~of_t ~cmp_sort_vcs ~derive_of_tuple
                    match [%e maybe] with
                    | x -> (x :> [%t t])
                    | exception
-                       Melange_json.Of_json_error
-                         (Melange_json.Unexpected_variant _) ->
+                       Jsonkit.Of_json_error
+                         (Jsonkit.Unexpected_variant _) ->
                        [%e next]])
        in
        let cases =

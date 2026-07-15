@@ -135,8 +135,7 @@
            ( int_of_json (Js.Array.unsafe_get es 0),
              string_of_json (Js.Array.unsafe_get es 1) )
          else
-           Melange_json.of_json_error ~json:x
-             "expected a JSON array of length 2"
+           Jsonkit.of_json_error ~json:x "expected a JSON array of length 2"
         : Js.Json.t -> tuple)
   
     let _ = tuple_of_json
@@ -174,7 +173,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Melange_json.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < name : Js.Json.t Js.undefined
@@ -186,13 +185,13 @@
              (match Js.Undefined.toOption fs##name with
              | Stdlib.Option.Some v -> string_of_json v
              | Stdlib.Option.None ->
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected field \"name\" to be present");
            age =
              (match Js.Undefined.toOption fs##age with
              | Stdlib.Option.Some v -> int_of_json v
              | Stdlib.Option.None ->
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected field \"age\" to be present");
          }
         : Js.Json.t -> record)
@@ -238,7 +237,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Melange_json.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < my_name : Js.Json.t Js.undefined
@@ -250,7 +249,7 @@
              (match Js.Undefined.toOption fs##my_name with
              | Stdlib.Option.Some v -> string_of_json v
              | Stdlib.Option.None ->
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected field \"my_name\" to be present");
            age =
              (match Js.Undefined.toOption fs##my_age with
@@ -299,7 +298,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Melange_json.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit.of_json_error ~json:x "expected a JSON object";
          let fs = (Obj.magic x : < k : Js.Json.t Js.undefined > Js.t) in
          {
            k =
@@ -344,17 +343,17 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else A
                else if Stdlib.( = ) (Obj.magic tag : string) "B" then
                  if Stdlib.( <> ) len 2 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else B (int_of_json (Js.Array.unsafe_get array 1))
                else if Stdlib.( = ) (Obj.magic tag : string) "C" then (
                  if Stdlib.( <> ) len 2 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    let fs = Js.Array.unsafe_get array 1 in
@@ -369,8 +368,7 @@
                                    (Obj.magic fs : 'a Js.null)
                                    Js.null))))
                    then
-                     Melange_json.of_json_error ~json:fs
-                       "expected a JSON object";
+                     Jsonkit.of_json_error ~json:fs "expected a JSON object";
                    let fs =
                      (Obj.magic fs : < name : Js.Json.t Js.undefined > Js.t)
                    in
@@ -380,22 +378,20 @@
                          (match Js.Undefined.toOption fs##name with
                          | Stdlib.Option.Some v -> string_of_json v
                          | Stdlib.Option.None ->
-                             Melange_json.of_json_error ~json:x
+                             Jsonkit.of_json_error ~json:x
                                "expected field \"name\" to be present");
                      })
                else
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected [\"C\", { _ }] or [\"B\", _] or [\"A\"]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> sum)
   
     let _ = sum_of_json
@@ -442,25 +438,21 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "S2" then
                  if Stdlib.( <> ) len 3 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 3"
                  else
                    S2
                      ( int_of_json (Js.Array.unsafe_get array 1),
                        string_of_json (Js.Array.unsafe_get array 2) )
-               else
-                 Melange_json.of_json_error ~json:x
-                   "expected [\"S2\", _, _]"
+               else Jsonkit.of_json_error ~json:x "expected [\"S2\", _, _]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> sum2)
   
     let _ = sum2_of_json
@@ -503,22 +495,20 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "C" then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `C
                else
-                 Melange_json.of_json_unexpected_variant ~json:x
+                 Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"C\"]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> other)
   
     let _ = other_of_json
@@ -551,32 +541,29 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `A
                else if Stdlib.( = ) (Obj.magic tag : string) "B" then
                  if Stdlib.( <> ) len 2 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else `B (int_of_json (Js.Array.unsafe_get array 1))
                else
                  match other_of_json x with
                  | e -> (e :> [ `A | `B of int | other ])
                  | exception
-                     Melange_json.Of_json_error
-                       (Melange_json.Unexpected_variant _) ->
-                     Melange_json.of_json_unexpected_variant ~json:x
+                     Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
+                     Jsonkit.of_json_unexpected_variant ~json:x
                        "expected [\"A\"] or [\"B\", _]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> poly)
   
     let _ = poly_of_json
@@ -616,25 +603,23 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "P2" then
                  if Stdlib.( <> ) len 3 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 3"
                  else
                    `P2
                      ( int_of_json (Js.Array.unsafe_get array 1),
                        string_of_json (Js.Array.unsafe_get array 2) )
                else
-                 Melange_json.of_json_unexpected_variant ~json:x
+                 Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"P2\", _, _]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> poly2)
   
     let _ = poly2_of_json
@@ -677,22 +662,20 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "C" then
                  if Stdlib.( <> ) len 2 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else `C (a_of_json (Js.Array.unsafe_get array 1))
                else
-                 Melange_json.of_json_unexpected_variant ~json:x
+                 Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"C\", _]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> 'a c)
   
     let _ = c_of_json
@@ -730,27 +713,25 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else A
                else if Stdlib.( = ) (Obj.magic tag : string) "Fix" then
                  if Stdlib.( <> ) len 2 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else Fix (recur_of_json (Js.Array.unsafe_get array 1))
                else
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected [\"Fix\", _] or [\"A\"]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> recur)
   
     let _ = recur_of_json
@@ -790,27 +771,25 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `A
                else if Stdlib.( = ) (Obj.magic tag : string) "Fix" then
                  if Stdlib.( <> ) len 2 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else `Fix (polyrecur_of_json (Js.Array.unsafe_get array 1))
                else
-                 Melange_json.of_json_unexpected_variant ~json:x
+                 Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"A\"] or [\"Fix\", _]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> polyrecur)
   
     let _ = polyrecur_of_json
@@ -850,28 +829,26 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else A
                else if Stdlib.( = ) (Obj.magic tag : string) "b_aliased"
                then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else B
                else
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected [\"b_aliased\"] or [\"A\"]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> evar)
   
     let _ = evar_of_json
@@ -910,27 +887,25 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A_aliased" then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `a
                else if Stdlib.( = ) (Obj.magic tag : string) "b" then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `b
                else
-                 Melange_json.of_json_unexpected_variant ~json:x
+                 Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"A_aliased\"] or [\"b\"]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> epoly)
   
     let _ = epoly_of_json
@@ -969,27 +944,25 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 2 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else A (a_of_json (Js.Array.unsafe_get array 1))
                else if Stdlib.( = ) (Obj.magic tag : string) "B" then
                  if Stdlib.( <> ) len 2 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else B (b_of_json (Js.Array.unsafe_get array 1))
                else
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected [\"B\", _] or [\"A\", _]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> ('a, 'b) p2)
   
     let _ = p2_of_json
@@ -1031,14 +1004,14 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Melange_json.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit.of_json_error ~json:x "expected a JSON object";
          let fs = (Obj.magic x : < a : Js.Json.t Js.undefined > Js.t) in
          {
            a =
              (match Js.Undefined.toOption fs##a with
              | Stdlib.Option.Some v -> int_of_json v
              | Stdlib.Option.None ->
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected field \"a\" to be present");
          }
         : Js.Json.t -> allow_extra_fields)
@@ -1078,7 +1051,7 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then (
                  if Stdlib.( <> ) len 2 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    let fs = Js.Array.unsafe_get array 1 in
@@ -1093,8 +1066,7 @@
                                    (Obj.magic fs : 'a Js.null)
                                    Js.null))))
                    then
-                     Melange_json.of_json_error ~json:fs
-                       "expected a JSON object";
+                     Jsonkit.of_json_error ~json:fs "expected a JSON object";
                    let fs =
                      (Obj.magic fs : < a : Js.Json.t Js.undefined > Js.t)
                    in
@@ -1104,22 +1076,18 @@
                          (match Js.Undefined.toOption fs##a with
                          | Stdlib.Option.Some v -> int_of_json v
                          | Stdlib.Option.None ->
-                             Melange_json.of_json_error ~json:x
+                             Jsonkit.of_json_error ~json:x
                                "expected field \"a\" to be present");
                      })
-               else
-                 Melange_json.of_json_error ~json:x
-                   "expected [\"A\", { _ }]"
+               else Jsonkit.of_json_error ~json:x "expected [\"A\", { _ }]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> allow_extra_fields2)
   
     let _ = allow_extra_fields2_of_json
@@ -1165,7 +1133,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Melange_json.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < a : Js.Json.t Js.undefined
@@ -1177,7 +1145,7 @@
              (match Js.Undefined.toOption fs##a with
              | Stdlib.Option.Some v -> int_of_json v
              | Stdlib.Option.None ->
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b_opt =
              (match Js.Undefined.toOption fs##b_opt with
@@ -1234,7 +1202,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Melange_json.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < a : Js.Json.t Js.undefined ; b : Js.Json.t Js.undefined >
@@ -1245,7 +1213,7 @@
              (match Js.Undefined.toOption fs##a with
              | Stdlib.Option.Some v -> int_of_json v
              | Stdlib.Option.None ->
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b =
              (match Js.Undefined.toOption fs##b with
@@ -1343,7 +1311,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Melange_json.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < a : Js.Json.t Js.undefined ; b : Js.Json.t Js.undefined >
@@ -1354,7 +1322,7 @@
              (match Js.Undefined.toOption fs##a with
              | Stdlib.Option.Some v -> int_of_json v
              | Stdlib.Option.None ->
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b =
              (match Js.Undefined.toOption fs##b with
@@ -1412,7 +1380,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Melange_json.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < a : Js.Json.t Js.undefined ; b : Js.Json.t Js.undefined >
@@ -1423,7 +1391,7 @@
              (match Js.Undefined.toOption fs##a with
              | Stdlib.Option.Some v -> int_of_json v
              | Stdlib.Option.None ->
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b =
              (match Js.Undefined.toOption fs##b with
@@ -1446,7 +1414,7 @@
                     a = int_to_json x_a;
                     b =
                       (let json = int_to_json x_b in
-                       if Melange_json.equal json (int_to_json 1) then
+                       if Jsonkit.equal json (int_to_json 1) then
                          Js.Undefined.empty
                        else Js.Undefined.return json);
                   }]
@@ -1519,27 +1487,23 @@
                if Stdlib.( = ) (Obj.magic tag : string) "A" then A
                else if Stdlib.( = ) (Obj.magic tag : string) "B" then
                  if Stdlib.( <> ) len 2 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else B (int_of_json (Js.Array.unsafe_get array 1))
                else
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected [\"B\", _] or \"A\""
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else if Stdlib.( = ) (Js.typeof x) "string" then
            if Stdlib.( = ) (Obj.magic x : string) "A" then A
-           else
-             Melange_json.of_json_error ~json:x
-               "expected [\"B\", _] or \"A\""
+           else Jsonkit.of_json_error ~json:x "expected [\"B\", _] or \"A\""
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> compact_variant)
   
     let _ = compact_variant_of_json
@@ -1582,22 +1546,20 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "C" then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `C
                else
-                 Melange_json.of_json_unexpected_variant ~json:x
+                 Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"C\"]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> one)
   
     let _ = one_of_json
@@ -1630,22 +1592,20 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "C" then
                  if Stdlib.( <> ) len 1 then
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `C
                else
-                 Melange_json.of_json_unexpected_variant ~json:x
+                 Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"C\"]"
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> other)
   
     let _ = other_of_json
@@ -1679,25 +1639,22 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                match one_of_json x with
                | e -> (e :> [ one | other ])
                | exception
-                   Melange_json.Of_json_error
-                     (Melange_json.Unexpected_variant _) -> (
+                   Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) -> (
                    match other_of_json x with
                    | e -> (e :> [ one | other ])
                    | exception
-                       Melange_json.Of_json_error
-                         (Melange_json.Unexpected_variant _) ->
-                       Melange_json.of_json_unexpected_variant ~json:x
+                       Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _)
+                     ->
+                       Jsonkit.of_json_unexpected_variant ~json:x
                          "expected ")
              else
-               Melange_json.of_json_error ~json:x
+               Jsonkit.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array"
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
-           Melange_json.of_json_error ~json:x
-             "expected a non empty JSON array"
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
         : Js.Json.t -> poly)
   
     let _ = poly_of_json

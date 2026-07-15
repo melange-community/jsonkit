@@ -17,7 +17,7 @@ type obj = { static : string; dynamics : int Js.Dict.t }
 
 module Of_json = struct
   let obj json =
-    Melange_json.Of_json.
+    Jsonkit.Of_json.
       {
         static = json |> field "static" string;
         dynamics = json |> field "dynamics" (js_dict int);
@@ -26,7 +26,7 @@ end
 
 module To_json = struct
   let obj c =
-    Melange_json.To_json.(
+    Jsonkit.To_json.(
       json_dict
         (Js.Dict.fromList
            [
@@ -41,7 +41,7 @@ let data =
   "dynamics": { "hello": 5, "random": 8 }
 } |}
 
-let decodedData = data |> Melange_json.of_string |> Of_json.obj
+let decodedData = data |> Jsonkit.of_string |> Of_json.obj
 
 (*
   Will log [ 'hi', { hello: 5, random: 8 } ]

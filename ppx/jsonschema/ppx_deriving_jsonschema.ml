@@ -623,9 +623,9 @@ let sig_type_decl ~ctxt ast _flag_polymorphic_variant_tuple
       in
       [ psig_extension ~loc ext [] ]
 
-(* Registration is performed explicitly by the melange-json ppx entry points
+(* Registration is performed explicitly by the jsonkit ppx entry points
    (ppx_deriving_json_native.ml / ppx_deriving_json_js.ml) rather than at module
-   load time, so the jsonschema deriver ships as part of melange-json[-native].ppx. *)
+   load time, so the jsonschema deriver ships as part of jsonkit[-melange].ppx. *)
 let register () =
   Deriving.add deriver_name
     ~str_type_decl:

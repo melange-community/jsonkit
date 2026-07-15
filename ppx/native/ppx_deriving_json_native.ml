@@ -47,7 +47,7 @@ module Of_json = struct
         else
           [%pat? name]
           --> [%expr
-                Melange_json.of_json_error ~json:x
+                Jsonkit.of_json_error ~json:x
                   (Stdlib.Printf.sprintf {|did not expect field "%s"|}
                      name)]
       in
@@ -84,7 +84,7 @@ module Of_json = struct
                       | Some default -> default
                       | None ->
                           [%expr
-                            Melange_json.of_json_error ~json:x
+                            Jsonkit.of_json_error ~json:x
                               [%e
                                 estring ~loc:key.loc
                                   (sprintf "expected field %S" key.txt)]]]]
@@ -112,7 +112,7 @@ module Of_json = struct
         xpatt --> build_tuple ~loc derive xexprs t.tpl_types;
         [%pat? _]
         --> [%expr
-              Melange_json.of_json_error ~json:[%e x]
+              Jsonkit.of_json_error ~json:[%e x]
                 [%e
                   estring ~loc
                     (sprintf "expected a JSON array of length %i" n)]];
@@ -127,7 +127,7 @@ module Of_json = struct
               [%expr fs] make;
         [%pat? _]
         --> [%expr
-              Melange_json.of_json_error ~json:[%e x]
+              Jsonkit.of_json_error ~json:[%e x]
                 [%e estring ~loc (sprintf "expected a JSON object")]];
       ]
 
@@ -177,13 +177,13 @@ module Of_json = struct
                       (Some
                          [%expr
                            ({ tag; payload }
-                             : Melange_json.unknown_variant_case)])]]
+                             : Jsonkit.unknown_variant_case)])]]
         | _ ->
             Location.raise_errorf ~loc
               "[@json.catch_all] requires exactly one argument: a record \
                type with fields `tag : string` and `payload : \
                Yojson.Basic.t list option` (typically \
-               [Melange_json.unknown_variant_case])")
+               [Jsonkit.unknown_variant_case])")
     | Vcs_record (_n, t) when vcs_attr_json_catch_all t.rcd_ctx -> (
         let loc = t.rcd_loc in
         match t.rcd_fields with
@@ -210,7 +210,7 @@ module Of_json = struct
                       (Some
                          [%expr
                            ({ tag; payload }
-                             : Melange_json.unknown_variant_case)])]]
+                             : Jsonkit.unknown_variant_case)])]]
         | _ ->
             Location.raise_errorf ~loc
               "[@json.catch_all] inline record must have exactly two \
@@ -309,8 +309,8 @@ module To_json = struct
             | `Drop_default_if_json_equal def ->
                 [%expr
                   let json = [%e v] in
-                  if Melange_json.equal json [%e derive ld.pld_type def]
-                  then [%e ebnds]
+                  if Jsonkit.equal json [%e derive ld.pld_type def] then
+                    [%e ebnds]
                   else ([%e k], json) :: [%e ebnds]]
           in
           [%expr
@@ -346,7 +346,7 @@ module To_json = struct
               "[@json.catch_all] requires exactly one argument: a record \
                type with fields `tag : string` and `payload : \
                Yojson.Basic.t list option` (typically \
-               [Melange_json.unknown_variant_case])")
+               [Jsonkit.unknown_variant_case])")
     | Vcs_record (_n, t) when vcs_attr_json_catch_all t.rcd_ctx -> (
         let loc = t.rcd_loc in
         match t.rcd_fields, es with

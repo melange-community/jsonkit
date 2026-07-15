@@ -1,24 +1,24 @@
 (* [@json.catch_all] marks the constructor that absorbs any unrecognised
    string tag during decoding. The constructor's argument is the library
-   type [Melange_json.unknown_variant_case], a record with fields
-   [{ tag : string; payload : Melange_json.t list option }]. The decoder
+   type [Jsonkit.unknown_variant_case], a record with fields
+   [{ tag : string; payload : Jsonkit.t list option }]. The decoder
    captures both bare-string and array wire shapes losslessly; the encoder
    re-emits the captured wire shape. *)
 
 type sum_enum =
   | Alpha [@json.name "alpha"]
   | Beta of int [@json.name "beta"]
-  | Other of Melange_json.unknown_variant_case [@json.catch_all]
+  | Other of Jsonkit.unknown_variant_case [@json.catch_all]
 [@@deriving json] [@@json.compact_variants]
 
 type poly_enum =
   [ `Alpha [@json.name "alpha"]
   | `Beta of int [@json.name "beta"]
-  | `Other of Melange_json.unknown_variant_case [@json.catch_all]
+  | `Other of Jsonkit.unknown_variant_case [@json.catch_all]
   ]
 [@@deriving json] [@@json.compact_variants]
 
-let pp_unknown { Melange_json.tag; payload } =
+let pp_unknown { Jsonkit.tag; payload } =
   match payload with
   | None -> Printf.sprintf "Other(%s,bare)" tag
   | Some xs -> Printf.sprintf "Other(%s,[%s])" tag (String.concat ";" (List.map Yojson.Basic.to_string xs))

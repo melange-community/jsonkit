@@ -1,18 +1,18 @@
 We can classify the JSON produced by `to_json` for a record with a dropped optional field:
   $ echo '
-  > open Melange_json.Primitives
+  > open Jsonkit.Primitives
   > type t = {a: int option; [@json.option] [@json.drop_default]} [@@deriving to_json]
   > let () =
-  >   match Melange_json.classify (to_json {a = None}) with
+  >   match Jsonkit.classify (to_json {a = None}) with
   >   | `Assoc xs -> xs |> List.iter (fun (k, v) ->
   >       let _ = k in
-  >       let _v = Melange_json.classify v in
+  >       let _v = Jsonkit.classify v in
   >       ());
   >       print_endline "OK"
   >   | _ -> print_endline "ERROR: Expected an object"
   > ' | ./run.sh
   === ppx output:native ===
-  open Melange_json.Primitives
+  open Jsonkit.Primitives
   type t = {
     a: int option [@json.option ][@json.drop_default ]}[@@deriving to_json]
   include
@@ -34,16 +34,15 @@ We can classify the JSON produced by `to_json` for a record with a dropped optio
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =
-    match Melange_json.classify (to_json { a = None }) with
+    match Jsonkit.classify (to_json { a = None }) with
     | `Assoc xs ->
         (xs |>
            (List.iter
-              (fun (k, v) ->
-                 let _ = k in let _v = Melange_json.classify v in ()));
+              (fun (k, v) -> let _ = k in let _v = Jsonkit.classify v in ()));
          print_endline "OK")
     | _ -> print_endline "ERROR: Expected an object"
   === ppx output:browser ===
-  open Melange_json.Primitives
+  open Jsonkit.Primitives
   type t = {
     a: int option [@json.option ][@json.drop_default ]}[@@deriving to_json]
   include
@@ -67,12 +66,11 @@ We can classify the JSON produced by `to_json` for a record with a dropped optio
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =
-    match Melange_json.classify (to_json { a = None }) with
+    match Jsonkit.classify (to_json { a = None }) with
     | `Assoc xs ->
         (xs |>
            (List.iter
-              (fun (k, v) ->
-                 let _ = k in let _v = Melange_json.classify v in ()));
+              (fun (k, v) -> let _ = k in let _v = Jsonkit.classify v in ()));
          print_endline "OK")
     | _ -> print_endline "ERROR: Expected an object"
   === stdout:native ===

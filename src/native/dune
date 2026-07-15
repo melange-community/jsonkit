@@ -1,8 +1,9 @@
 (library
- (name melange_json)
- (public_name melange-json-native)
+ (name jsonkit)
+ (public_name jsonkit)
+ (wrapped false)
  (libraries
   (re_export yojson)))
 
 (copy_files
- (files ../errors.ml))
+ (files ../jsonkit_errors.ml))

@@ -1,6 +1,6 @@
 (melange.emit
  (target examples)
  (alias examples)
- (libraries melange-json)
+ (libraries jsonkit-melange)
  (preprocess
   (pps melange.ppx)))

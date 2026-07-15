@@ -3,7 +3,7 @@ Uncomment to debug
 $ ocamlopt -dsource _build/default/prettify.pp.ml > "$temp_file" 2>&1
 
 Sum type: known cases round-trip; unknown cases are captured as
-Melange_json.unknown_variant_case with the full payload preserved.
+Jsonkit.unknown_variant_case with the full payload preserved.
 
   $ dune exec ./prettify.exe -- '"alpha"' sum
   got Alpha

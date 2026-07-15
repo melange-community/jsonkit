@@ -1,4 +1,4 @@
-Extra fields are allowed by default (matching the Melange JSON deriver), so a
+Extra fields are allowed by default (matching the jsonkit JSON deriver), so a
 plain record produces "additionalProperties": true.
 
   $ cat > default.ml << 'EOF'

@@ -21,7 +21,7 @@ let iteri_last f li =
   loop 0 li
 
 let show_json_type json =
-  json |> Classify.classify |> function
+  json |> Jsonkit_classify.classify |> function
   | `Assoc _ -> "object"
   | `Bool _ -> "bool"
   | `Float _ -> "float"
@@ -33,7 +33,7 @@ let show_json_type json =
 let show_json_error ?depth ?width json =
   with_buffer (fun emit ->
       let rec loop ?depth json =
-        let json = Classify.classify json in
+        let json = Jsonkit_classify.classify json in
         let depth = Option.map (fun i -> i - 1) depth in
         match depth with
         | Some 0 -> emit "_"

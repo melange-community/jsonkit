@@ -2,8 +2,8 @@ We can alias poly variants:
   $ echo '
   > type t = [`A | `B] [@@deriving json]
   > type u = t [@@deriving json]
-  > let () = print_endline (Melange_json.to_string (u_to_json `A))
-  > let () = assert (u_of_json (Melange_json.of_string {|["B"]|}) = `B)
+  > let () = print_endline (Jsonkit.to_string (u_to_json `A))
+  > let () = assert (u_of_json (Jsonkit.of_string {|["B"]|}) = `B)
   > ' | ./run.sh
   === ppx output:native ===
   type t = [ `A  | `B ][@@deriving json]
@@ -17,7 +17,7 @@ We can alias poly variants:
            | `List ((`String "A")::[]) -> `A
            | `List ((`String "B")::[]) -> `B
            | x ->
-               Melange_json.of_json_unexpected_variant ~json:x
+               Jsonkit.of_json_unexpected_variant ~json:x
                  "expected [\"A\"] or [\"B\"]" : Yojson.Basic.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -38,8 +38,8 @@ We can alias poly variants:
       let rec u_to_json = (fun x -> to_json x : u -> Yojson.Basic.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
-  let () = print_endline (Melange_json.to_string (u_to_json `A))
-  let () = assert ((u_of_json (Melange_json.of_string {|["B"]|})) = `B)
+  let () = print_endline (Jsonkit.to_string (u_to_json `A))
+  let () = assert ((u_of_json (Jsonkit.of_string {|["B"]|})) = `B)
   === ppx output:browser ===
   type t = [ `A  | `B ][@@deriving json]
   include
@@ -61,7 +61,7 @@ We can alias poly variants:
                     then
                       (if Stdlib.(<>) len 1
                        then
-                         Melange_json.of_json_error ~json:x
+                         Jsonkit.of_json_error ~json:x
                            "expected a JSON array of length 1"
                        else `A)
                     else
@@ -69,21 +69,19 @@ We can alias poly variants:
                       then
                         (if Stdlib.(<>) len 1
                          then
-                           Melange_json.of_json_error ~json:x
+                           Jsonkit.of_json_error ~json:x
                              "expected a JSON array of length 1"
                          else `B)
                       else
-                        Melange_json.of_json_unexpected_variant ~json:x
+                        Jsonkit.of_json_unexpected_variant ~json:x
                           "expected [\"A\"] or [\"B\"]")
                  else
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Melange_json.of_json_error ~json:x
-                  "expected a non empty JSON array")
-           else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array" : Js.Json.t -> t)
+                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
+           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
+        Js.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
@@ -105,8 +103,8 @@ We can alias poly variants:
       let rec u_to_json = (fun x -> to_json x : u -> Js.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
-  let () = print_endline (Melange_json.to_string (u_to_json `A))
-  let () = assert ((u_of_json (Melange_json.of_string {|["B"]|})) = `B)
+  let () = print_endline (Jsonkit.to_string (u_to_json `A))
+  let () = assert ((u_of_json (Jsonkit.of_string {|["B"]|})) = `B)
   === stdout:native ===
   ["A"]
   === stdout:js ===
@@ -116,10 +114,10 @@ We can extend aliased polyvariants:
   $ echo '
   > type t = [`A | `B] [@@deriving json]
   > type u = [t | `C] [@@deriving json]
-  > let () = print_endline (Melange_json.to_string (u_to_json `A))
-  > let () = print_endline (Melange_json.to_string (u_to_json `C))
-  > let () = assert (u_of_json (Melange_json.of_string {|["B"]|}) = `B)
-  > let () = assert (u_of_json (Melange_json.of_string {|["C"]|}) = `C)
+  > let () = print_endline (Jsonkit.to_string (u_to_json `A))
+  > let () = print_endline (Jsonkit.to_string (u_to_json `C))
+  > let () = assert (u_of_json (Jsonkit.of_string {|["B"]|}) = `B)
+  > let () = assert (u_of_json (Jsonkit.of_string {|["C"]|}) = `C)
   > ' | ./run.sh
   === ppx output:native ===
   type t = [ `A  | `B ][@@deriving json]
@@ -133,7 +131,7 @@ We can extend aliased polyvariants:
            | `List ((`String "A")::[]) -> `A
            | `List ((`String "B")::[]) -> `B
            | x ->
-               Melange_json.of_json_unexpected_variant ~json:x
+               Jsonkit.of_json_unexpected_variant ~json:x
                  "expected [\"A\"] or [\"B\"]" : Yojson.Basic.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -155,9 +153,9 @@ We can extend aliased polyvariants:
            | x ->
                (match of_json x with
                 | x -> (x :> [ | t | `C ])
-                | exception Melange_json.Of_json_error
-                    (Melange_json.Unexpected_variant _) ->
-                    Melange_json.of_json_unexpected_variant ~json:x
+                | exception Jsonkit.Of_json_error (Jsonkit.Unexpected_variant
+                    _) ->
+                    Jsonkit.of_json_unexpected_variant ~json:x
                       "expected [\"C\"]") : Yojson.Basic.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -167,10 +165,10 @@ We can extend aliased polyvariants:
         u -> Yojson.Basic.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
-  let () = print_endline (Melange_json.to_string (u_to_json `A))
-  let () = print_endline (Melange_json.to_string (u_to_json `C))
-  let () = assert ((u_of_json (Melange_json.of_string {|["B"]|})) = `B)
-  let () = assert ((u_of_json (Melange_json.of_string {|["C"]|})) = `C)
+  let () = print_endline (Jsonkit.to_string (u_to_json `A))
+  let () = print_endline (Jsonkit.to_string (u_to_json `C))
+  let () = assert ((u_of_json (Jsonkit.of_string {|["B"]|})) = `B)
+  let () = assert ((u_of_json (Jsonkit.of_string {|["C"]|})) = `C)
   === ppx output:browser ===
   type t = [ `A  | `B ][@@deriving json]
   include
@@ -192,7 +190,7 @@ We can extend aliased polyvariants:
                     then
                       (if Stdlib.(<>) len 1
                        then
-                         Melange_json.of_json_error ~json:x
+                         Jsonkit.of_json_error ~json:x
                            "expected a JSON array of length 1"
                        else `A)
                     else
@@ -200,21 +198,19 @@ We can extend aliased polyvariants:
                       then
                         (if Stdlib.(<>) len 1
                          then
-                           Melange_json.of_json_error ~json:x
+                           Jsonkit.of_json_error ~json:x
                              "expected a JSON array of length 1"
                          else `B)
                       else
-                        Melange_json.of_json_unexpected_variant ~json:x
+                        Jsonkit.of_json_unexpected_variant ~json:x
                           "expected [\"A\"] or [\"B\"]")
                  else
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Melange_json.of_json_error ~json:x
-                  "expected a non empty JSON array")
-           else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array" : Js.Json.t -> t)
+                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
+           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
+        Js.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
@@ -243,27 +239,25 @@ We can extend aliased polyvariants:
                  then
                    match of_json x with
                    | e -> (e :> [ | t | `C ])
-                   | exception Melange_json.Of_json_error
-                       (Melange_json.Unexpected_variant _) ->
+                   | exception Jsonkit.Of_json_error
+                       (Jsonkit.Unexpected_variant _) ->
                        (if Stdlib.(=) (Obj.magic tag : string) "C"
                         then
                           (if Stdlib.(<>) len 1
                            then
-                             Melange_json.of_json_error ~json:x
+                             Jsonkit.of_json_error ~json:x
                                "expected a JSON array of length 1"
                            else `C)
                         else
-                          Melange_json.of_json_unexpected_variant ~json:x
+                          Jsonkit.of_json_unexpected_variant ~json:x
                             "expected [\"C\"]")
                  else
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Melange_json.of_json_error ~json:x
-                  "expected a non empty JSON array")
-           else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array" : Js.Json.t -> u)
+                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
+           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
+        Js.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
@@ -274,10 +268,10 @@ We can extend aliased polyvariants:
         u -> Js.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
-  let () = print_endline (Melange_json.to_string (u_to_json `A))
-  let () = print_endline (Melange_json.to_string (u_to_json `C))
-  let () = assert ((u_of_json (Melange_json.of_string {|["B"]|})) = `B)
-  let () = assert ((u_of_json (Melange_json.of_string {|["C"]|})) = `C)
+  let () = print_endline (Jsonkit.to_string (u_to_json `A))
+  let () = print_endline (Jsonkit.to_string (u_to_json `C))
+  let () = assert ((u_of_json (Jsonkit.of_string {|["B"]|})) = `B)
+  let () = assert ((u_of_json (Jsonkit.of_string {|["C"]|})) = `C)
   === stdout:native ===
   ["A"]
   ["C"]
@@ -293,10 +287,10 @@ We can extend poly variants which are placed behind signatures:
   >   type t = [`A | `B] [@@deriving json]
   > end
   > type u = [P.t | `C] [@@deriving json]
-  > let () = print_endline (Melange_json.to_string (u_to_json `A))
-  > let () = print_endline (Melange_json.to_string (u_to_json `C))
-  > let () = assert (u_of_json (Melange_json.of_string {|["B"]|}) = `B)
-  > let () = assert (u_of_json (Melange_json.of_string {|["C"]|}) = `C)
+  > let () = print_endline (Jsonkit.to_string (u_to_json `A))
+  > let () = print_endline (Jsonkit.to_string (u_to_json `C))
+  > let () = assert (u_of_json (Jsonkit.of_string {|["B"]|}) = `B)
+  > let () = assert (u_of_json (Jsonkit.of_string {|["C"]|}) = `C)
   > ' | ./run.sh
   === ppx output:native ===
   module P :
@@ -321,7 +315,7 @@ We can extend poly variants which are placed behind signatures:
                | `List ((`String "A")::[]) -> `A
                | `List ((`String "B")::[]) -> `B
                | x ->
-                   Melange_json.of_json_unexpected_variant ~json:x
+                   Jsonkit.of_json_unexpected_variant ~json:x
                      "expected [\"A\"] or [\"B\"]" : Yojson.Basic.t -> t)
           let _ = of_json
           [@@@ocaml.warning "-39-11-27"]
@@ -345,9 +339,9 @@ We can extend poly variants which are placed behind signatures:
            | x ->
                (match P.of_json x with
                 | x -> (x :> [ | P.t | `C ])
-                | exception Melange_json.Of_json_error
-                    (Melange_json.Unexpected_variant _) ->
-                    Melange_json.of_json_unexpected_variant ~json:x
+                | exception Jsonkit.Of_json_error (Jsonkit.Unexpected_variant
+                    _) ->
+                    Jsonkit.of_json_unexpected_variant ~json:x
                       "expected [\"C\"]") : Yojson.Basic.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -357,10 +351,10 @@ We can extend poly variants which are placed behind signatures:
         u -> Yojson.Basic.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
-  let () = print_endline (Melange_json.to_string (u_to_json `A))
-  let () = print_endline (Melange_json.to_string (u_to_json `C))
-  let () = assert ((u_of_json (Melange_json.of_string {|["B"]|})) = `B)
-  let () = assert ((u_of_json (Melange_json.of_string {|["C"]|})) = `C)
+  let () = print_endline (Jsonkit.to_string (u_to_json `A))
+  let () = print_endline (Jsonkit.to_string (u_to_json `C))
+  let () = assert ((u_of_json (Jsonkit.of_string {|["B"]|})) = `B)
+  let () = assert ((u_of_json (Jsonkit.of_string {|["C"]|})) = `C)
   === ppx output:browser ===
   module P :
     sig
@@ -393,7 +387,7 @@ We can extend poly variants which are placed behind signatures:
                         then
                           (if Stdlib.(<>) len 1
                            then
-                             Melange_json.of_json_error ~json:x
+                             Jsonkit.of_json_error ~json:x
                                "expected a JSON array of length 1"
                            else `A)
                         else
@@ -401,20 +395,20 @@ We can extend poly variants which are placed behind signatures:
                           then
                             (if Stdlib.(<>) len 1
                              then
-                               Melange_json.of_json_error ~json:x
+                               Jsonkit.of_json_error ~json:x
                                  "expected a JSON array of length 1"
                              else `B)
                           else
-                            Melange_json.of_json_unexpected_variant ~json:x
+                            Jsonkit.of_json_unexpected_variant ~json:x
                               "expected [\"A\"] or [\"B\"]")
                      else
-                       Melange_json.of_json_error ~json:x
+                       Jsonkit.of_json_error ~json:x
                          "expected a non empty JSON array with element being a string")
                   else
-                    Melange_json.of_json_error ~json:x
+                    Jsonkit.of_json_error ~json:x
                       "expected a non empty JSON array")
                else
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected a non empty JSON array" : Js.Json.t -> t)
           let _ = of_json
           [@@@ocaml.warning "-39-11-27"]
@@ -445,27 +439,25 @@ We can extend poly variants which are placed behind signatures:
                  then
                    match P.of_json x with
                    | e -> (e :> [ | P.t | `C ])
-                   | exception Melange_json.Of_json_error
-                       (Melange_json.Unexpected_variant _) ->
+                   | exception Jsonkit.Of_json_error
+                       (Jsonkit.Unexpected_variant _) ->
                        (if Stdlib.(=) (Obj.magic tag : string) "C"
                         then
                           (if Stdlib.(<>) len 1
                            then
-                             Melange_json.of_json_error ~json:x
+                             Jsonkit.of_json_error ~json:x
                                "expected a JSON array of length 1"
                            else `C)
                         else
-                          Melange_json.of_json_unexpected_variant ~json:x
+                          Jsonkit.of_json_unexpected_variant ~json:x
                             "expected [\"C\"]")
                  else
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Melange_json.of_json_error ~json:x
-                  "expected a non empty JSON array")
-           else
-             Melange_json.of_json_error ~json:x
-               "expected a non empty JSON array" : Js.Json.t -> u)
+                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
+           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
+        Js.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
@@ -476,10 +468,10 @@ We can extend poly variants which are placed behind signatures:
         u -> Js.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
-  let () = print_endline (Melange_json.to_string (u_to_json `A))
-  let () = print_endline (Melange_json.to_string (u_to_json `C))
-  let () = assert ((u_of_json (Melange_json.of_string {|["B"]|})) = `B)
-  let () = assert ((u_of_json (Melange_json.of_string {|["C"]|})) = `C)
+  let () = print_endline (Jsonkit.to_string (u_to_json `A))
+  let () = print_endline (Jsonkit.to_string (u_to_json `C))
+  let () = assert ((u_of_json (Jsonkit.of_string {|["B"]|})) = `B)
+  let () = assert ((u_of_json (Jsonkit.of_string {|["C"]|})) = `C)
   === stdout:native ===
   ["A"]
   ["C"]

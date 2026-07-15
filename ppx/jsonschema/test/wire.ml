@@ -1,16 +1,16 @@
 (* Wire test: for types that derive BOTH [to_json] and [jsonschema], check that
-   the JSON produced by melange-json's encoder actually validates against the
+   the JSON produced by jsonkit's encoder actually validates against the
    generated JSON Schema.
 
-   The two derivers share melange-json's attributes ([@key], [@option],
+   The two derivers share jsonkit's attributes ([@key], [@option],
    [@default], [@name], [@@compact_variants], ...), so the schema is supposed to
    describe exactly the wire shape the encoder emits. This test enforces that
    contract by round-tripping sample values through [_to_json] and validating
    the result against [_jsonschema] with an external Draft 2020-12 validator
    ([check-jsonschema]). *)
 
-open Ppx_deriving_jsonschema_runtime.Primitives.Melange_json
-open Melange_json.Primitives
+open Ppx_deriving_jsonschema_runtime.Primitives.Jsonkit
+open Jsonkit.Primitives
 
 type json = Yojson.Basic.t
 

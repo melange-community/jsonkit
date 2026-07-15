@@ -1,16 +1,16 @@
-; The jsonschema deriver now ships inside melange-json-native.ppx / melange-json.ppx,
+; The jsonschema deriver now ships inside jsonkit.ppx / jsonkit-melange.ppx,
 ; so the standalone ppx drivers below only link those (plus melange.ppx for the
 ; Melange-flavoured driver) rather than a separate ppx_deriving_jsonschema deriver.
 
 (executable
  (name pp)
  (modules pp)
- (libraries ppxlib melange-json-native.ppx))
+ (libraries ppxlib jsonkit.ppx))
 
 (executable
  (name pp_melange)
  (modules pp_melange)
- (libraries ppxlib melange-json.ppx melange.ppx))
+ (libraries ppxlib jsonkit-melange.ppx melange.ppx))
 
 (rule
  (targets test.actual.ml)
@@ -53,18 +53,15 @@
  (name cases_support)
  (modules cases)
  (wrapped false)
- (libraries melange-json-native melange-json-native.jsonschema)
+ (libraries jsonkit jsonkit.jsonschema)
  (preprocess
-  (pps melange-json-native.ppx)))
+  (pps jsonkit.ppx)))
 
 (library
  (name generate_schemas_support)
  (modules generate_schemas_cases)
  (wrapped false)
- (libraries
-  melange-json-native.jsonschema
-  schema_snapshot_support
-  cases_support))
+ (libraries jsonkit.jsonschema schema_snapshot_support cases_support))
 
 (cram
  (deps %{exe:pp.exe} %{exe:pp_melange.exe}))
@@ -75,9 +72,9 @@
 (executable
  (name wire)
  (modules wire)
- (libraries unix yojson melange-json-native melange-json-native.jsonschema)
+ (libraries unix yojson jsonkit jsonkit.jsonschema)
  (preprocess
-  (pps melange-json-native.ppx)))
+  (pps jsonkit.ppx)))
 
 (cram
  (applies_to wire)

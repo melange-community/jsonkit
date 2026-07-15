@@ -1,4 +1,4 @@
-project_name = melange-json
+project_name = jsonkit
 
 DUNE = opam exec -- dune
 
@@ -16,7 +16,17 @@ create-switch: ## Create opam switch
 	opam switch create . 5.4.0 -y --deps-only
 
 .PHONY: init
-init: create-switch install ## Configure everything to develop this repository in local
+init: create-switch install hooks ## Configure everything to develop this repository in local
+
+.PHONY: hooks
+hooks: ## Install the repo git hooks (enforce jsonkit@X.Y.Z tag naming)
+	git config core.hooksPath .githooks
+
+.PHONY: tag
+tag: ## Create a release tag: make tag version=X.Y.Z creates jsonkit.X.Y.Z
+	@test -n "$(version)" || { echo "usage: make tag version=X.Y.Z"; exit 1; }
+	ALLOW_TAG_CREATION=true git tag jsonkit.$(version)
+	@echo "Created tag jsonkit.$(version). Push it with: git push origin jsonkit.$(version)"
 
 .PHONY: install
 install: ## Install development dependencies
@@ -52,6 +62,12 @@ watch: ## Watch for the filesystem and rebuild on every change
 .PHONY: test
 test: ## Run the tests
 	$(DUNE) build @runtest --no-buffer
+
+ocaml54_switch = jsonkit-54
+
+.PHONY: test-labeled-tuples
+test-labeled-tuples: ## Run the labeled tuples tests (needs an OCaml >= 5.4 switch, override with ocaml54_switch=...)
+	opam exec --switch $(ocaml54_switch) -- dune build @labeled_tuples --auto-promote
 
 .PHONY: test-watch
 test-watch: ## Run the tests and watch for changes

@@ -23,15 +23,15 @@ let unknown_variant_case_jsonschema =
           ] );
     ]
 
-let classify = Classify.classify
-let declassify = Classify.declassify
+let classify = Jsonkit_classify.classify
+let declassify = Jsonkit_classify.declassify
 let to_json t = t
 let of_json t = t
 
 type 'a of_json = Js.Json.t -> 'a
 type 'a to_json = 'a -> Js.Json.t
 
-include Errors
+include Jsonkit_errors
 
 let to_string t = Js.Json.stringify t
 

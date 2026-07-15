@@ -17,7 +17,7 @@ module Test = struct
     | Char
 
   let valueFor =
-    let open! Melange_json.Encode in
+    let open! Jsonkit.Encode in
     function
     | Float -> float 1.23
     | Int -> int 23
@@ -33,25 +33,24 @@ module Test = struct
         try
           let _ = decoder value in
           fail "should throw"
-        with Melange_json.Of_json_error _ -> pass)
+        with Jsonkit.Of_json_error _ -> pass)
 end
 
 let wrap_exn exp =
   try
     let _ = exp () in
     "not called"
-  with Melange_json.Of_json_error str ->
-    Melange_json.of_json_error_to_string str
+  with Jsonkit.Of_json_error str -> Jsonkit.of_json_error_to_string str
 
 let () =
   describe "id" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open Decode in
       test "id" (fun () ->
           expect @@ int (0 |> Encode.int |> Decode.id) |> toEqual 0));
 
   describe "bool" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open Decode in
       test "bool" (fun () ->
           expect @@ bool (Encode.bool true) |> toEqual true);
@@ -61,7 +60,7 @@ let () =
       Test.throws bool [ Float; Int; String; Null; Array; Object; Char ]);
 
   describe "float" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "float" (fun () ->
           expect @@ float (Encode.float 1.23) |> toEqual 1.23);
@@ -71,7 +70,7 @@ let () =
       Test.throws float [ Bool; String; Null; Array; Object; Char ]);
 
   describe "int" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "int" (fun () -> expect @@ int (Encode.int 23) |> toEqual 23);
 
@@ -92,7 +91,7 @@ let () =
       Test.throws int [ Bool; Float; String; Null; Array; Object; Char ]);
 
   describe "string" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "string" (fun () ->
           expect @@ string (Encode.string "test") |> toEqual "test");
@@ -112,7 +111,7 @@ let () =
       Test.throws string [ Bool; Float; Int; Null; Array; Object ]);
 
   describe "date" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "ISO8601-formatted string" (fun () ->
           expect @@ date (Encode.string "2012-04-23T18:25:43.511Z")
@@ -121,7 +120,7 @@ let () =
       Test.throws date [ Bool; Float; Int; Null; Array; Object ]);
 
   describe "char" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "character" (fun () ->
           expect @@ char (Encode.char 'a') |> toEqual 'a');
@@ -146,7 +145,7 @@ let () =
       Test.throws char [ Bool; Float; Int; Null; Array; Object ]);
 
   describe "nullable" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "int -> int" (fun () ->
           expect @@ (nullable int) (Encode.int 23)
@@ -172,7 +171,7 @@ let () =
       Test.throws (nullable bool) [ Int ]);
 
   describe "nullAs" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open Decode in
       test "as 0 - null" (fun () ->
           expect @@ (nullAs 0) Encode.null |> toEqual 0);
@@ -188,7 +187,7 @@ let () =
         [ Bool; Float; Int; String; Array; Object; Char ]);
 
   describe "array" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "array" (fun () ->
           expect @@ (array int) (Encode.jsonArray [||]) |> toEqual [||]);
@@ -234,7 +233,7 @@ let () =
         [ Bool; Float; Int; String; Null; Object; Char ]);
 
   describe "list" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "array" (fun () ->
           expect @@ (list int) (Encode.jsonArray [||]) |> toEqual []);
@@ -278,7 +277,7 @@ let () =
         [ Bool; Float; Int; String; Null; Object; Char ]);
 
   describe "pair" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "heterogenous" (fun () ->
           expect @@ pair string int (parseOrRaise {| ["a", 3] |})
@@ -337,7 +336,7 @@ let () =
           with Foo -> pass));
 
   describe "tuple2" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "heterogenous" (fun () ->
           expect @@ tuple2 string int (parseOrRaise {| ["a", 3] |})
@@ -394,7 +393,7 @@ let () =
           with Foo -> pass));
 
   describe "tuple3" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "heterogenous" (fun () ->
           expect
@@ -462,7 +461,7 @@ let () =
           with Foo -> pass));
 
   describe "tuple4" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "heterogenous" (fun () ->
           expect
@@ -525,7 +524,7 @@ let () =
           with Foo -> pass));
 
   describe "dict" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "object" (fun () ->
           expect @@ dict int (Encode.object_ [])
@@ -573,7 +572,7 @@ let () =
         [ Bool; Float; Int; String; Null; Array; Char ]);
 
   describe "field" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "boolean" (fun () ->
           expect
@@ -630,7 +629,7 @@ let () =
         [ Bool; Float; Int; String; Null; Array; Object; Char ]);
 
   describe "at" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "boolean" (fun () ->
           expect
@@ -698,7 +697,7 @@ let () =
         [ Bool; Float; Int; String; Null; Array; Object; Char ]);
 
   describe "optional" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "boolean -> int" (fun () ->
           expect @@ (optional int) (Encode.bool true) |> toEqual None);
@@ -769,7 +768,7 @@ let () =
           with Foo -> pass));
 
   describe "oneOf" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "object with field" (fun () ->
           expect
@@ -791,7 +790,7 @@ let () =
         [ Bool; Float; String; Null; Array; Object; Char ]);
 
   describe "either" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "object with field" (fun () ->
           expect
@@ -819,7 +818,7 @@ let () =
         [ Bool; Float; String; Null; Array; Object; Char ]);
 
   describe "withDefault" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "boolean" (fun () ->
           expect @@ (withDefault 0 int) (Encode.bool true) |> toEqual 0);
@@ -848,7 +847,7 @@ let () =
           with Foo -> pass));
 
   describe "map" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "int" (fun () ->
           expect @@ (int |> map (( + ) 2)) (Encode.int 23) |> toEqual 25);
@@ -858,7 +857,7 @@ let () =
         [ Bool; Float; String; Null; Array; Object; Char ]);
 
   describe "andThen" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "int -> int" (fun () ->
           expect @@ (int |> andThen (fun _ -> int)) (Encode.int 23)
@@ -882,7 +881,7 @@ let () =
         [ Float ]);
 
   describe "composite expressions" (fun () ->
-      let open Melange_json in
+      let open Jsonkit in
       let open! Decode in
       test "dict array array int" (fun () ->
           expect

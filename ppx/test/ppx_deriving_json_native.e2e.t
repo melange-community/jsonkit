@@ -5,8 +5,8 @@
   $ echo '
   > (executable
   >   (name main)
-  >   (flags :standard -w -37-69 -open Melange_json.Primitives)
-  >   (preprocess (pps melange-json-native.ppx)))' > dune
+  >   (flags :standard -w -37-69 -open Jsonkit.Primitives)
+  >   (preprocess (pps jsonkit.ppx)))' > dune
 
   $ echo '
   > let () = Example.test ()

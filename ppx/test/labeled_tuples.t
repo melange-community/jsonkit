@@ -47,12 +47,12 @@
            (~a:((match Stdlib.(!) x_a with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Melange_json.of_json_error ~json:x "expected field \"a\"")),
+                     Jsonkit.of_json_error ~json:x "expected field \"a\"")),
              ~b:((match Stdlib.(!) x_b with
                   | Stdlib.Option.Some v -> v
                   | Stdlib.Option.None ->
-                      Melange_json.of_json_error ~json:x "expected field \"b\""))))
-      | _ -> Melange_json.of_json_error ~json:x "expected a JSON object"
+                      Jsonkit.of_json_error ~json:x "expected field \"b\""))))
+      | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
   === ppx output:browser ===
   let _ =
     fun x ->
@@ -61,7 +61,7 @@
           (Stdlib.(&&) (Stdlib.(=) (Js.typeof x) "object")
              (Stdlib.(&&) (Stdlib.not (Js.Array.isArray x))
                 (Stdlib.not (Stdlib.(==) (Obj.magic x : 'a Js.null) Js.null))))
-      then Melange_json.of_json_error ~json:x "expected a JSON object";
+      then Jsonkit.of_json_error ~json:x "expected a JSON object";
       (let fs =
          (Obj.magic x : <
                           a: Js.Json.t Js.undefined  ;b: Js.Json.t Js.undefined
@@ -70,12 +70,12 @@
        (~a:(match Js.Undefined.toOption (fs ## a) with
             | Stdlib.Option.Some v -> string_of_json v
             | Stdlib.Option.None ->
-                Melange_json.of_json_error ~json:x
+                Jsonkit.of_json_error ~json:x
                   "expected field \"a\" to be present"),
          ~b:(match Js.Undefined.toOption (fs ## b) with
              | Stdlib.Option.Some v -> int_of_json v
              | Stdlib.Option.None ->
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected field \"b\" to be present")))
   === stdout:native ===
   === stdout:js ===
@@ -129,12 +129,12 @@
            (~x:((match Stdlib.(!) x_x with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Melange_json.of_json_error ~json:x "expected field \"x\"")),
+                     Jsonkit.of_json_error ~json:x "expected field \"x\"")),
              ((match Stdlib.(!) x_1 with
                | Stdlib.Option.Some v -> v
                | Stdlib.Option.None ->
-                   Melange_json.of_json_error ~json:x "expected field \"1\""))))
-      | _ -> Melange_json.of_json_error ~json:x "expected a JSON object"
+                   Jsonkit.of_json_error ~json:x "expected field \"1\""))))
+      | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
   === ppx output:browser ===
   let _ =
     fun x ->
@@ -143,7 +143,7 @@
           (Stdlib.(&&) (Stdlib.(=) (Js.typeof x) "object")
              (Stdlib.(&&) (Stdlib.not (Js.Array.isArray x))
                 (Stdlib.not (Stdlib.(==) (Obj.magic x : 'a Js.null) Js.null))))
-      then Melange_json.of_json_error ~json:x "expected a JSON object";
+      then Jsonkit.of_json_error ~json:x "expected a JSON object";
       (let fs =
          (Obj.magic x : <
                           x: Js.Json.t Js.undefined  ;1: Js.Json.t Js.undefined
@@ -152,12 +152,12 @@
        (~x:(match Js.Undefined.toOption (fs ## x) with
             | Stdlib.Option.Some v -> int_of_json v
             | Stdlib.Option.None ->
-                Melange_json.of_json_error ~json:x
+                Jsonkit.of_json_error ~json:x
                   "expected field \"x\" to be present"),
          (match Js.Undefined.toOption (fs ## 1) with
           | Stdlib.Option.Some v -> string_of_json v
           | Stdlib.Option.None ->
-              Melange_json.of_json_error ~json:x
+              Jsonkit.of_json_error ~json:x
                 "expected field \"1\" to be present")))
   === stdout:native ===
   === stdout:js ===
@@ -191,14 +191,12 @@
                 (~x:((match Stdlib.(!) x_x with
                       | Stdlib.Option.Some v -> v
                       | Stdlib.Option.None ->
-                          Melange_json.of_json_error ~json:x
-                            "expected field \"x\"")),
+                          Jsonkit.of_json_error ~json:x "expected field \"x\"")),
                   ~y:((match Stdlib.(!) x_y with
                        | Stdlib.Option.Some v -> v
                        | Stdlib.Option.None ->
-                           Melange_json.of_json_error ~json:x
-                             "expected field \"y\""))))
-           | _ -> Melange_json.of_json_error ~json:x "expected a JSON object" : 
+                           Jsonkit.of_json_error ~json:x "expected field \"y\""))))
+           | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object" : 
         Yojson.Basic.t -> point)
       let _ = point_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -227,7 +225,7 @@
                   (Stdlib.(&&) (Stdlib.not (Js.Array.isArray x))
                      (Stdlib.not
                         (Stdlib.(==) (Obj.magic x : 'a Js.null) Js.null))))
-           then Melange_json.of_json_error ~json:x "expected a JSON object";
+           then Jsonkit.of_json_error ~json:x "expected a JSON object";
            (let fs =
               (Obj.magic x : <
                                x: Js.Json.t Js.undefined  ;y: Js.Json.t
@@ -236,12 +234,12 @@
             (~x:(match Js.Undefined.toOption (fs ## x) with
                  | Stdlib.Option.Some v -> int_of_json v
                  | Stdlib.Option.None ->
-                     Melange_json.of_json_error ~json:x
+                     Jsonkit.of_json_error ~json:x
                        "expected field \"x\" to be present"),
               ~y:(match Js.Undefined.toOption (fs ## y) with
                   | Stdlib.Option.Some v -> int_of_json v
                   | Stdlib.Option.None ->
-                      Melange_json.of_json_error ~json:x
+                      Jsonkit.of_json_error ~json:x
                         "expected field \"y\" to be present"))) : Js.Json.t ->
                                                                     point)
       let _ = point_of_json
@@ -287,14 +285,12 @@
                 (~x:((match Stdlib.(!) x_x with
                       | Stdlib.Option.Some v -> v
                       | Stdlib.Option.None ->
-                          Melange_json.of_json_error ~json:x
-                            "expected field \"x\"")),
+                          Jsonkit.of_json_error ~json:x "expected field \"x\"")),
                   ((match Stdlib.(!) x_1 with
                     | Stdlib.Option.Some v -> v
                     | Stdlib.Option.None ->
-                        Melange_json.of_json_error ~json:x
-                          "expected field \"1\""))))
-           | _ -> Melange_json.of_json_error ~json:x "expected a JSON object" : 
+                        Jsonkit.of_json_error ~json:x "expected field \"1\""))))
+           | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object" : 
         Yojson.Basic.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -323,7 +319,7 @@
                   (Stdlib.(&&) (Stdlib.not (Js.Array.isArray x))
                      (Stdlib.not
                         (Stdlib.(==) (Obj.magic x : 'a Js.null) Js.null))))
-           then Melange_json.of_json_error ~json:x "expected a JSON object";
+           then Jsonkit.of_json_error ~json:x "expected a JSON object";
            (let fs =
               (Obj.magic x : <
                                x: Js.Json.t Js.undefined  ;1: Js.Json.t
@@ -332,12 +328,12 @@
             (~x:(match Js.Undefined.toOption (fs ## x) with
                  | Stdlib.Option.Some v -> int_of_json v
                  | Stdlib.Option.None ->
-                     Melange_json.of_json_error ~json:x
+                     Jsonkit.of_json_error ~json:x
                        "expected field \"x\" to be present"),
               (match Js.Undefined.toOption (fs ## 1) with
                | Stdlib.Option.Some v -> string_of_json v
                | Stdlib.Option.None ->
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected field \"1\" to be present"))) : Js.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]

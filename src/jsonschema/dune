@@ -1,9 +1,9 @@
-; Melange runtime for [@@deriving jsonschema] (part of the melange-json package).
+; Melange runtime for [@@deriving jsonschema] (part of the jsonkit-melange package).
 ; The native counterpart lives in ../native/jsonschema and shares the
 ; platform-neutral sources via copy_files.
 
 (library
  (name ppx_deriving_jsonschema_runtime)
- (public_name melange-json.jsonschema)
+ (public_name jsonkit-melange.jsonschema)
  (modes melange)
  (wrapped false))

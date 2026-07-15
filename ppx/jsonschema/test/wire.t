@@ -1,4 +1,4 @@
-Wire test: JSON produced by melange-json's [to_json] encoder must validate
+Wire test: JSON produced by jsonkit's [to_json] encoder must validate
 against the schema produced by the [jsonschema] deriver for the same type.
 Requires the [check-jsonschema] CLI on PATH.
 

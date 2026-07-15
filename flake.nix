@@ -1,5 +1,5 @@
 {
-  description = "melange-json Nix Flake";
+  description = "jsonkit Nix Flake";
 
   inputs.nixpkgs.url = "github:nix-ocaml/nix-overlays";
 
@@ -16,8 +16,8 @@
     {
       packages = forAllSystems (pkgs:
         let
-          melange-json = with pkgs.ocamlPackages; buildDunePackage {
-            pname = "melange-json";
+          jsonkit = with pkgs.ocamlPackages; buildDunePackage {
+            pname = "jsonkit";
             version = "dev";
 
             src =
@@ -27,8 +27,8 @@
                 fileset = fs.unions [
                   ./dune-project
                   ./dune
-                  ./melange-json.opam
-                  ./melange-json-native.opam
+                  ./jsonkit-melange.opam
+                  ./jsonkit.opam
                   ./src
                   ./ppx
                 ];
@@ -42,12 +42,12 @@
             ];
           };
         in
-        { inherit melange-json; default = melange-json; });
+        { inherit jsonkit; default = jsonkit; });
       devShells = forAllSystems (pkgs:
         let
           inherit (pkgs) nodejs_latest ocamlPackages system yarn;
           mkShell = { buildInputs ? [ ] }: pkgs.mkShell {
-            inputsFrom = [ self.packages.${system}.melange-json ];
+            inputsFrom = [ self.packages.${system}.jsonkit ];
             nativeBuildInputs = [
               yarn
               nodejs_latest

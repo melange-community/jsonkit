@@ -2,7 +2,7 @@
 
 open Jest
 open Expect
-open! Melange_json.Encode
+open! Jsonkit.Encode
 
 let _ =
   test "null" (fun () -> expect null |> toEqual @@ Obj.magic Js.null);

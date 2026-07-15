@@ -1,4 +1,4 @@
-open Melange_json.Primitives
+open Jsonkit.Primitives
 
 type variant =
   | A

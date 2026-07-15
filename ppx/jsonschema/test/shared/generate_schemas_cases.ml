@@ -115,7 +115,7 @@ let schemas =
       computation_result_jsonschema;
     Ppx_deriving_jsonschema_runtime.json_schema nullable_fields_jsonschema;
     Ppx_deriving_jsonschema_runtime.json_schema
-      melange_json_defaults_jsonschema;
+      jsonkit_defaults_jsonschema;
     Ppx_deriving_jsonschema_runtime.json_schema
       composing_record_jsonschema;
     Ppx_deriving_jsonschema_runtime.json_schema with_format_jsonschema;

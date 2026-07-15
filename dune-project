@@ -2,7 +2,7 @@
 
 (using melange 0.1)
 
-(name melange-json)
+(name jsonkit)
 
 (generate_opam_files true)
 
@@ -12,15 +12,15 @@
 
 (license "LGPL-3.0-only" "MPL-2.0")
 
-(homepage "https://github.com/melange-community/melange-json/")
+(homepage "https://github.com/melange-community/jsonkit/")
 
-(bug_reports "https://github.com/melange-community/melange-json/issues")
+(bug_reports "https://github.com/melange-community/jsonkit/issues")
 
 (source
- (github melange-community/melange-json))
+ (github melange-community/jsonkit))
 
 (package
- (name melange-json)
+ (name jsonkit-melange)
  (authors "glennsl" "Andrey Popp")
  (synopsis "Compositional JSON encode/decode library and PPX for Melange")
  (description
@@ -44,7 +44,7 @@
     :with-dev-setup))))
 
 (package
- (name melange-json-native)
+ (name jsonkit)
  (authors "Andrey Popp")
  (synopsis "Compositional JSON encode/decode PPX for OCaml")
  (description
