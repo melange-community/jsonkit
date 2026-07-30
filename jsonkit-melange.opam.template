@@ -1,4 +1,0 @@
-pin-depends: [
-  [ "opam-check-npm-deps.dev" "git+https://github.com/ahrefs/opam-check-npm-deps.git#ebecec84c6dddf91d7a40f67ca8bb280529330c3" ]
-]
-

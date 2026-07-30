@@ -18,7 +18,7 @@ depends: [
   "melange-jest" {with-test}
   "reason" {>= "3.10.0" & with-test}
   "ppxlib" {>= "0.38.0"}
-  "opam-check-npm-deps" {with-dev-setup}
+  "opam-check-npm-deps" {>= "4.1.0" & with-dev-setup}
   "ocaml-lsp-server" {with-dev-setup}
   "ocamlformat" {= "0.28.1" & with-dev-setup}
   "odoc" {with-doc}
@@ -38,7 +38,3 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/melange-community/jsonkit.git"
-pin-depends: [
-  [ "opam-check-npm-deps.dev" "git+https://github.com/ahrefs/opam-check-npm-deps.git#ebecec84c6dddf91d7a40f67ca8bb280529330c3" ]
-]
-

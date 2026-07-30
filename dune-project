@@ -36,7 +36,10 @@
     :with-test))
   (ppxlib
    (>= "0.38.0"))
-  (opam-check-npm-deps :with-dev-setup)
+  (opam-check-npm-deps
+   (and
+    (>= "4.1.0")
+    :with-dev-setup))
   (ocaml-lsp-server :with-dev-setup)
   (ocamlformat
    (and
