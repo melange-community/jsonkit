@@ -88,3 +88,23 @@ group, not just the one carrying the attribute.
   $ ../native/ppx_deriving_json_native_test.exe input.ml --use-compiler-pp 2>&1 | grep "melange-json linter"
     "melange-json linter: [@json.key] only applies to the json deriver, but this type derives both json and jsonschema; use the unqualified [@key] so it applies to both"]
     "melange-json linter: [@jsonschema.name] only applies to the jsonschema deriver, but this type derives both json and jsonschema; use the unqualified [@name] so it applies to both"]
+
+Deriver attributes used in a context they do not apply to are flagged,
+whether qualified or not. Attributes are only matched against the
+deriver(s) the type actually uses, so [@jsonschema.format] is ignored when
+only [json] is derived.
+
+  $ cat > input.ml <<'EOF'
+  > type t = { foo : int [@json.name "a"] [@jsonschema.format "int32"] }
+  > [@@deriving json]
+  > 
+  > type u = A [@key "k"] [@json.drop_default]
+  > [@@deriving json, jsonschema] [@@json.default 1]
+  > 
+  > EOF
+
+  $ ../native/ppx_deriving_json_native_test.exe input.ml --use-compiler-pp 2>&1 | grep "melange-json linter"
+    "melange-json linter: [@json.name] is not allowed on a record field; it applies to variant constructors, polymorphic variant tags"]
+    "melange-json linter: [@key] is not allowed on a variant constructor; it applies to record fields"]
+    "melange-json linter: [@json.drop_default] is not allowed on a variant constructor; it applies to record fields"]
+    "melange-json linter: [@json.default] is not allowed on a type declaration; it applies to record fields"]
