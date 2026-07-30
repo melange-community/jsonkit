@@ -1,5 +1,5 @@
-open Ppx_deriving_jsonschema_runtime.Primitives.Melange_json
-open Melange_json.Primitives
+open Ppx_deriving_jsonschema_runtime.Primitives.Jsonkit
+open Jsonkit.Primitives
 let string_jsonschema = `Assoc [("type", (`String "string"))]
 let int_jsonschema = `Assoc [("type", (`String "integer"))]
 let bool_jsonschema = `Assoc [("type", (`String "boolean"))]
@@ -2918,7 +2918,7 @@ include
                     ppx_pairs))
            | other -> other)[@@warning "-32-39"]
   end[@@ocaml.doc "@inline"][@@merlin.hide ]
-type melange_json_defaults =
+type jsonkit_defaults =
   {
   required_value: int ;
   option_value: string option [@option ];
@@ -2931,7 +2931,7 @@ type melange_json_defaults =
 [@@deriving jsonschema]
 include
   struct
-    let melange_json_defaults_jsonschema =
+    let jsonkit_defaults_jsonschema =
       let ppx_eds = ref [] in
       let ppx_result =
         `Assoc

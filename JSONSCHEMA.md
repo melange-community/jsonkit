@@ -3,27 +3,27 @@
 `[@@deriving jsonschema]` generates a [JSON Schema](https://json-schema.org/)
 (draft 2020-12) from an OCaml type. It is the
 [`ppx_deriving_jsonschema`](https://github.com/ahrefs/ppx_deriving_jsonschema)
-deriver, integrated into melange-json and registered through the same PPX as
+deriver, integrated into jsonkit and registered through the same PPX as
 `[@@deriving json]`.
 
 The generated schema is compatible with the wire format produced by the other
 json derivers:
 
-- [melange-json](https://github.com/melange-community/melange-json) (`[@@deriving json]`)
+- [jsonkit](https://github.com/melange-community/jsonkit) (`[@@deriving json]`)
 - [ppx_deriving_yojson](https://github.com/ocaml-ppx/ppx_deriving_yojson)
 - [ppx_yojson_conv](https://github.com/janestreet/ppx_yojson_conv)
 
 ## Setup
 
-The deriver ships inside the melange-json PPX, so there is nothing extra to
-install — enabling `melange-json.ppx` (Melange) or `melange-json-native.ppx`
+The deriver ships inside the jsonkit PPX, so there is nothing extra to
+install — enabling `jsonkit-melange.ppx` (Melange) or `jsonkit.ppx`
 (native) makes `[@@deriving jsonschema]` available. The generated code relies on
 a small runtime that the PPX wires in automatically as a `ppx_runtime_library`:
 
-| Build      | PPX                       | Runtime                       |
-| ---------- | ------------------------- | ----------------------------- |
-| Melange/JS | `melange-json.ppx`        | `melange-json.jsonschema`        |
-| Native     | `melange-json-native.ppx` | `melange-json-native.jsonschema` |
+| Build      | PPX                   | Runtime                      |
+| ---------- | --------------------- | ---------------------------- |
+| Melange/JS | `jsonkit-melange.ppx` | `jsonkit-melange.jsonschema` |
+| Native     | `jsonkit.ppx`         | `jsonkit.jsonschema`         |
 
 Both runtime libraries expose the same `Ppx_deriving_jsonschema_runtime` module.
 
@@ -33,7 +33,7 @@ A native `dune` stanza looks like:
 (library
  (name my_types)
  (preprocess
-  (pps melange-json-native.ppx)))
+  (pps jsonkit.ppx)))
 ```
 
 and a Melange one:
@@ -43,7 +43,7 @@ and a Melange one:
  (name my_types)
  (modes melange)
  (preprocess
-  (pps melange-json.ppx)))
+  (pps jsonkit-melange.ppx)))
 ```
 
 ## `[@@deriving jsonschema]`
@@ -101,11 +101,11 @@ self-contained schema document (it adds the `$schema` header and any
 
 The deriver emits primitive helpers (e.g. `int_jsonschema`, `string_jsonschema`)
 unqualified, so bring the right primitives module into scope depending on the
-build. Use `Melange_json` for the Melange runtime and `Yojson` for the native
+build. Use `Jsonkit` for the Melange runtime and `Yojson` for the native
 one:
 
 ```ocaml
-open Ppx_deriving_jsonschema_runtime.Primitives.Melange_json
+open Ppx_deriving_jsonschema_runtime.Primitives.Jsonkit
 
 type t = {
   a: int;
@@ -117,9 +117,9 @@ type t = {
 
 #### Primitives
 
-As we support the ppx to be used with both melange-json and yojson, we provide two primitives modules: `Melange_json` and `Yojson`.
+As we support the ppx to be used with both jsonkit and yojson, we provide two primitives modules: `Jsonkit` and `Yojson`.
 
-##### Melange_json
+##### Jsonkit
 
 <table>
 <thead>
@@ -1041,7 +1041,7 @@ type t = {
 Set a default value for a record field. Fields with a default are excluded from `required`.
 
 Primitive literals (`int`, `int32`, `nativeint`, `float`, `string`, `bytes`, `bool`) and **their** `option`, `list`, `tuple`, and `array` variants are serialized automatically. 
-For non-primitive types (custom variants, records, etc.) a `<type>_to_json` function must be in scope — e.g. via `[@@deriving json]` from melange-json. (`<type> -> Js.Json.t` at melange and `<type> -> Yojson.Basic.t` at native)
+For non-primitive types (custom variants, records, etc.) a `<type>_to_json` function must be in scope — e.g. via `[@@deriving json]` from jsonkit. (`<type> -> Js.Json.t` at melange and `<type> -> Yojson.Basic.t` at native)
 
 ```ocaml
 type status = Active | Inactive [@@deriving jsonschema]

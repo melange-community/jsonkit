@@ -13,7 +13,7 @@ module Yojson : sig
   val int64_jsonschema : t
 end
 
-module Melange_json : sig
+module Jsonkit : sig
   type t = Ppx_deriving_jsonschema_runtime_classify.t
 
   val char_jsonschema : t

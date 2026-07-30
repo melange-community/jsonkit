@@ -26,11 +26,11 @@ be combined to create complex composite decoders for any _known_ JSON data
 structure. It allows for custom decoders to produce user-defined types.
 
 @example {[
-(* Parsing a JSON string using Melange_json.of_string *)
+(* Parsing a JSON string using Jsonkit.of_string *)
 let arrayOfInts str
-  match Melange_json.of_string str with
+  match Jsonkit.of_string str with
   | Some value ->
-    match Melange_json.Of_json.(array int value)
+    match Jsonkit.Of_json.(array int value)
     | Ok arr -> arr
     | Error _ -> []
   | None -> failWith "Unable to parse JSON"
@@ -40,22 +40,22 @@ let _ = Js.log (arrayOfInts "[1, 2, 3]" |> Js.Array.reverse)
 ]}
 
 @example {[
-(* Stringifying a value using Melange_json.to_string *)
+(* Stringifying a value using Jsonkit.to_string *)
 
 (* prints `null` *)
 let _ =
-  Melange_json.to_string (To_json.int 42)
+  Jsonkit.to_string (To_json.int 42)
   |> Js.log
 ]}
 
 @example {[
-(* Encoding a JSON data structure using Melange_json.Encode *)
+(* Encoding a JSON data structure using Jsonkit.Encode *)
 
 (* prints ["foo", "bar"] *)
 let _ =
   [| "foo", "bar" |]
-  |> Melange_json.To_json.string_array
-  |> Melange_json.to_string
+  |> Jsonkit.To_json.string_array
+  |> Jsonkit.to_string
   |> Js.log
 
 (* prints ["foo", "bar"] *)
@@ -68,15 +68,15 @@ let _ =
 ]}
 
 @example {[
-(* Decoding a fixed JSON data structure using Melange_json.Of_json *)
+(* Decoding a fixed JSON data structure using Jsonkit.Of_json *)
 let mapJsonObjectString f decoder encoder str =
-  match Melange_json.of_string str with
+  match Jsonkit.of_string str with
   | Ok json ->
-    match Melange_json.Of_json.(js_dict decoder json) with
+    match Jsonkit.Of_json.(js_dict decoder json) with
     | Ok dict ->
       dict |> Js.Dict.map f
            |> Js.Dict.map encoder
-           |> Melange_json.To_json.js_dict
+           |> Jsonkit.To_json.js_dict
            |> to_string
     | Error _ -> []
   | Error _ -> []
@@ -87,7 +87,7 @@ let sum ns =
 (* prints `{ "foo": 6, "bar": 24 }` *)
 let _ =
   Js.log (
-    mapJsonObjectString sum Melange_json.Of_json.(array int) Melange_json.To_json.int {|
+    mapJsonObjectString sum Jsonkit.Of_json.(array int) Jsonkit.To_json.int {|
       {
         "foo": [1, 2, 3],
         "bar": [9, 8, 7]
@@ -130,7 +130,7 @@ val unknown_variant_case_jsonschema :
 (** JSON-schema literal for [unknown_variant_case]. The polyvariant type
     is compatible with [Ppx_deriving_jsonschema_runtime.t]: use as the
     value of [type X = ... [@@deriving jsonschema]] when the type is
-    [Melange_json.unknown_variant_case]. *)
+    [Jsonkit.unknown_variant_case]. *)
 
 val to_string : json -> string
 (** JSON can be encoded as a string. *)

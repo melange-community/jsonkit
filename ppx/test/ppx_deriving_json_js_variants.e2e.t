@@ -7,9 +7,9 @@
   >  (name lib)
   >  (modes melange)
   >  (modules main)
-  >  (libraries melange-json)
+  >  (libraries jsonkit-melange)
   >  (flags :standard -w -20-37-69)
-  >  (preprocess (pps melange.ppx melange-json.ppx)))
+  >  (preprocess (pps melange.ppx jsonkit-melange.ppx)))
   > (melange.emit
   >  (alias js)
   >  (target output)
@@ -22,6 +22,6 @@
   > let json = sum_to_json A
   > ' >> main.ml
 
-Can build without having to open Melange_json.Primitives
+Can build without having to open Jsonkit.Primitives
 
   $ dune build @js

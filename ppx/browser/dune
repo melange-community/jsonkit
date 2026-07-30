@@ -1,9 +1,9 @@
 (library
- (public_name melange-json.ppx)
+ (public_name jsonkit-melange.ppx)
  (name ppx_deriving_json_js)
  (modules :standard \ ppx_deriving_json_js_test)
  (libraries ppxlib)
- (ppx_runtime_libraries melange-json melange-json.jsonschema)
+ (ppx_runtime_libraries jsonkit-melange jsonkit-melange.jsonschema)
  (preprocess
   (pps ppxlib.metaquot))
  (kind ppx_deriver))
@@ -11,7 +11,7 @@
 (executable
  (name ppx_deriving_json_js_test)
  (modules ppx_deriving_json_js_test)
- (libraries melange-json.ppx ppxlib))
+ (libraries jsonkit-melange.ppx ppxlib))
 
 (rule
  (target ppx_deriving_json_js.mli)
@@ -49,7 +49,7 @@
  (files ../native/common/linter.ml))
 
 ; Shared jsonschema deriver sources (see ppx/native/dune for rationale). Compiled
-; into melange-json.ppx so [@@deriving jsonschema] works on the Melange ppx too.
+; into jsonkit-melange.ppx so [@@deriving jsonschema] works on the Melange ppx too.
 
 (copy_files#
  (files ../jsonschema/{schema,ppx_deriving_jsonschema}.{ml,mli}))

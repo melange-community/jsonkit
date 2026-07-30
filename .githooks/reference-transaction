@@ -1,0 +1,20 @@
+#!/bin/sh
+# Block local tag creation unless ALLOW_TAG_CREATION=true is set in the
+# environment (`make tag` sets it).
+
+[ "$1" = prepared ] || exit 0
+[ "$ALLOW_TAG_CREATION" = true ] && exit 0
+
+status=0
+while read -r old new ref; do
+  case "$ref:$new" in
+  refs/tags/*:*[!0]*) ;; # a tag is created or moved to a real object
+  *) continue ;;         # not a tag, or a deletion (all-zero new oid)
+  esac
+  case "$(ps -o args= -p $PPID 2>/dev/null)" in
+  *fetch* | *pull* | *clone*) continue ;;
+  esac
+  echo >&2 "tag '${ref#refs/tags/}' rejected: tag creation is blocked, use 'make tag version=X.Y.Z'"
+  status=1
+done
+exit $status

@@ -55,7 +55,7 @@ type outer_default_record_with_option = {
   inner: inner_with_option_field; [@json.default empty_inner_with_option_field]
 } [@@deriving json]
 type array_list = { a: int array; b: int list} [@@deriving json]
-type json = Melange_json.t
+type json = Jsonkit.t
 type of_json = C : string * (json -> 'a) * ('a -> json) * 'a -> of_json
 type color = Red | Green | Blue [@@deriving json]
 type compact_variant = Compact_variant | Compact_variant_of_int of int [@@deriving json] [@@json.compact_variants]
@@ -135,11 +135,11 @@ let of_json_cases = [
 ]
 let run' (C (data, of_json, to_json, v)) =
   print_endline (Printf.sprintf "JSON    DATA: %s" data);
-  let json = Melange_json.of_string data in
+  let json = Jsonkit.of_string data in
   let v' = of_json json in
   assert (v' = v);
   let json' = to_json v' in
-  let data' = Melange_json.to_string json' in
+  let data' = Jsonkit.to_string json' in
   print_endline (Printf.sprintf "JSON REPRINT: %s" data')
 
 (* Error cases for object validation *)
@@ -175,11 +175,11 @@ let error_cases = [
 
 let run_error_case' (C (data, of_json, _to_json, _v)) =
   print_endline (Printf.sprintf "ERROR CASE DATA: %s" data);
-  let json = Melange_json.of_string data in
+  let json = Jsonkit.of_string data in
   try
     let _v' = of_json json in
     print_endline "Error: should have failed"
-  with Melange_json.Of_json_error (Json_error msg) ->
+  with Jsonkit.Of_json_error (Json_error msg) ->
     print_endline (Printf.sprintf "Got expected error: %s" msg)
 
 let test () =

@@ -1,4 +1,4 @@
-open Melange_json.Primitives
+open Jsonkit.Primitives
 
 let print fmt = Printf.ksprintf print_endline fmt
 

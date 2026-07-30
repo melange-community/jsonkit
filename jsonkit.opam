@@ -9,8 +9,8 @@ maintainer: [
 ]
 authors: ["Andrey Popp"]
 license: ["LGPL-3.0-only" "MPL-2.0"]
-homepage: "https://github.com/melange-community/melange-json/"
-bug-reports: "https://github.com/melange-community/melange-json/issues"
+homepage: "https://github.com/melange-community/jsonkit/"
+bug-reports: "https://github.com/melange-community/jsonkit/issues"
 depends: [
   "dune" {>= "3.16"}
   "ocaml" {>= "4.12"}
@@ -32,4 +32,4 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/melange-community/melange-json.git"
+dev-repo: "git+https://github.com/melange-community/jsonkit.git"

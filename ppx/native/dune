@@ -1,12 +1,9 @@
 (library
- (public_name melange-json-native.ppx)
+ (public_name jsonkit.ppx)
  (name ppx_deriving_json_native)
  (modules :standard \ ppx_deriving_json_native_test)
  (libraries ppxlib)
- (ppx_runtime_libraries
-  melange-json-native
-  yojson
-  melange-json-native.jsonschema)
+ (ppx_runtime_libraries jsonkit yojson jsonkit.jsonschema)
  (preprocess
   (pps ppxlib.metaquot))
  (kind ppx_deriver))
@@ -14,7 +11,7 @@
 (executable
  (name ppx_deriving_json_native_test)
  (modules ppx_deriving_json_native_test)
- (libraries melange-json-native.ppx ppxlib))
+ (libraries jsonkit.ppx ppxlib))
 
 (rule
  (target ppx_deriving_json_native.mli)
@@ -54,7 +51,7 @@
 ; The jsonschema deriver is shared between the native and browser ppx (it is
 ; platform-agnostic: it only emits references to Ppx_deriving_jsonschema_runtime).
 ; Like the common modules above, the sources are copied in rather than shared via
-; a library, so the deriver ships inside melange-json-native.ppx with no extra package.
+; a library, so the deriver ships inside jsonkit.ppx with no extra package.
 
 (copy_files#
  (files ../jsonschema/{schema,ppx_deriving_jsonschema}.{ml,mli}))
@@ -62,8 +59,8 @@
 ; include_subdirs triggers a dependency cycle
 ; $ dune runtest
 ; Error: Dependency cycle between:       
-;   alias .melange-json-files
-; -> alias .melange-json-native-files
-; -> alias .melange-json-files
+;   alias .jsonkit-melange-files
+; -> alias .jsonkit-files
+; -> alias .jsonkit-melange-files
 ; -> required by alias ppx/test/runtest
 ; (include_subdirs (unqualified))

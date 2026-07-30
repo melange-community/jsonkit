@@ -39,11 +39,11 @@ let unknown_variant_case_jsonschema =
           ] );
     ]
 
-let classify = Classify.classify
-let declassify = Classify.declassify
+let classify = Jsonkit_classify.classify
+let declassify = Jsonkit_classify.declassify
 let to_string t = Yojson.Basic.to_string t
 
-include Errors
+include Jsonkit_errors
 
 let of_string s =
   try Yojson.Basic.from_string s
@@ -57,11 +57,10 @@ let to_json : json to_json = fun x -> x
 let () =
   Printexc.register_printer (function
     | Of_json_error (Json_error str) ->
-        Some (sprintf "Melange_json.Of_json_error(Json_error {|%s|})" str)
+        Some (sprintf "Jsonkit.Of_json_error(Json_error {|%s|})" str)
     | Of_json_error (Unexpected_variant str) ->
         Some
-          (sprintf "Melange_json.Of_json_error(Unexpected_variant {|%s|})"
-             str)
+          (sprintf "Jsonkit.Of_json_error(Unexpected_variant {|%s|})" str)
     | _ -> None)
 
 type 'a of_json = json -> 'a

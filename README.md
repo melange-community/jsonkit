@@ -1,9 +1,9 @@
-# melange-json
+# jsonkit
 
 Compositional JSON encode/decode library and PPX for
 [Melange](https://melange.re/).
 
-Based on [@glennsl/bs-json](https://github.com/glennsl/bs-json).
+Based on [@glennsl/bs-json](https://github.com/glennsl/bs-json) and former melange-json.
 
 The Decode module in particular provides a basic set of decoder functions to be
 composed into more complex decoders. A decoder is a function that takes a
@@ -11,9 +11,9 @@ composed into more complex decoders. A decoder is a function that takes a
 raises an `Of_json_error` exception if not. Other functions accept a decoder and
 produce another decoder. Like `array`, which when given a decoder for type `t`
 will return a decoder that tries to produce a value of type `t array`. So to
-decode an `int array` you combine `Melange_json.Of_json.int` with `Melange_json.Of_json.array`
-into `Melange_json.Of_json.(array int)`. An array of arrays of ints? `Melange_json.Of_json.(array
-(array int))`. Dict containing arrays of ints? `Melange_json.Of_json.(dict (array int))`.
+decode an `int array` you combine `Jsonkit.Of_json.int` with `Jsonkit.Of_json.array`
+into `Jsonkit.Of_json.(array int)`. An array of arrays of ints? `Jsonkit.Of_json.(array
+(array int))`. Dict containing arrays of ints? `Jsonkit.Of_json.(dict (array int))`.
 
 ## Example
 
@@ -30,13 +30,13 @@ and point = {
 
 module Decode = {
   let point = json =>
-    Melange_json.Of_json.{
+    Jsonkit.Of_json.{
       x: json |> field("x", int),
       y: json |> field("y", int)
     };
 
   let line = json =>
-    Melange_json.Of_json.{
+    Jsonkit.Of_json.{
       start:     json |> field("start", point),
       end_:      json |> field("end", point),
       thickness: json |> try_or_none(field("thickness", int))
@@ -48,14 +48,14 @@ let data = {| {
   "end":   { "x": 5, "y": 8 }
 } |};
 
-let line = data |> Melange_json.of_string
+let line = data |> Jsonkit.of_string
                 |> Decode.line;
 ```
 
-NOTE: `Melange_json.Of_json.{ ... }` creates an ordinary record, but also opens the
-`Melange_json.Of_json` module locally, within the scope delimited by the curly braces, so
+NOTE: `Jsonkit.Of_json.{ ... }` creates an ordinary record, but also opens the
+`Jsonkit.Of_json` module locally, within the scope delimited by the curly braces, so
 we don't have to qualify the functions we use from it, like `field`, `int` and
-`try_or_none` here. You can also use `Melange_json.Of_json.( ... )` to open the module
+`try_or_none` here. You can also use `Jsonkit.Of_json.( ... )` to open the module
 locally within the parentheses, if you're not creating a record.
 
 See [examples](./examples/) for more.
@@ -67,16 +67,16 @@ Install [opam](https://opam.ocaml.org/) package manager.
 Then:
 
 ```sh
-opam install melange-json
+opam install jsonkit-melange
 ```
 
 # Setup
 
-Add `melange-json` to the `libraries` field in your `dune` file:
+Add `jsonkit-melange` to the `libraries` field in your `dune` file:
 
 ```lisp
 ; ...
-  (libraries melange-json)
+  (libraries jsonkit-melange)
 ; ...
 ```
 
@@ -86,11 +86,11 @@ Add `melange-json` to the `libraries` field in your `dune` file:
 
 For the moment, please see the interface files:
 
-* [Melange_json](./src/melange_json.mli)
+* [Jsonkit](./src/jsonkit.mli)
 
 ### Writing custom decoders and encoders
 
-If you look at the type signature of `Melange_json.Decode.array`, for example, you'll
+If you look at the type signature of `Jsonkit.Decode.array`, for example, you'll
 see it takes an `'a decoder` and returns an `'a array decoder`. `'a decoder` is
 just an alias for `Js.Json.t -> 'a`, so if we expand the type signature of
 `array` we'll get `(Js.Json.t -> 'a) -> Js.Json.t -> 'a array`. We can now see
@@ -104,7 +104,7 @@ Let's look at `Decode.point` from the example above:
 
 ```reason
 let point = json => {
-  open! Melange_json.Decode;
+  open! Jsonkit.Decode;
   {
     x: json |> field("x", int),
     y: json |> field("y", int)
@@ -113,12 +113,12 @@ let point = json => {
 ```
 
 This is a function `Js.Json.t -> point`, or a `point decoder`. So if we'd like
-to decode an array of points, we can just pass it to `Melange_json.Of_json.array` to get
+to decode an array of points, we can just pass it to `Jsonkit.Of_json.array` to get
 a `point array decoder` in return.
 
 #### Builders
 
-To write a decoder _builder_ like `Melange_json.Of_json.array` we need to take another
+To write a decoder _builder_ like `Jsonkit.Of_json.array` we need to take another
 decoder as an argument, and thanks to currying we just need to apply it where
 we'd otherwise use a fixed decoder. Say we want to be able to decode both `int
 point`s and `float point`s. First we'd have to parameterize the type:
@@ -135,7 +135,7 @@ argument:
 
 ```reason
 let point = (decodeNumber, json) => {
-  open! Melange_json.Decode;
+  open! Jsonkit.Decode;
   {
     x: json |> field("x", decodeNumber),
     y: json |> field("y", decodeNumber)
@@ -146,8 +146,8 @@ let point = (decodeNumber, json) => {
 And if we wish we can now create aliases for each variant:
 
 ```reason
-let intPoint = point(Melange_json.Of_json.int);
-let floatPoint = point(Melange_json.Of_json.float);
+let intPoint = point(Jsonkit.Of_json.int);
+let floatPoint = point(Jsonkit.Of_json.float);
 ```
 
 #### Encoders
@@ -164,13 +164,13 @@ provided to automatically convert Melange values to and from JSON.
 
 ### Installation
 
-The PPX is included in the `melange-json` package. To use it, just add the
+The PPX is included in the `jsonkit-melange` package. To use it, just add the
 `dune` configuration to your project:
 
 ```dune
 (library
  (modes melange)
- (preprocess (pps melange-json.ppx)))
+ (preprocess (pps jsonkit-melange.ppx)))
 ```
 
 ### Usage
@@ -180,7 +180,7 @@ the type declaration, ensuring the converters for primitives like `int` and
 `string` are in scope if necessary:
 
 ```ocaml
-open Melange_json.Primitives
+open Jsonkit.Primitives
 
 type t = {
   a: int;
@@ -227,7 +227,7 @@ let json = [%to_json: x:int * y:int] (~x:1, ~y:2)
 (* {"x": 1, "y": 2} *)
 
 let (~x, ~y) =
-  [%of_json: x:int * y:int] (Melange_json.of_string {|{"x": 1, "y": 2}|})
+  [%of_json: x:int * y:int] (Jsonkit.of_string {|{"x": 1, "y": 2}|})
 (* x = 1, y = 2 *)
 ```
 
@@ -249,7 +249,7 @@ type t = {
   b: string [@json.default "-"];
 } [@@deriving of_json]
 
-let t = of_json (Melange_json.of_string {|{"a": 42}|})
+let t = of_json (Jsonkit.of_string {|{"a": 42}|})
 (* t = { a = 42; b = "-"; } *)
 ```
 
@@ -263,7 +263,7 @@ type t = {
   a: int;
 } [@@deriving json]
 
-let t = t_of_json (Melange_json.of_string {|{"a": 42, "extra": "ignore me"}|})
+let t = t_of_json (Jsonkit.of_string {|{"a": 42, "extra": "ignore me"}|})
 (* t = { a = 42 } *)
 ```
 
@@ -279,7 +279,7 @@ type strict = {
   a: int;
 } [@@deriving json] [@@json.disallow_extra_fields]
 
-let _ = strict_of_json (Melange_json.of_string {|{"a": 42, "extra": "fail"}|})
+let _ = strict_of_json (Jsonkit.of_string {|{"a": 42, "extra": "fail"}|})
 (* raises: did not expect field "extra" *)
 ```
 
@@ -290,7 +290,7 @@ type strict_inline =
 
 let _ =
   strict_inline_of_json
-    (Melange_json.of_string {|["A", {"a": 42, "extra": "fail"}]|})
+    (Jsonkit.of_string {|["A", {"a": 42, "extra": "fail"}]|})
 (* raises: did not expect field "extra" *)
 ```
 
@@ -305,7 +305,7 @@ type t = {
   b: string option [@json.option];
 } [@@deriving of_json]
 
-let t = of_json (Melange_json.of_string {|{"a": 42}|})
+let t = of_json (Jsonkit.of_string {|{"a": 42}|})
 (* t = { a = 42; b = None; } *)
 ```
 
@@ -395,7 +395,7 @@ type t = {
   b: string [@json.key "B"];
 } [@@deriving of_json]
 
-let t = of_json (Melange_json.of_string {|{"A": 42, "B": "foo"}|})
+let t = of_json (Jsonkit.of_string {|{"A": 42, "B": "foo"}|})
 (* t = { a = 42; b = "foo"; } *)
 ```
 
@@ -443,8 +443,8 @@ type t = [`A | `B of int] [@@deriving json] [@@json.compact_variants]
 
 The `[@json.catch_all]` attribute marks a constructor as the catch-all for any
 unrecognised string tag. The constructor's argument is the library type
-`Melange_json.unknown_variant_case`, a record with fields `tag : string` and
-`payload : Melange_json.t list option`. The decoder routes bare unknown
+`Jsonkit.unknown_variant_case`, a record with fields `tag : string` and
+`payload : Jsonkit.t list option`. The decoder routes bare unknown
 strings *and* unknown array variants — including their payload — into this
 constructor; the encoder re-emits the exact wire shape, so decoding/encoding
 round-trips.
@@ -456,7 +456,7 @@ bare strings.
 type evt =
   | Login [@json.name "login"]
   | Click of int [@json.name "click"]
-  | Unknown of Melange_json.unknown_variant_case [@json.catch_all]
+  | Unknown of Jsonkit.unknown_variant_case [@json.catch_all]
 [@@deriving json] [@@json.compact_variants]
 ```
 
@@ -466,7 +466,7 @@ The same syntax works for polymorphic variants:
 type evt = [
   | `Login [@json.name "login"]
   | `Click of int [@json.name "click"]
-  | `Unknown of Melange_json.unknown_variant_case [@json.catch_all]
+  | `Unknown of Jsonkit.unknown_variant_case [@json.catch_all]
 ] [@@deriving json] [@@json.compact_variants]
 ```
 
@@ -497,16 +497,16 @@ of_json_string]` to generate the converters separately.
 
 ## PPX for OCaml native
 
-A similar PPX is exposed in the `melange-json-native` package, which works with
+A similar PPX is exposed in the `jsonkit` package, which works with
 the `yojson` JSON representation instead of `Js.Json.t`.
 
 ### Installation
 
-The PPX is included in `melange-json-native` package, so that package will have
+The PPX is included in `jsonkit` package, so that package will have
 to be installed first:
 
 ```sh
-opam install melange-json-native
+opam install jsonkit
 ```
 
 To use it, add the `dune` configuration to your project:
@@ -514,7 +514,7 @@ To use it, add the `dune` configuration to your project:
 ```dune
 (executable
  ...
- (preprocess (pps melange-json-native.ppx)))
+ (preprocess (pps jsonkit.ppx)))
 ```
 
 ### Usage
@@ -545,7 +545,7 @@ The PPX can generate a [JSON Schema](https://json-schema.org/) from a type with
 json derivers.
 
 ```ocaml
-open Ppx_deriving_jsonschema_runtime.Primitives.Melange_json
+open Ppx_deriving_jsonschema_runtime.Primitives.Jsonkit
 
 type t = {
   name: string;

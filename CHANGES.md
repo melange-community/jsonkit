@@ -1,5 +1,14 @@
 ## Unreleased
 
+
+- **[breaking]** change the name of the project from `melange-json` to `jsonkit` to reflect the fact that it is now a general-purpose JSON library, not
+  tied to Melange/Native. The PPX is now in a separate package `ppx_deriving_jsonkit`. ([#107](https://github.com/melange-community/melange-json/pull/107))
+- **[breaking]** swap the package names so the native build takes the plain
+  name: `jsonkit-native` is now `jsonkit`, and the Melange package is now
+  `jsonkit-melange`. Sub-libraries move with them (`jsonkit-native.ppx` →
+  `jsonkit.ppx`, `jsonkit.ppx` → `jsonkit-melange.ppx`, likewise for
+  `.jsonschema`). The exposed module is still `Jsonkit` on both backends, so
+  only `dune` and `opam` references need updating.
 - jsonschema: Remove the `~variant_as_string` flag; use
   `[@@jsonschema.compact_variants]` to render payload-free constructors as
   plain string constants.

@@ -1,7 +1,7 @@
 (cram
  (deps
-  (package melange-json)
-  (package melange-json-native)
+  (package jsonkit-melange)
+  (package jsonkit)
   ./example.ml
   ./example_json_string.ml
   ./run.sh

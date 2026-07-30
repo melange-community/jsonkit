@@ -37,7 +37,7 @@ module Yojson = struct
   let int64_jsonschema : t = `Assoc [ "type", `String "integer" ]
 end
 
-module Melange_json = struct
+module Jsonkit = struct
   include Common
 
   let int64_jsonschema : t =

@@ -2,7 +2,7 @@
 type 'a tree = Node of 'a * 'a tree list | Leaf of 'a
 
 module Decode = struct
-  open Melange_json.Of_json
+  open Jsonkit.Of_json
 
   let rec tree decoder json =
     let node_type = field "type" string json in
@@ -59,7 +59,4 @@ let json =
 } |}
 
 let myTree =
-  json
-  |> Melange_json.of_string
-  |> Decode.tree Melange_json.Of_json.int
-  |> print
+  json |> Jsonkit.of_string |> Decode.tree Jsonkit.Of_json.int |> print

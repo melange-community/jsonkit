@@ -4,8 +4,8 @@ We can use the `Ptyp_open` AST node:
   >  type x = (int * int) [@@deriving json]
   > end
   > type u = X.(x) [@@deriving json]
-  > let () = print_endline (Melange_json.to_string (u_to_json (1, 2)))
-  > let () = assert (u_of_json (Melange_json.of_string {|[1, 2]|}) = (1, 2))
+  > let () = print_endline (Jsonkit.to_string (u_to_json (1, 2)))
+  > let () = assert (u_of_json (Jsonkit.of_string {|[1, 2]|}) = (1, 2))
   > ' | ./run.sh
   === ppx output:native ===
   module X =
@@ -20,7 +20,7 @@ We can use the `Ptyp_open` AST node:
                match x with
                | `List (x_0::x_1::[]) -> ((int_of_json x_0), (int_of_json x_1))
                | _ ->
-                   Melange_json.of_json_error ~json:x
+                   Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2" : Yojson.Basic.t -> x)
           let _ = x_of_json
           [@@@ocaml.warning "-39-11-27"]
@@ -43,8 +43,8 @@ We can use the `Ptyp_open` AST node:
       let rec u_to_json = (fun x -> X.x_to_json x : u -> Yojson.Basic.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
-  let () = print_endline (Melange_json.to_string (u_to_json (1, 2)))
-  let () = assert ((u_of_json (Melange_json.of_string {|[1, 2]|})) = (1, 2))
+  let () = print_endline (Jsonkit.to_string (u_to_json (1, 2)))
+  let () = assert ((u_of_json (Jsonkit.of_string {|[1, 2]|})) = (1, 2))
   === ppx output:browser ===
   module X =
     struct
@@ -64,7 +64,7 @@ We can use the `Ptyp_open` AST node:
                  ((int_of_json (Js.Array.unsafe_get es 0)),
                    (int_of_json (Js.Array.unsafe_get es 1)))
                else
-                 Melange_json.of_json_error ~json:x
+                 Jsonkit.of_json_error ~json:x
                    "expected a JSON array of length 2" : Js.Json.t -> x)
           let _ = x_of_json
           [@@@ocaml.warning "-39-11-27"]
@@ -88,8 +88,8 @@ We can use the `Ptyp_open` AST node:
       let rec u_to_json = (fun x -> X.x_to_json x : u -> Js.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
-  let () = print_endline (Melange_json.to_string (u_to_json (1, 2)))
-  let () = assert ((u_of_json (Melange_json.of_string {|[1, 2]|})) = (1, 2))
+  let () = print_endline (Jsonkit.to_string (u_to_json (1, 2)))
+  let () = assert ((u_of_json (Jsonkit.of_string {|[1, 2]|})) = (1, 2))
   === stdout:native ===
   [1,2]
   === stdout:js ===

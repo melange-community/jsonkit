@@ -2,7 +2,7 @@
 
 open Jest
 open Expect
-open Melange_json
+open Jsonkit
 
 let () =
   describe "parse" (fun () ->

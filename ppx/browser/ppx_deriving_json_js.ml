@@ -45,7 +45,7 @@ module Of_json = struct
                 | Some default -> default
                 | None ->
                     [%expr
-                      Melange_json.of_json_error ~json:x
+                      Jsonkit.of_json_error ~json:x
                         [%e
                           estring ~loc
                             (sprintf "expected field %S to be present"
@@ -79,7 +79,7 @@ module Of_json = struct
             if [%e is_known_field [%expr name]] then
               iter (Stdlib.( + ) i 1)
             else
-              Melange_json.of_json_error ~json:x
+              Jsonkit.of_json_error ~json:x
                 (Stdlib.Printf.sprintf {|did not expect field "%s"|} name)
         in
         iter 0;
@@ -97,7 +97,7 @@ module Of_json = struct
   let ensure_json_object ~loc x =
     [%expr
       if Stdlib.not [%e eis_json_object ~loc x] then
-        Melange_json.of_json_error ~json:[%e x]
+        Jsonkit.of_json_error ~json:[%e x]
           [%e estring ~loc (sprintf "expected a JSON object")]]
 
   let ensure_json_array_len ~loc ~allow_any_constr ~else_ n len x =
@@ -106,7 +106,7 @@ module Of_json = struct
       | Some allow_any_constr -> allow_any_constr x
       | None ->
           [%expr
-            Melange_json.of_json_error ~json:[%e x]
+            Jsonkit.of_json_error ~json:[%e x]
               [%e
                 estring ~loc
                   (sprintf "expected a JSON array of length %i" n)]]
@@ -147,7 +147,7 @@ module Of_json = struct
         let es = (Obj.magic [%e x] : Js.Json.t array) in
         [%e build_tuple ~loc derive 0 t.tpl_types [%expr es]]
       else
-        Melange_json.of_json_error ~json:[%e x]
+        Jsonkit.of_json_error ~json:[%e x]
           [%e
             estring ~loc (sprintf "expected a JSON array of length %i" n)]]
 
@@ -185,7 +185,7 @@ module Of_json = struct
       | Some allow_any_constr -> allow_any_constr x
       | None ->
           [%expr
-            Melange_json.of_json_error ~json:[%e x]
+            Jsonkit.of_json_error ~json:[%e x]
               "expected a non empty JSON array"]
     in
     let string_branch =
@@ -220,7 +220,7 @@ module Of_json = struct
               | Some allow_any_constr -> allow_any_constr x
               | None ->
                   [%expr
-                    Melange_json.of_json_error ~json:[%e x]
+                    Jsonkit.of_json_error ~json:[%e x]
                       "expected a non empty JSON array with element \
                        being a string"]]
         else [%e not_array_error]
@@ -240,11 +240,11 @@ module Of_json = struct
           let rest =
             Stdlib.Array.sub [%e array] 1 (Stdlib.( - ) [%e len] 1)
             |> Stdlib.Array.to_list
-            |> Stdlib.List.map (fun j -> (Obj.magic j : Melange_json.t))
+            |> Stdlib.List.map (fun j -> (Obj.magic j : Jsonkit.t))
           in
           Stdlib.Option.Some rest
       in
-      ({ tag = tag_s; payload } : Melange_json.unknown_variant_case)]
+      ({ tag = tag_s; payload } : Jsonkit.unknown_variant_case)]
 
   let derive_of_variant_case ?(is_compact_variants = false) ~tag ~array
       ~len derive make c ~allow_any_constr next =
@@ -259,9 +259,8 @@ module Of_json = struct
         | _ ->
             Location.raise_errorf ~loc
               "[@json.catch_all] requires exactly one argument: a record \
-               type with fields `tag : string` and `payload : \
-               Melange_json.t list option` (typically \
-               [Melange_json.unknown_variant_case])")
+               type with fields `tag : string` and `payload : Jsonkit.t \
+               list option` (typically [Jsonkit.unknown_variant_case])")
     | Vcs_record (_n, t) when vcs_attr_json_catch_all t.rcd_ctx -> (
         let loc = t.rcd_loc in
         match t.rcd_fields with
@@ -274,7 +273,7 @@ module Of_json = struct
             Location.raise_errorf ~loc
               "[@json.catch_all] inline record must have exactly two \
                fields named `tag` and `payload` (in that order), with \
-               types `string` and `Melange_json.t list option`")
+               types `string` and `Jsonkit.t list option`")
     | Vcs_record (_, _) when len_never 2 len ->
         (* Record variants need [["Name", {...}]] (length 2); unreachable for
            the bare-string form, so skip straight to the next case. *)
@@ -371,8 +370,8 @@ module To_json = struct
             | `Drop_default_if_json_equal def ->
                 [%expr
                   let json = [%e v] in
-                  if Melange_json.equal json [%e derive ld.pld_type def]
-                  then Js.Undefined.empty
+                  if Jsonkit.equal json [%e derive ld.pld_type def] then
+                    Js.Undefined.empty
                   else Js.Undefined.return json]
           in
           map_loc lident k, v)
@@ -396,8 +395,7 @@ module To_json = struct
                   in
                   let rest =
                     Stdlib.List.map
-                      (fun (j : Melange_json.t) ->
-                        (Obj.magic j : Js.Json.t))
+                      (fun (j : Jsonkit.t) -> (Obj.magic j : Js.Json.t))
                       xs
                   in
                   (Obj.magic
@@ -407,9 +405,8 @@ module To_json = struct
         | _ ->
             Location.raise_errorf ~loc
               "[@json.catch_all] requires exactly one argument: a record \
-               type with fields `tag : string` and `payload : \
-               Melange_json.t list option` (typically \
-               [Melange_json.unknown_variant_case])")
+               type with fields `tag : string` and `payload : Jsonkit.t \
+               list option` (typically [Jsonkit.unknown_variant_case])")
     | Vcs_record (_n, t) when vcs_attr_json_catch_all t.rcd_ctx -> (
         let loc = t.rcd_loc in
         match t.rcd_fields, es with
@@ -428,8 +425,7 @@ module To_json = struct
                   in
                   let rest =
                     Stdlib.List.map
-                      (fun (j : Melange_json.t) ->
-                        (Obj.magic j : Js.Json.t))
+                      (fun (j : Jsonkit.t) -> (Obj.magic j : Js.Json.t))
                       xs
                   in
                   (Obj.magic
@@ -440,7 +436,7 @@ module To_json = struct
             Location.raise_errorf ~loc
               "[@json.catch_all] inline record must have exactly two \
                fields named `tag` and `payload` (in that order), with \
-               types `string` and `Melange_json.t list option`")
+               types `string` and `Jsonkit.t list option`")
     | Vcs_record (n, r) ->
         let loc = n.loc in
         let n = Option.value ~default:n (vcs_attr_json_name r.rcd_ctx) in

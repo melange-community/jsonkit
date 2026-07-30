@@ -3,11 +3,11 @@ and point = { x : int; y : int }
 
 module Of_json = struct
   let point json =
-    Melange_json.Of_json.
+    Jsonkit.Of_json.
       { x = json |> field "x" int; y = json |> field "y" int }
 
   let line json =
-    Melange_json.Of_json.
+    Jsonkit.Of_json.
       {
         start = json |> field "start" point;
         end_ = json |> field "end" point;
@@ -21,4 +21,4 @@ let data =
   "end":   { "x": 5, "y": 8 }
 } |}
 
-let _ = data |> Melange_json.of_string |> Of_json.line |> Js.log
+let _ = data |> Jsonkit.of_string |> Of_json.line |> Js.log

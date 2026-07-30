@@ -8,7 +8,7 @@ type t =
   | `Assoc of (string * t) list ]
 
 (* [Js.Json.classify] only checks for [=== null] when distinguishing null from object, so it
-   mis-classifies [undefined] as [JSONObject]. melange-json's [@option] [@drop_default] codegen
+   mis-classifies [undefined] as [JSONObject]. jsonkit's [@option] [@drop_default] codegen
    emits [Js.Undefined.empty] for [None], so an [_to_json] result can legitimately contain
    [undefined] values that we have to handle here. We treat them as absent fields, matching
    [JSON.stringify] (which drops undefined object members and turns undefined array elements

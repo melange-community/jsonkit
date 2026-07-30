@@ -1,6 +1,6 @@
 (executable
   (name prettify)
   (libraries yojson)
-  (flags (:standard -open Melange_json.Primitives -w -33))
+  (flags (:standard -open Jsonkit.Primitives -w -33))
   (preprocess
-   (pps melange-json-native.ppx)))
+   (pps jsonkit.ppx)))
