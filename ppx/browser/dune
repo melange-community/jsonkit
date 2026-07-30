@@ -45,6 +45,9 @@
 (copy_files#
  (files ../native/common/conv.ml))
 
+(copy_files#
+ (files ../native/common/linter.ml))
+
 ; Shared jsonschema deriver sources (see ppx/native/dune for rationale). Compiled
 ; into melange-json.ppx so [@@deriving jsonschema] works on the Melange ppx too.
 

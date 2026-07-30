@@ -359,8 +359,8 @@ let timestamped =
     [ timestamped_to_json { at = "2020-01-02T03:04:05Z" } ]
 
 type annotated = {
-  note : string option; [@jsonschema.option]
-  weight : int; [@jsonschema.default 1]
+  note : string option; [@option]
+  weight : int; [@default 1]
 }
 [@@deriving to_json, jsonschema]
 

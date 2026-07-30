@@ -48,6 +48,9 @@
 (copy_files#
  (files ./common/conv.ml))
 
+(copy_files#
+ (files ./common/linter.ml))
+
 ; The jsonschema deriver is shared between the native and browser ppx (it is
 ; platform-agnostic: it only emits references to Ppx_deriving_jsonschema_runtime).
 ; Like the common modules above, the sources are copied in rather than shared via
