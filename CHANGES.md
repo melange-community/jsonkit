@@ -1,8 +1,23 @@
-## Unreleased
+## 1.0.0 (2026-07-30)
 
+- **[breaking]** Rename the project from `melange-json` to `jsonkit`. The
+  derivers, the runtime and the JSON Schema support all behave the same on
+  native OCaml and on Melange, so the packages no longer lead with Melange
+  branding: the native package takes the plain name, and the Melange package
+  carries the suffix.
+  - `melange-json-native` → `jsonkit`, `melange-json-native.ppx` → `jsonkit.ppx`
+  - `melange-json` → `jsonkit-melange`, `melange-json.ppx` → `jsonkit-melange.ppx`
+  - module `Melange_json` → `Jsonkit`
+
+  The exposed module is `Jsonkit` on both backends, so sources shared between a
+  native and a Melange build need no per-backend conditionals. These are new
+  opam packages, so numbering restarts: `jsonkit` 1.0.0 supersedes
+  `melange-json` 2.0.0 and contains everything in it, despite the lower number.
+  The `melange-json` packages will not be updated further.
+  ([#107](https://github.com/melange-community/jsonkit/pull/107))
 - PPX: Creates a linter to warn about the wrong usage of [@json.name] on record fields
   and [@json.key] on variant constructors.
-- PPX: Adds a linter that catches namespaced melange-json field attributes
+- PPX: Adds a linter that catches namespaced `json.*` field attributes
   (`[@json.name]`, `[@json.key]`, `[@json.default]`, etc.) on
   `[@@deriving json, jsonschema]` types, to use `[@name]`,
   `[@key]`, `[@default]`, `[@option]` instead.
@@ -23,15 +38,15 @@
   `[@@jsonschema.allow_extra_fields]` is still accepted for backwards
   compatibility but is now a no-op; combining it with `disallow_extra_fields`
   is rejected.
-- Library: Add `Melange_json.unknown_variant_case`, a record type with
-  fields `tag : string` and `payload : Melange_json.t list option`,
+- Library: Add `Jsonkit.unknown_variant_case`, a record type with
+  fields `tag : string` and `payload : Jsonkit.t list option`,
   meant to be referenced as the argument of a catch-all constructor (see
   next entry). Companion JSON-schema literal
-  `Melange_json.unknown_variant_case_jsonschema` plugs into
+  `Jsonkit.unknown_variant_case_jsonschema` plugs into
   `ppx_deriving_jsonschema`.
 - PPX: Add `[@json.catch_all]` attribute, marking a constructor as the
   catch-all for any unrecognised string tag. The constructor's argument
-  is `Melange_json.unknown_variant_case`; `payload` distinguishes bare
+  is `Jsonkit.unknown_variant_case`; `payload` distinguishes bare
   strings (`None`) from array forms (`Some xs`), preserving the wire
   shape for round-trip-faithful decoding/encoding even when a future
   producer adds payload-bearing variants. Works on both classic variants
@@ -50,7 +65,7 @@
   resolved via `equal_<type>` functions in scope by default, but a custom comparison
   function can be provided directly, e.g. `[@json.drop_default Int.equal]`
   ([#77](https://github.com/melange-community/melange-json/pull/77))
-- Add `Melange_json.equal` for comparing two JSON values, and
+- Add `Jsonkit.equal` for comparing two JSON values, and
   `[@drop_default_if_json_equal]` as an alternative to `[@json.drop_default]`
   that compares values at the JSON level
   ([#77](https://github.com/melange-community/melange-json/pull/77))
