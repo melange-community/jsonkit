@@ -30,11 +30,15 @@
 
 (rule
  (alias runtest)
+ (enabled_if
+  (= %{profile} dev))
  (action
   (diff test.expected.ml test.actual.ml)))
 
 (rule
  (alias runtest)
+ (enabled_if
+  (= %{profile} dev))
  (action
   (diff test.melange.expected.ml test.melange.actual.ml)))
 
@@ -64,6 +68,8 @@
  (libraries jsonkit.jsonschema schema_snapshot_support cases_support))
 
 (cram
+ (enabled_if
+  (= %{profile} dev))
  (deps %{exe:pp.exe} %{exe:pp_melange.exe}))
 
 ; Wire test: encode sample values with [to_json] and validate them against the
@@ -78,6 +84,8 @@
 
 (cram
  (applies_to wire)
+ (enabled_if
+  (= %{profile} dev))
  (deps %{exe:wire.exe}))
 
 (executable
@@ -94,5 +102,7 @@
 
 (rule
  (alias runtest)
+ (enabled_if
+  (= %{profile} dev))
  (action
   (diff test_schemas.expected.json test_schemas.actual.json)))

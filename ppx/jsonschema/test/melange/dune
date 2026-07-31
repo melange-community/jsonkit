@@ -13,6 +13,8 @@
   (commonjs js)))
 
 (cram
+ (enabled_if
+  (= %{profile} dev))
  (deps
   (alias melange)
   ../test_schemas.expected.json
