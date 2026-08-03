@@ -1,9 +1,4 @@
-open Ppx_deriving_jsonschema_runtime.Primitives.Jsonkit
 open Jsonkit.Primitives
-
-let string_jsonschema = `Assoc [ "type", `String "string" ]
-let int_jsonschema = `Assoc [ "type", `String "integer" ]
-let bool_jsonschema = `Assoc [ "type", `String "boolean" ]
 
 module Mod1 = struct
   type m_1 = A | B [@@deriving jsonschema]
@@ -453,7 +448,7 @@ type default_with_module_type = {
 (* Regression: a record value used as [@default] for a non-primitive field, where the record has
    an [@option] [@drop_default] field set to None. In Melange, the generated [_to_json] emits the
    field as [Js.Undefined.empty], so the JS object is [{ foo: undefined }]. Then
-   [Ppx_deriving_jsonschema_runtime.classify] mis-classifies [undefined] as a JSON object and
+   [Jsonkit.Jsonschema.classify] mis-classifies [undefined] as a JSON object and
    crashes with "Cannot convert undefined or null to object" while enumerating its entries. *)
 type inner_with_option_field = {
   foo : int option; [@option] [@drop_default]

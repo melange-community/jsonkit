@@ -28,22 +28,23 @@
   type event = {
     name: string ;
     count: int }[@@deriving jsonschema]
-  include sig val event_jsonschema : Ppx_deriving_jsonschema_runtime.t end
-  [@@ocaml.doc "@inline"][@@merlin.hide ]
+  include sig val event_jsonschema : Jsonkit.Jsonschema.t end[@@ocaml.doc
+                                                               "@inline"]
+  [@@merlin.hide ]
   type kind =
     | Success 
     | Error [@@deriving jsonschema]
-  include sig val kind_jsonschema : Ppx_deriving_jsonschema_runtime.t end
-  [@@ocaml.doc "@inline"][@@merlin.hide ]
+  include sig val kind_jsonschema : Jsonkit.Jsonschema.t end[@@ocaml.doc
+                                                              "@inline"]
+  [@@merlin.hide ]
   type alias = event[@@deriving jsonschema]
-  include sig val alias_jsonschema : Ppx_deriving_jsonschema_runtime.t end
-  [@@ocaml.doc "@inline"][@@merlin.hide ]
+  include sig val alias_jsonschema : Jsonkit.Jsonschema.t end[@@ocaml.doc
+                                                               "@inline"]
+  [@@merlin.hide ]
   type 'a wrapper = {
     value: 'a }[@@deriving jsonschema]
   include
-    sig
-      val wrapper_jsonschema :
-        Ppx_deriving_jsonschema_runtime.t -> Ppx_deriving_jsonschema_runtime.t
+    sig val wrapper_jsonschema : Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type ('a, 'b) pair = {
     first: 'a ;
@@ -51,9 +52,7 @@
   include
     sig
       val pair_jsonschema :
-        Ppx_deriving_jsonschema_runtime.t ->
-          Ppx_deriving_jsonschema_runtime.t ->
-            Ppx_deriving_jsonschema_runtime.t
+        Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type foo = {
     bar: bar option }
@@ -61,6 +60,6 @@
     foo: foo option }[@@deriving jsonschema]
   include
     sig
-      val foo_jsonschema : Ppx_deriving_jsonschema_runtime.t
-      val bar_jsonschema : Ppx_deriving_jsonschema_runtime.t
+      val foo_jsonschema : Jsonkit.Jsonschema.t
+      val bar_jsonschema : Jsonkit.Jsonschema.t
     end[@@ocaml.doc "@inline"][@@merlin.hide ]

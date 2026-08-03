@@ -311,7 +311,7 @@ let t = of_json (Jsonkit.of_string {|{"a": 42}|})
 
 #### `[@json.drop_default]`: drop default values from JSON
 
-When a field has either `[@json.option]` or `[@json.default]` attributes, you can use the `[@json.drop_default]` 
+When a field has either `[@json.option]` or `[@json.default]` attributes, you can use the `[@json.drop_default]`
 attribute to make the generated `to_json` function drop the field
 from the JSON output when its value matches the default.
 
@@ -545,14 +545,14 @@ The PPX can generate a [JSON Schema](https://json-schema.org/) from a type with
 json derivers.
 
 ```ocaml
-open Ppx_deriving_jsonschema_runtime.Primitives.Jsonkit
+open Jsonkit.Primitives
 
 type t = {
   name: string;
   age: int;
 } [@@deriving jsonschema]
 
-let schema = Ppx_deriving_jsonschema_runtime.json_schema t_jsonschema
+let schema = Jsonkit.Jsonschema.make t_jsonschema
 ```
 
 See **[JSONSCHEMA.md](./JSONSCHEMA.md)** for the full documentation: setup,

@@ -1,11 +1,11 @@
 let schema_version = "https://json-schema.org/draft/2020-12/schema"
 
-type t = Ppx_deriving_jsonschema_runtime_classify.t
+type t = Jsonkit_jsonschema_classify.t
 
-let classify = Ppx_deriving_jsonschema_runtime_classify.classify
-let declassify = Ppx_deriving_jsonschema_runtime_classify.declassify
+let classify = Jsonkit_jsonschema_classify.classify
+let declassify = Jsonkit_jsonschema_classify.declassify
 
-let json_schema ?id ?title ?description ?definitions types =
+let make ?id ?title ?description ?definitions types =
   let fields = match types with `Assoc fields -> fields | _ -> [] in
   let metadata =
     List.filter_map
@@ -28,4 +28,8 @@ let json_schema ?id ?title ?description ?definitions types =
   in
   `Assoc (metadata @ fields)
 
-module Primitives = Ppx_deriving_jsonschema_runtime_primitives
+module Classify = Jsonkit_jsonschema_classify
+
+(* Defines the main jsonschema primitives for Jsonkit *)
+module Primitives = Jsonkit_jsonschema_primitives.Jsonkit
+module Yojson_primitives = Jsonkit_jsonschema_primitives.Yojson

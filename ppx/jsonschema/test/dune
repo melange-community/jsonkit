@@ -57,7 +57,7 @@
  (name cases_support)
  (modules cases)
  (wrapped false)
- (libraries jsonkit jsonkit.jsonschema)
+ (libraries jsonkit)
  (preprocess
   (pps jsonkit.ppx)))
 

@@ -1,0 +1,1 @@
+include Jsonkit.Jsonschema.Classify

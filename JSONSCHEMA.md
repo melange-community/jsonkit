@@ -20,13 +20,14 @@ install — enabling `jsonkit-melange.ppx` (Melange) or `jsonkit.ppx`
 (native) makes `[@@deriving jsonschema]` available. The generated code relies on
 a small runtime that the PPX wires in automatically as a `ppx_runtime_library`:
 
-| Build      | PPX                   | Runtime                      |
-| ---------- | --------------------- | ---------------------------- |
-| Melange/JS | `jsonkit-melange.ppx` | `jsonkit-melange.jsonschema` |
-| Native     | `jsonkit.ppx`         | `jsonkit.jsonschema`         |
+| Build      | PPX                   | Runtime           |
+| ---------- | --------------------- | ----------------- |
+| Melange/JS | `jsonkit-melange.ppx` | `jsonkit-melange` |
+| Native     | `jsonkit.ppx`         | `jsonkit`         |
 
-Both runtime libraries expose the same `Ppx_deriving_jsonschema_runtime` module.
-
+Both runtimes expose the schema support at the same path, `Jsonkit.Jsonschema`,
+so sources shared between a native and a Melange build need no per-backend
+conditionals.
 A native `dune` stanza looks like:
 
 ```dune
@@ -62,7 +63,7 @@ type t = {
   address: address;
 } [@@deriving jsonschema]
 
-let schema = Ppx_deriving_jsonschema_runtime.json_schema t_jsonschema
+let schema = Jsonkit.Jsonschema.make t_jsonschema
 ```
 
 Such a type will be turned into a JSON schema like this:
@@ -94,24 +95,28 @@ Such a type will be turned into a JSON schema like this:
 ## Usage
 
 For each type with `[@@deriving jsonschema]`, the deriver generates a
-`<type>_jsonschema` value of type `Ppx_deriving_jsonschema_runtime.t`.
-Wrap it with `Ppx_deriving_jsonschema_runtime.json_schema` to get a complete,
+`<type>_jsonschema` value of type `Jsonkit.Jsonschema.t`.
+Wrap it with `Jsonkit.Jsonschema.make` to get a complete,
 self-contained schema document (it adds the `$schema` header and any
 `$defs`/metadata).
 
 The deriver emits primitive helpers (e.g. `int_jsonschema`, `string_jsonschema`)
-unqualified, so bring the right primitives module into scope depending on the
-build. Use `Jsonkit` for the Melange runtime and `Yojson` for the native
-one:
+unqualified, so bring a primitives module into scope:
 
 ```ocaml
-open Ppx_deriving_jsonschema_runtime.Primitives.Jsonkit
+open Jsonkit.Primitives
 
 type t = {
   a: int;
   b: string;
 } [@@deriving jsonschema]
 ```
+
+`Jsonkit.Primitives` describes the encoding jsonkit's own
+`[@@deriving json]` produces — notably `int64` as a string, and `result` as a
+tagged array. If the values you are describing are encoded by yojson-style
+derivers instead, where `int64` is a plain JSON number, open
+`Jsonkit.Jsonschema.Yojson_primitives`.
 
 ### Conversion rules
 
@@ -360,15 +365,15 @@ type t = {
 ```
 
 ```json
-{ 
-  "type": "object", 
-  "properties": { 
-    "name": { 
-      "type": [ "string", "null" ] 
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": [ "string", "null" ]
     },
   },
-  "required": [ "name" ], 
-  "additionalProperties": true 
+  "required": [ "name" ],
+  "additionalProperties": true
 }
 ```
 
@@ -381,15 +386,15 @@ type t = {
 ```
 
 ```json
-{ 
-  "type": "object", 
-  "properties": { 
-    "name": { 
-      "type": [ "string", "null" ] 
+{
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": [ "string", "null" ]
     },
   },
-  "required": [], 
-  "additionalProperties": true 
+  "required": [],
+  "additionalProperties": true
 }
 ```
 #### Result
@@ -716,7 +721,7 @@ This will generate a schema that rejects additional fields for the `User` varian
 
 #### References
 
-Rather than inlining the definition of a type it is possible to use a [json schema `$ref`](https://json-schema.org/understanding-json-schema/structuring#dollarref) using the `[@ref "name"]` attribute. In such a case, the type definition must be passed to `Ppx_deriving_jsonschema_runtime.json_schema` as a parameter.
+Rather than inlining the definition of a type it is possible to use a [json schema `$ref`](https://json-schema.org/understanding-json-schema/structuring#dollarref) using the `[@ref "name"]` attribute. In such a case, the type definition must be passed to `Jsonkit.Jsonschema.make` as a parameter.
 
 ```ocaml
 type address = {
@@ -737,7 +742,7 @@ type t = {
 [@@deriving jsonschema]
 
 let schema =
-  Ppx_deriving_jsonschema_runtime.json_schema
+  Jsonkit.Jsonschema.make
     ~definitions:[("shared_address", address_jsonschema)]
     t_jsonschema
 ```
@@ -979,7 +984,7 @@ Add a format annotation to a string-typed field. It can be used on a type, a fie
 
 ```ocaml
 type t = {
-  name : string [@jsonschema.format "date-time"]; 
+  name : string [@jsonschema.format "date-time"];
 } [@@deriving jsonschema]
 ```
 
@@ -1040,7 +1045,7 @@ type t = {
 
 Set a default value for a record field. Fields with a default are excluded from `required`.
 
-Primitive literals (`int`, `int32`, `nativeint`, `float`, `string`, `bytes`, `bool`) and **their** `option`, `list`, `tuple`, and `array` variants are serialized automatically. 
+Primitive literals (`int`, `int32`, `nativeint`, `float`, `string`, `bytes`, `bool`) and **their** `option`, `list`, `tuple`, and `array` variants are serialized automatically.
 For non-primitive types (custom variants, records, etc.) a `<type>_to_json` function must be in scope — e.g. via `[@@deriving json]` from jsonkit. (`<type> -> Js.Json.t` at melange and `<type> -> Yojson.Basic.t` at native)
 
 ```ocaml

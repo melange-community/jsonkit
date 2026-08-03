@@ -1,18 +1,18 @@
-module Common = struct
-  type t = Ppx_deriving_jsonschema_runtime_classify.t
+type jsonschema = Jsonkit_jsonschema_classify.t
 
-  let char_jsonschema : t =
+module Common = struct
+  let char_jsonschema : jsonschema =
     `Assoc
       [
         "type", `String "string"; "minLength", `Int 1; "maxLength", `Int 1;
       ]
 
-  let string_jsonschema : t = `Assoc [ "type", `String "string" ]
-  let bool_jsonschema : t = `Assoc [ "type", `String "boolean" ]
-  let float_jsonschema : t = `Assoc [ "type", `String "number" ]
-  let int_jsonschema : t = `Assoc [ "type", `String "integer" ]
+  let string_jsonschema : jsonschema = `Assoc [ "type", `String "string" ]
+  let bool_jsonschema : jsonschema = `Assoc [ "type", `String "boolean" ]
+  let float_jsonschema : jsonschema = `Assoc [ "type", `String "number" ]
+  let int_jsonschema : jsonschema = `Assoc [ "type", `String "integer" ]
 
-  let option_jsonschema (schema : t) : t =
+  let option_jsonschema (schema : jsonschema) : jsonschema =
     let is_basic_type ty =
       ty = "string" || ty = "number" || ty = "boolean" || ty = "integer"
     in
@@ -22,32 +22,33 @@ module Common = struct
     | s ->
         `Assoc [ "anyOf", `List [ s; `Assoc [ "type", `String "null" ] ] ]
 
-  let unit_jsonschema : t = `Assoc [ "type", `String "null" ]
+  let unit_jsonschema : jsonschema = `Assoc [ "type", `String "null" ]
 
-  let list_jsonschema element_type : t =
+  let list_jsonschema element_type : jsonschema =
     `Assoc [ "type", `String "array"; "items", element_type ]
 
-  let array_jsonschema element_type : t =
+  let array_jsonschema element_type : jsonschema =
     `Assoc [ "type", `String "array"; "items", element_type ]
 end
 
 module Yojson = struct
   include Common
 
-  let int64_jsonschema : t = `Assoc [ "type", `String "integer" ]
+  let int64_jsonschema : jsonschema = `Assoc [ "type", `String "integer" ]
 end
 
 module Jsonkit = struct
   include Common
 
-  let int64_jsonschema : t =
+  let int64_jsonschema : jsonschema =
     `Assoc
       [
         "type", `String "string";
         "description", `String "int64 is represented as a string";
       ]
 
-  let result_jsonschema (ok_schema : t) (error_schema : t) : t =
+  let result_jsonschema (ok_schema : jsonschema)
+      (error_schema : jsonschema) : jsonschema =
     `Assoc
       [
         ( "anyOf",
