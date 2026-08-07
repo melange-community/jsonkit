@@ -39,11 +39,11 @@ let unknown_variant_case_jsonschema =
           ] );
     ]
 
-let classify = Jsonkit_classify.classify
-let declassify = Jsonkit_classify.declassify
+let classify = Jsonkit_json_classify.classify
+let declassify = Jsonkit_json_classify.declassify
 let to_string t = Yojson.Basic.to_string t
 
-include Jsonkit_errors
+include Jsonkit_json_errors
 
 let of_string s =
   try Yojson.Basic.from_string s

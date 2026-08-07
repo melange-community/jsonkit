@@ -590,7 +590,7 @@
     },
     {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "file://ppx/jsonschema/test/cases.ml:83",
+      "$id": "file://ppx/jsonschema/test/cases.ml:78",
       "$defs": {
         "tree": {
           "anyOf": [
@@ -2008,7 +2008,7 @@
       "type": "object",
       "properties": {
         "b": {
-          "$id": "file://ppx/jsonschema/test/cases.ml:343",
+          "$id": "file://ppx/jsonschema/test/cases.ml:338",
           "$defs": {
             "self_ref": {
               "type": "object",
@@ -2025,7 +2025,7 @@
           "$ref": "#/$defs/self_ref"
         },
         "a": {
-          "$id": "file://ppx/jsonschema/test/cases.ml:343",
+          "$id": "file://ppx/jsonschema/test/cases.ml:338",
           "$defs": {
             "self_ref": {
               "type": "object",
@@ -2131,7 +2131,7 @@
               "prefixItems": [
                 { "const": "BoolAtom" },
                 {
-                  "$id": "file://ppx/jsonschema/test/cases.ml:352",
+                  "$id": "file://ppx/jsonschema/test/cases.ml:347",
                   "$defs": {
                     "filter": {
                       "anyOf": [

@@ -1,0 +1,20 @@
+; Deprecated compatibility layer for [@@deriving jsonschema] (part of the
+; jsonkit package): the runtime now lives in [Jsonkit.Jsonschema]. The shim
+; implementations are platform-neutral and shared from ../../jsonschema via
+; copy_files; only the .mli files differ, to name the right opam package in
+; the deprecation alert.
+
+(library
+ (name ppx_deriving_jsonschema_runtime)
+ (public_name jsonkit.jsonschema)
+ (libraries jsonkit)
+ (wrapped false))
+
+(copy_files
+ (files ../ppx_deriving_jsonschema_runtime.ml))
+
+(copy_files
+ (files ../ppx_deriving_jsonschema_runtime_classify.ml))
+
+(copy_files
+ (files ../ppx_deriving_jsonschema_runtime_primitives.ml))

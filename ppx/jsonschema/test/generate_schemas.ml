@@ -2,5 +2,5 @@ let () =
   print_endline
     (Yojson.Basic.pretty_to_string
        (Generate_schemas_cases.snapshot
-         : Ppx_deriving_jsonschema_runtime.t
+         : Jsonkit.Jsonschema.t
          :> Yojson.Basic.t))

@@ -6,4 +6,5 @@
  (name ppx_deriving_jsonschema_runtime)
  (public_name jsonkit-melange.jsonschema)
  (modes melange)
+ (libraries jsonkit-melange)
  (wrapped false))

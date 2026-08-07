@@ -1,3 +1,21 @@
+## Unreleased
+
+- Move the JSON Schema runtime into the main packages, at `Jsonkit.Jsonschema`.
+  It is the same API under a new path, on both backends, so sources shared
+  between a native and a Melange build need no per-backend conditionals. The
+  JSON runtime is unchanged and stays where it is: everything previously at
+  `Jsonkit.*` is still at `Jsonkit.*`, and is now also reachable as
+  `Jsonkit.Json.*`.
+ - Deprecate the `jsonkit.jsonschema` and
+  `jsonkit-melange.jsonschema` libraries, along with the
+  `Ppx_deriving_jsonschema_runtime`, `Ppx_deriving_jsonschema_runtime_classify`
+  and `Ppx_deriving_jsonschema_runtime_primitives` modules. They still exist and
+  still work, as aliases for `Jsonkit.Jsonschema`, `Jsonkit.Jsonschema.Classify`
+  and the primitives modules. The deprecated modules keep their old shape:
+  `Primitives` still has its `Yojson` and `Jsonkit` submodules, and
+  `json_schema` is still there under that name, so existing code compiles
+  unchanged.
+
 ## 1.0.0 (2026-07-30)
 
 - **[breaking]** Rename the project from `melange-json` to `jsonkit`. The

@@ -1,4 +1,4 @@
-(* Shared schema snapshots are built as [Ppx_deriving_jsonschema_runtime.t] so the
+(* Shared schema snapshots are built as [Jsonkit.Jsonschema.t] so the
    same OCaml code can be reused by native tests and Melange tests.
 
    Native tests can coerce that type to [Yojson.Basic.t] at the printing boundary,
