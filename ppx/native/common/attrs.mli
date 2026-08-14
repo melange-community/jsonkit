@@ -6,33 +6,21 @@ open Ppxlib
     intentionally not exposed. *)
 
 module Json : sig
-  val attr_json_name_cd :
-    (constructor_declaration, string Location.loc) Attribute.t
-  (** [@json.name "..."] on a variant constructor / polymorphic-variant
-      tag. *)
-
-  val attr_json_name_rtag : (row_field, string Location.loc) Attribute.t
+  type case_ctx =
+    [ `Variant_ctx of constructor_declaration
+    | `Polyvariant_ctx of row_field ]
+  (** A variant case as seen by the attribute readers below: either a
+      regular variant constructor or a polymorphic-variant tag. *)
 
   val vcs_attr_json_name :
-    ?mark_as_seen:bool ->
-    [ `Variant_ctx of constructor_declaration
-    | `Polyvariant_ctx of row_field ] ->
-    string Location.loc option
+    ?mark_as_seen:bool -> case_ctx -> string Location.loc option
   (** Resolve [@json.name] off a variant case, whether a regular
       constructor or a polymorphic-variant tag. *)
 
-  val vcs_attr_json_allow_any :
-    ?mark_as_seen:bool ->
-    [ `Variant_ctx of constructor_declaration
-    | `Polyvariant_ctx of row_field ] ->
-    bool
+  val vcs_attr_json_allow_any : ?mark_as_seen:bool -> case_ctx -> bool
   (** [@json.allow_any] on a variant case. *)
 
-  val vcs_attr_json_catch_all :
-    ?mark_as_seen:bool ->
-    [ `Variant_ctx of constructor_declaration
-    | `Polyvariant_ctx of row_field ] ->
-    bool
+  val vcs_attr_json_catch_all : ?mark_as_seen:bool -> case_ctx -> bool
   (** [@json.catch_all] on a variant case. *)
 
   val is_compact_variants : type_declaration -> bool

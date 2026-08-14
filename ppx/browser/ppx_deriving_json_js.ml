@@ -4,7 +4,7 @@ open Ppxlib
 open Ast_builder.Default
 open Ast_helpers
 open Conv
-open Attrs.Json
+open Conv.Variant
 open Json_string_deriver
 
 module Of_json = struct
@@ -14,34 +14,29 @@ module Of_json = struct
            derive t
              [%expr Js.Array.unsafe_get [%e e] [%e eint ~loc (si + i)]]))
 
-  let build_js_type ~loc (fs : label_declaration list) =
-    let f ld =
-      let n = ld.pld_name in
-      let n = Option.value ~default:n (Attrs.Json.ld_attr_json_key ld) in
+  let build_js_type ~loc (fs : Record.field list) =
+    let f (fld : Record.field) =
+      let n = fld.key in
       let pof_desc = Otag (n, [%type: Js.Json.t Js.undefined]) in
       { pof_loc = loc; pof_attributes = []; pof_desc }
     in
     let row = ptyp_object ~loc (List.map fs ~f) Closed in
     [%type: [%t row] Js.t]
 
-  let build_record ~allow_extra_fields ~loc derive
-      (fs : label_declaration list) x make =
-    let field_key ld =
-      let n = ld.pld_name in
-      Option.value ~default:n (Attrs.Json.ld_attr_json_key ld)
-    in
-    let handle_field fs ld =
-      ( ld.pld_name,
-        let n = field_key ld in
+  let build_record ~loc ~json derive (record : Record.t) make =
+    let fields = record.fields in
+    let handle_field obj (f : Record.field) =
+      ( f.name,
+        let n = f.key in
         [%expr
           match
             Js.Undefined.toOption
-              [%e fs]##[%e pexp_ident ~loc:n.loc (map_loc lident n)]
+              [%e obj]##[%e pexp_ident ~loc:n.loc (map_loc lident n)]
           with
-          | Stdlib.Option.Some v -> [%e derive ld.pld_type [%expr v]]
+          | Stdlib.Option.Some v -> [%e derive f.type_ [%expr v]]
           | Stdlib.Option.None ->
               [%e
-                match ld_attr_default ld with
+                match f.default with
                 | Some default -> default
                 | None ->
                     [%expr
@@ -52,8 +47,9 @@ module Of_json = struct
                                n.txt)]]]] )
     in
     let is_known_field name =
-      List.fold_left fs ~init:[%expr false] ~f:(fun acc ld ->
-          let n = field_key ld in
+      List.fold_left fields ~init:[%expr false]
+        ~f:(fun acc (f : Record.field) ->
+          let n = f.key in
           [%expr
             Stdlib.( || )
               (Stdlib.( = ) [%e name] [%e estring ~loc:n.loc n.txt])
@@ -61,16 +57,18 @@ module Of_json = struct
     in
     let body =
       [%expr
-        let fs = (Obj.magic [%e x] : [%t build_js_type ~loc fs]) in
+        let fs = (Obj.magic [%e json] : [%t build_js_type ~loc fields]) in
         [%e
-          let fs = List.map fs ~f:(handle_field [%expr fs]) in
-          make ~loc fs]]
+          let decoded_fields =
+            List.map fields ~f:(handle_field [%expr fs])
+          in
+          make ~loc decoded_fields]]
     in
-    if allow_extra_fields then body
+    if record.allow_extra_fields then body
     else
       [%expr
         let keys =
-          Js.Dict.keys (Obj.magic [%e x] : Js.Json.t Js.Dict.t)
+          Js.Dict.keys (Obj.magic [%e json] : Js.Json.t Js.Dict.t)
         in
         let len = Js.Array.length keys in
         let rec iter i =
@@ -133,53 +131,8 @@ module Of_json = struct
         match int_of_string_opt s with Some c -> c <> n | None -> false)
     | _ -> false
 
-  let derive_of_tuple derive t x =
-    let loc = t.tpl_loc in
-    let n = List.length t.tpl_types in
-    [%expr
-      if
-        Stdlib.( && )
-          (Js.Array.isArray [%e x])
-          (Stdlib.( = )
-             (Js.Array.length (Obj.magic [%e x] : Js.Json.t array))
-             [%e eint ~loc n])
-      then
-        let es = (Obj.magic [%e x] : Js.Json.t array) in
-        [%e build_tuple ~loc derive 0 t.tpl_types [%expr es]]
-      else
-        Jsonkit.of_json_error ~json:[%e x]
-          [%e
-            estring ~loc (sprintf "expected a JSON array of length %i" n)]]
-
-  let derive_of_record derive t x =
-    let loc = t.rcd_loc in
-    let allow_extra_fields = td_allow_extra_fields t.rcd_ctx in
-    let make ~loc fs =
-      let fs = List.map fs ~f:(fun (n, v) -> map_loc lident n, v) in
-      pexp_record ~loc fs None
-    in
-    [%expr
-      [%e ensure_json_object ~loc x];
-      [%e
-        build_record ~allow_extra_fields ~loc derive t.rcd_fields x make]]
-
-  let derive_of_labeled_tuple derive t x =
-    let loc = t.rcd_loc in
-    let make ~loc fs =
-      let fs =
-        List.map fs ~f:(fun (n, v) -> labeled_tuple_arg_label n, v)
-      in
-      pexp_labeled_tuple ~loc fs
-    in
-    [%expr
-      [%e ensure_json_object ~loc x];
-      [%e
-        build_record ~allow_extra_fields:true ~loc derive t.rcd_fields x
-          make]]
-
-  let derive_of_variant ?(is_compact_variants = false) _derive t
+  let dispatch_on_tag ~loc ?(is_compact_variants = false)
       ~allow_any_constr body x =
-    let loc = t.vrt_loc in
     let not_array_error =
       match allow_any_constr with
       | Some allow_any_constr -> allow_any_constr x
@@ -232,7 +185,6 @@ module Of_json = struct
      n-element array ↔ payload=Some(rest). *)
   let build_unknown_variant_case_record ~loc ~tag ~array ~len =
     [%expr
-      let tag_s = [%e tag] in
       let payload =
         if Stdlib.( = ) len 0 then Stdlib.Option.None
         else if Stdlib.( = ) len 1 then Stdlib.Option.Some []
@@ -244,49 +196,36 @@ module Of_json = struct
           in
           Stdlib.Option.Some rest
       in
-      ({ tag = tag_s; payload } : Jsonkit.unknown_variant_case)]
+      ({ tag = [%e tag]; payload } : Jsonkit.unknown_variant_case)]
 
   let derive_of_variant_case ?(is_compact_variants = false) ~tag ~array
-      ~len derive make c ~allow_any_constr next =
-    let _ = derive in
-    let _ = allow_any_constr in
-    match c with
-    | Vcs_tuple (n, t) when vcs_attr_json_catch_all t.tpl_ctx -> (
-        let loc = n.loc in
-        match t.tpl_types with
-        | [ _ ] ->
-            make (Some (build_unknown_variant_case_record ~loc ~tag))
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] requires exactly one argument: a record \
-               type with fields `tag : string` and `payload : Jsonkit.t \
-               list option` (typically [Jsonkit.unknown_variant_case])")
-    | Vcs_record (_n, t) when vcs_attr_json_catch_all t.rcd_ctx -> (
-        let loc = t.rcd_loc in
-        match t.rcd_fields with
-        | [
-         { pld_name = { txt = "tag"; _ }; _ };
-         { pld_name = { txt = "payload"; _ }; _ };
-        ] ->
-            make (Some (build_unknown_variant_case_record ~loc ~tag))
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] inline record must have exactly two \
-               fields named `tag` and `payload` (in that order), with \
-               types `string` and `Jsonkit.t list option`")
-    | Vcs_record (_, _) when len_never 2 len ->
+      ~len ~allow_any_constr derive case next =
+    (* The payload expression can only be built once [array] / [len] are in
+       scope, so cases hand it over as a function of the two. *)
+    let construct payload =
+      case_construct case (Option.map (fun f -> f ~array ~len) payload)
+    in
+    match case with
+    | Vcs_tuple { name; attr = { catch_all = true; _ }; _ }
+    | Vcs_record { name; attr = { catch_all = true; _ }; _ } ->
+        construct
+          (Some (build_unknown_variant_case_record ~loc:name.loc ~tag))
+    | Vcs_record _ when len_never 2 len ->
         (* Record variants need [["Name", {...}]] (length 2); unreachable for
            the bare-string form, so skip straight to the next case. *)
         next
-    | Vcs_record (n, r) ->
-        let loc = n.loc in
-        let n = Option.value ~default:n (vcs_attr_json_name r.rcd_ctx) in
-        let make ~loc fs =
+    | Vcs_record { name; tag = expected_tag; record; _ } ->
+        let loc = name.loc in
+        let build ~loc fs =
           let fs = List.map fs ~f:(fun (n, v) -> map_loc lident n, v) in
-          make (Some (fun ~array:_ ~len:_ -> pexp_record ~loc fs None))
+          construct
+            (Some (fun ~array:_ ~len:_ -> pexp_record ~loc fs None))
         in
         [%expr
-          if Stdlib.( = ) [%e tag] [%e estring ~loc:n.loc n.txt] then
+          if
+            Stdlib.( = ) [%e tag]
+              [%e estring ~loc:expected_tag.loc expected_tag.txt]
+          then
             [%e
               ensure_json_array_len ~loc ~allow_any_constr 2 len [%expr x]
                 ~else_:
@@ -294,22 +233,20 @@ module Of_json = struct
                     let fs = Js.Array.unsafe_get [%e array] 1 in
                     [%e ensure_json_object ~loc [%expr fs]];
                     [%e
-                      let allow_extra_fields =
-                        match r.rcd_ctx with
-                        | `Variant_ctx cd -> cd_allow_extra_fields cd
-                        | `Polyvariant_ctx _ -> true
-                      in
-                      build_record ~allow_extra_fields ~loc derive
-                        r.rcd_fields [%expr fs] make]]]
+                      build_record ~loc derive record ~json:[%expr fs]
+                        build]]]
           else [%e next]]
-    | Vcs_tuple (n, t) ->
-        let loc = n.loc in
-        let n = Option.value ~default:n (vcs_attr_json_name t.tpl_ctx) in
-        let arity = List.length t.tpl_types in
+    | Vcs_tuple { name; tag = expected_tag; types; _ } ->
+        let loc = name.loc in
+        let is_expected_tag =
+          [%expr
+            Stdlib.( = ) [%e tag]
+              [%e estring ~loc:expected_tag.loc expected_tag.txt]]
+        in
+        let arity = List.length types in
         if is_compact_variants && arity = 0 then
           [%expr
-            if Stdlib.( = ) [%e tag] [%e estring ~loc:n.loc n.txt] then
-              [%e make None]
+            if [%e is_expected_tag] then [%e construct None]
             else [%e next]]
         else if len_never (arity + 1) len then
           (* Needs an [(arity + 1)]-element array; unreachable for the
@@ -317,46 +254,198 @@ module Of_json = struct
           next
         else
           [%expr
-            if Stdlib.( = ) [%e tag] [%e estring ~loc:n.loc n.txt] then
+            if [%e is_expected_tag] then
               [%e
                 ensure_json_array_len ~loc ~allow_any_constr (arity + 1)
                   len [%expr x]
                   ~else_:
-                    (if Stdlib.( = ) arity 0 then make None
+                    (if Stdlib.( = ) arity 0 then construct None
                      else
-                       make
+                       construct
                          (Some
                             (fun ~array ~len:_ ->
-                              build_tuple ~loc derive 1 t.tpl_types array)))]
+                              build_tuple ~loc derive 1 types array)))]
             else [%e next]]
 
-  let is_allow_any_constr vcs = vcs_attr_json_allow_any vcs
-
+  (* of_json for the browser: JSON is an opaque [Js.Json.t], so the variant
+     decoder is a nested if-else chain (see [derive_of_variant]) rather than a
+     [match]. This object plugs the module-local leaf builders into the shared
+     [Conv.deriving_fn] traversal. *)
   let deriving : Conv.deriving =
-    deriving_of () ~name:"of_json"
-      ~of_t:(fun ~loc -> [%type: Js.Json.t])
-      ~is_allow_any_constr ~derive_of_tuple ~derive_of_record
-      ~derive_of_labeled_tuple ~derive_of_variant ~derive_of_variant_case
+    (object (self)
+       inherit deriving_fn
+       method name = "of_json"
+       method t ~loc _name t = [%type: Js.Json.t -> [%t t]]
+
+       (* One link of the tag-dispatch chain: "if this case matches, decode
+          it; otherwise fall through to [next]". Shared by the variant fold
+          and the polyvariant [`Rtag] fold. *)
+       method private variant_case_link ~compact ~allow_any_constr ~case
+           next :
+           array:expression ->
+           len:expression ->
+           tag:expression ->
+           expression =
+         fun ~array ~len ~tag ->
+           derive_of_variant_case ~is_compact_variants:compact ~tag ~array
+             ~len self#derive_of_core_type case ~allow_any_constr
+             (next ~array ~len ~tag)
+
+       method! derive_of_tuple t ts x =
+         let loc = t.ptyp_loc in
+         let n = List.length ts in
+         [%expr
+           if
+             Stdlib.( && )
+               (Js.Array.isArray [%e x])
+               (Stdlib.( = )
+                  (Js.Array.length (Obj.magic [%e x] : Js.Json.t array))
+                  [%e eint ~loc n])
+           then
+             let es = (Obj.magic [%e x] : Js.Json.t array) in
+             [%e
+               build_tuple ~loc self#derive_of_core_type 0 ts [%expr es]]
+           else
+             Jsonkit.of_json_error ~json:[%e x]
+               [%e
+                 estring ~loc
+                   (sprintf "expected a JSON array of length %i" n)]]
+
+       method! derive_of_labeled_tuple t ts x =
+         let loc = t.ptyp_loc in
+         let build ~loc fs =
+           let fs =
+             List.map fs ~f:(fun (n, v) -> labeled_tuple_arg_label n, v)
+           in
+           pexp_labeled_tuple ~loc fs
+         in
+         [%expr
+           [%e ensure_json_object ~loc x];
+           [%e
+             build_record ~loc self#derive_of_core_type
+               (Record.of_labeled_tuple ts)
+               ~json:x build]]
+
+       method! derive_of_record td fs x =
+         let loc = td.ptype_loc in
+         let build ~loc fs =
+           let fs = List.map fs ~f:(fun (n, v) -> map_loc lident n, v) in
+           pexp_record ~loc fs None
+         in
+         [%expr
+           [%e ensure_json_object ~loc x];
+           [%e
+             build_record ~loc self#derive_of_core_type
+               (Record.of_type_declaration td fs)
+               ~json:x build]]
+
+       method! derive_of_variant td cs x =
+         let loc = td.ptype_loc in
+         let { compact; cases; allow_any = allow_any_constr } =
+           resolve_variant td cs
+         in
+         (* The if-else chain is built by folding from the last case, so the
+            cases are walked in reverse — including when listing the shapes
+            the decoder expects. *)
+         let cases = List.rev (without_allow_any cases) in
+         let body =
+           List.fold_left cases
+             ~init:
+               (match allow_any_constr with
+               | Some allow_any_constr ->
+                   fun ~array:_ ~len:_ ~tag:_ -> allow_any_constr x
+               | None ->
+                   let error_message =
+                     expected_message
+                       (List.map cases ~f:(case_json_shape ~compact))
+                   in
+                   fun ~array:_ ~len:_ ~tag:_ ->
+                     [%expr
+                       Jsonkit.of_json_error ~json:[%e x]
+                         [%e estring ~loc error_message]])
+             ~f:(fun next case ->
+               self#variant_case_link ~compact ~allow_any_constr ~case
+                 next)
+         in
+         dispatch_on_tag ~loc ~is_compact_variants:compact
+           ~allow_any_constr body x
+
+       method! derive_of_polyvariant ?td t (cs : row_field list) x =
+         let loc = t.ptyp_loc in
+         let { compact; pvcs; allow_any = allow_any_constr } =
+           resolve_polyvariant ?td cs
+         in
+         let cs, pvcs = without_allow_any_rows cs pvcs in
+         let body =
+           List.fold_left (List.rev pvcs)
+             ~init:
+               (match allow_any_constr with
+               | Some allow_any_constr ->
+                   fun ~array:_ ~len:_ ~tag:_ -> allow_any_constr x
+               | None ->
+                   let error_message =
+                     expected_message
+                       (polyvariant_json_shapes ~compact ~loc pvcs)
+                   in
+                   fun ~array:_ ~len:_ ~tag:_ ->
+                     [%expr
+                       Jsonkit.of_json_unexpected_variant ~json:x
+                         [%e estring ~loc error_message]])
+             ~f:(fun next pvc ->
+               match pvc with
+               | Pvc_tag case ->
+                   self#variant_case_link ~compact ~allow_any_constr
+                     ~case:(Vcs_tuple case) next
+               | Pvc_inherit (n, ts) ->
+                   let maybe_e =
+                     self#derive_type_ref ~loc self#name n ts x
+                   in
+                   let t = ptyp_variant ~loc cs Closed None in
+                   let next ~array ~len ~tag =
+                     [%expr
+                       match [%e maybe_e] with
+                       | e -> (e :> [%t t])
+                       | exception
+                           Jsonkit.Of_json_error
+                             (Jsonkit.Unexpected_variant _) ->
+                           [%e next ~array ~len ~tag]]
+                   in
+                   next)
+         in
+         dispatch_on_tag ~loc ~is_compact_variants:compact
+           ~allow_any_constr body x
+     end
+      :> Conv.deriving)
 end
 
 module To_json = struct
   let as_json ~loc x = [%expr (Obj.magic [%e x] : Js.Json.t)]
+  let json_array ~loc es = as_json ~loc (pexp_array ~loc es)
 
-  let derive_of_tuple derive t es =
-    let loc = t.tpl_loc in
-    as_json ~loc (pexp_array ~loc (List.map2 t.tpl_types es ~f:derive))
+  let json_string ~loc (n : label loc) =
+    as_json ~loc (estring ~loc:n.loc n.txt)
 
-  let derive_of_record derive t es =
-    let loc = t.rcd_loc in
-    let fs =
-      List.map2 t.rcd_fields es ~f:(fun ld x ->
-          let k =
-            let k = ld.pld_name in
-            Option.value ~default:k (Attrs.Json.ld_attr_json_key ld)
+  let catch_all_encode ~loc ~tag ~payload =
+    [%expr
+      match [%e payload] with
+      | Stdlib.Option.None -> (Obj.magic ([%e tag] : string) : Js.Json.t)
+      | Stdlib.Option.Some xs ->
+          let head = (Obj.magic ([%e tag] : string) : Js.Json.t) in
+          let rest =
+            Stdlib.List.map
+              (fun (j : Jsonkit.t) -> (Obj.magic j : Js.Json.t))
+              xs
           in
+          (Obj.magic
+             (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
+            : Js.Json.t)]
+
+  let derive_of_record ~loc derive fields es =
+    let fs =
+      List.map2 fields es ~f:(fun (f : Record.to_field) x ->
           let v =
-            let v = derive ld.pld_type x in
-            match ld_drop_default ld with
+            let v = derive f.type_ x in
+            match f.drop with
             | `No -> v
             | `Drop_option ->
                 [%expr
@@ -370,106 +459,19 @@ module To_json = struct
             | `Drop_default_if_json_equal def ->
                 [%expr
                   let json = [%e v] in
-                  if Jsonkit.equal json [%e derive ld.pld_type def] then
+                  if Jsonkit.equal json [%e derive f.type_ def] then
                     Js.Undefined.empty
                   else Js.Undefined.return json]
           in
-          map_loc lident k, v)
+          map_loc lident f.key, v)
     in
     let record = pexp_record ~loc fs None in
     as_json ~loc [%expr [%mel.obj [%e record]]]
 
-  let derive_of_variant_case ?(is_compact_variants = false) derive c es =
-    match c with
-    | Vcs_tuple (n, t) when vcs_attr_json_catch_all t.tpl_ctx -> (
-        let loc = n.loc in
-        match t.tpl_types, es with
-        | [ _ ], [ arg_e ] ->
-            [%expr
-              match [%e arg_e].payload with
-              | Stdlib.Option.None ->
-                  (Obj.magic ([%e arg_e].tag : string) : Js.Json.t)
-              | Stdlib.Option.Some xs ->
-                  let head =
-                    (Obj.magic ([%e arg_e].tag : string) : Js.Json.t)
-                  in
-                  let rest =
-                    Stdlib.List.map
-                      (fun (j : Jsonkit.t) -> (Obj.magic j : Js.Json.t))
-                      xs
-                  in
-                  (Obj.magic
-                     (Stdlib.Array.of_list (head :: rest)
-                       : Js.Json.t array)
-                    : Js.Json.t)]
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] requires exactly one argument: a record \
-               type with fields `tag : string` and `payload : Jsonkit.t \
-               list option` (typically [Jsonkit.unknown_variant_case])")
-    | Vcs_record (_n, t) when vcs_attr_json_catch_all t.rcd_ctx -> (
-        let loc = t.rcd_loc in
-        match t.rcd_fields, es with
-        | ( [
-              { pld_name = { txt = "tag"; _ }; _ };
-              { pld_name = { txt = "payload"; _ }; _ };
-            ],
-            [ tag_e; payload_e ] ) ->
-            [%expr
-              match [%e payload_e] with
-              | Stdlib.Option.None ->
-                  (Obj.magic ([%e tag_e] : string) : Js.Json.t)
-              | Stdlib.Option.Some xs ->
-                  let head =
-                    (Obj.magic ([%e tag_e] : string) : Js.Json.t)
-                  in
-                  let rest =
-                    Stdlib.List.map
-                      (fun (j : Jsonkit.t) -> (Obj.magic j : Js.Json.t))
-                      xs
-                  in
-                  (Obj.magic
-                     (Stdlib.Array.of_list (head :: rest)
-                       : Js.Json.t array)
-                    : Js.Json.t)]
-        | _ ->
-            Location.raise_errorf ~loc
-              "[@json.catch_all] inline record must have exactly two \
-               fields named `tag` and `payload` (in that order), with \
-               types `string` and `Jsonkit.t list option`")
-    | Vcs_record (n, r) ->
-        let loc = n.loc in
-        let n = Option.value ~default:n (vcs_attr_json_name r.rcd_ctx) in
-        let tag =
-          [%expr (Obj.magic [%e estring ~loc:n.loc n.txt] : Js.Json.t)]
-        in
-        let es = [ derive_of_record derive r es ] in
-        as_json ~loc (pexp_array ~loc (tag :: es))
-    | Vcs_tuple (_n, t) when vcs_attr_json_allow_any t.tpl_ctx -> (
-        match es with
-        | [ x ] -> x
-        | es ->
-            failwith
-              (sprintf "expected a tuple of length 1, got %i"
-                 (List.length es)))
-    | Vcs_tuple (n, t) ->
-        let loc = n.loc in
-        let n = Option.value ~default:n (vcs_attr_json_name t.tpl_ctx) in
-        let arity = List.length t.tpl_types in
-        if is_compact_variants && arity = 0 then
-          as_json ~loc (estring ~loc:n.loc n.txt)
-        else
-          let tag =
-            [%expr (Obj.magic [%e estring ~loc:n.loc n.txt] : Js.Json.t)]
-          in
-          let es = List.map2 t.tpl_types es ~f:derive in
-          as_json ~loc (pexp_array ~loc (tag :: es))
-
   let deriving : Conv.deriving =
     deriving_to () ~name:"to_json"
       ~t_to:(fun ~loc -> [%type: Js.Json.t])
-      ~derive_of_tuple ~derive_of_labeled_tuple:derive_of_record
-      ~derive_of_record ~derive_of_variant_case
+      ~json_array ~json_string ~catch_all_encode ~derive_of_record
 end
 
 let () =

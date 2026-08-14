@@ -62,3 +62,41 @@
                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   Error: [@json.allow_extra_fields] and [@json.disallow_extra_fields] are mutually exclusive
   [1]
+
+[@json.catch_all] needs somewhere to put the unknown tag and its payload: a
+single argument, or an inline record with exactly the fields `tag` and
+`payload`.
+
+  $ echo 'type t = A [@json.catch_all] | B [@@deriving json]' | ../native/ppx_deriving_json_native_test.exe -impl -
+  File "-", line 1, characters 9-10:
+  1 | type t = A [@json.catch_all] | B [@@deriving json]
+               ^
+  Error: [@json.catch_all] requires exactly one argument: a record type with fields `tag : string` and `payload : Jsonkit.t list option` (typically [Jsonkit.unknown_variant_case])
+  [1]
+
+  $ echo 'type t = A of int * int [@json.catch_all] [@@deriving json]' | ../native/ppx_deriving_json_native_test.exe -impl -
+  File "-", line 1, characters 9-10:
+  1 | type t = A of int * int [@json.catch_all] [@@deriving json]
+               ^
+  Error: [@json.catch_all] requires exactly one argument: a record type with fields `tag : string` and `payload : Jsonkit.t list option` (typically [Jsonkit.unknown_variant_case])
+  [1]
+
+  $ echo 'type t = A of { tag: string } [@json.catch_all] [@@deriving json]' | ../native/ppx_deriving_json_native_test.exe -impl -
+  File "-", line 1, characters 0-65:
+  1 | type t = A of { tag: string } [@json.catch_all] [@@deriving json]
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Error: [@json.catch_all] inline record must have exactly two fields named `tag` and `payload` (in that order), with types `string` and `Jsonkit.t list option`
+  [1]
+
+  $ echo 'type t = A of { payload: Jsonkit.t list option; tag: string } [@json.catch_all] [@@deriving json]' | ../native/ppx_deriving_json_native_test.exe -impl -
+  File "-", line 1, characters 0-97:
+  1 | type t = A of { payload: Jsonkit.t list option; tag: string } [@json.catch_all] [@@deriving json]
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  Error: [@json.catch_all] inline record must have exactly two fields named `tag` and `payload` (in that order), with types `string` and `Jsonkit.t list option`
+  [1]
+
+The [@drop_default] family only constrains encoding, so an of_json-only
+derivation accepts combinations that [@@deriving json] rejects (see the
+[@drop_default expr] requires [@default] case above).
+
+  $ echo 'type t = { a: int; [@drop_default (=)] } [@@deriving of_json]' | ../native/ppx_deriving_json_native_test.exe -impl - > /dev/null

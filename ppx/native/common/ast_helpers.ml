@@ -55,14 +55,14 @@ let gen_pat_list ~loc prefix n =
   in
   patt, exprs
 
-let gen_pat_record ~loc prefix lbls =
+let gen_pat_record ~loc prefix keys =
   let xs =
-    List.map lbls ~f:(fun (lbl : label_declaration) ->
-        let { txt; loc } = lbl.pld_name in
+    List.map keys ~f:(fun (key : label loc) ->
+        let { txt; loc } = key in
         let id = sprintf "%s_%s" prefix txt in
         let patt = ppat_var ~loc { loc; txt = id } in
         let expr = pexp_ident ~loc { loc; txt = lident id } in
-        (map_loc lident lbl.pld_name, patt), expr)
+        (map_loc lident key, patt), expr)
   in
   ppat_record ~loc (List.map xs ~f:fst) Closed, List.map xs ~f:snd
 
