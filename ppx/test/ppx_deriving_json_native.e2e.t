@@ -29,6 +29,32 @@
   JSON REPRINT: "Compact_polyvariant"
   JSON    DATA: ["Compact_polyvariant_of_int",42]
   JSON REPRINT: ["Compact_polyvariant_of_int",42]
+  JSON    DATA: "Catch_all_variant"
+  JSON REPRINT: "Catch_all_variant"
+  JSON    DATA: ["Catch_all_variant_of_int",42]
+  JSON REPRINT: ["Catch_all_variant_of_int",42]
+  JSON    DATA: "Unknown"
+  JSON REPRINT: "Unknown"
+  JSON    DATA: ["Unknown"]
+  JSON REPRINT: ["Unknown"]
+  JSON    DATA: ["Unknown",1,"x"]
+  JSON REPRINT: ["Unknown",1,"x"]
+  JSON    DATA: "Catch_all_polyvariant"
+  JSON REPRINT: "Catch_all_polyvariant"
+  JSON    DATA: ["Catch_all_polyvariant_of_int",42]
+  JSON REPRINT: ["Catch_all_polyvariant_of_int",42]
+  JSON    DATA: "Unknown"
+  JSON REPRINT: "Unknown"
+  JSON    DATA: ["Unknown"]
+  JSON REPRINT: ["Unknown"]
+  JSON    DATA: ["Unknown",1,"x"]
+  JSON REPRINT: ["Unknown",1,"x"]
+  JSON    DATA: ["Catch_all_noncompact_of_int",42]
+  JSON REPRINT: ["Catch_all_noncompact_of_int",42]
+  JSON    DATA: ["Unknown"]
+  JSON REPRINT: ["Unknown"]
+  JSON    DATA: ["Unknown",{"a":1}]
+  JSON REPRINT: ["Unknown",{"a":1}]
   JSON    DATA: 1
   JSON REPRINT: 1
   JSON    DATA: "9223372036854775807"

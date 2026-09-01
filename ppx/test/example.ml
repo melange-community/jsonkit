@@ -60,8 +60,11 @@ type of_json = C : string * (json -> 'a) * ('a -> json) * 'a -> of_json
 type color = Red | Green | Blue [@@deriving json]
 type compact_variant = Compact_variant | Compact_variant_of_int of int [@@deriving json] [@@json.compact_variants]
 type compact_polyvariant = [`Compact_polyvariant | `Compact_polyvariant_of_int of int] [@@deriving json] [@@json.compact_variants]
+type catch_all_variant = Catch_all_variant | Catch_all_variant_of_int of int | Catch_all_other of Jsonkit.unknown_variant_case [@json.catch_all] [@@deriving json] [@@json.compact_variants]
+type catch_all_polyvariant = [`Catch_all_polyvariant | `Catch_all_polyvariant_of_int of int | `Catch_all_other of Jsonkit.unknown_variant_case [@json.catch_all]] [@@deriving json] [@@json.compact_variants]
+type catch_all_noncompact = Catch_all_noncompact_of_int of int | Catch_all_noncompact_other of Jsonkit.unknown_variant_case [@json.catch_all] [@@deriving json]
 
-type shape = 
+type shape =
   | Circle of float  (* radius *)
   | Rectangle of float * float  (* width * height *)
   | Point of { x: float; y: float } [@@deriving json]
@@ -73,6 +76,19 @@ let of_json_cases = [
   C ({|"Compact_polyvariant"|}, compact_polyvariant_of_json, compact_polyvariant_to_json, (`Compact_polyvariant : compact_polyvariant));
   C ({|["Compact_polyvariant"]|}, compact_polyvariant_of_json, compact_polyvariant_to_json, (`Compact_polyvariant : compact_polyvariant));
   C ({|["Compact_polyvariant_of_int",42]|}, compact_polyvariant_of_json, compact_polyvariant_to_json, (`Compact_polyvariant_of_int 42 : compact_polyvariant));
+  C ({|"Catch_all_variant"|}, catch_all_variant_of_json, catch_all_variant_to_json, (Catch_all_variant : catch_all_variant));
+  C ({|["Catch_all_variant_of_int",42]|}, catch_all_variant_of_json, catch_all_variant_to_json, (Catch_all_variant_of_int 42 : catch_all_variant));
+  C ({|"Unknown"|}, catch_all_variant_of_json, catch_all_variant_to_json, (Catch_all_other { Jsonkit.tag = "Unknown"; payload = None } : catch_all_variant));
+  C ({|["Unknown"]|}, catch_all_variant_of_json, catch_all_variant_to_json, (Catch_all_other { Jsonkit.tag = "Unknown"; payload = Some [] } : catch_all_variant));
+  C ({|["Unknown",1,"x"]|}, catch_all_variant_of_json, catch_all_variant_to_json, (Catch_all_other { Jsonkit.tag = "Unknown"; payload = Some [int_to_json 1; string_to_json "x"] } : catch_all_variant));
+  C ({|"Catch_all_polyvariant"|}, catch_all_polyvariant_of_json, catch_all_polyvariant_to_json, (`Catch_all_polyvariant : catch_all_polyvariant));
+  C ({|["Catch_all_polyvariant_of_int",42]|}, catch_all_polyvariant_of_json, catch_all_polyvariant_to_json, (`Catch_all_polyvariant_of_int 42 : catch_all_polyvariant));
+  C ({|"Unknown"|}, catch_all_polyvariant_of_json, catch_all_polyvariant_to_json, (`Catch_all_other { Jsonkit.tag = "Unknown"; payload = None } : catch_all_polyvariant));
+  C ({|["Unknown"]|}, catch_all_polyvariant_of_json, catch_all_polyvariant_to_json, (`Catch_all_other { Jsonkit.tag = "Unknown"; payload = Some [] } : catch_all_polyvariant));
+  C ({|["Unknown",1,"x"]|}, catch_all_polyvariant_of_json, catch_all_polyvariant_to_json, (`Catch_all_other { Jsonkit.tag = "Unknown"; payload = Some [int_to_json 1; string_to_json "x"] } : catch_all_polyvariant));
+  C ({|["Catch_all_noncompact_of_int",42]|}, catch_all_noncompact_of_json, catch_all_noncompact_to_json, (Catch_all_noncompact_of_int 42 : catch_all_noncompact));
+  C ({|["Unknown"]|}, catch_all_noncompact_of_json, catch_all_noncompact_to_json, (Catch_all_noncompact_other { Jsonkit.tag = "Unknown"; payload = Some [] } : catch_all_noncompact));
+  C ({|["Unknown",{"a":1}]|}, catch_all_noncompact_of_json, catch_all_noncompact_to_json, (Catch_all_noncompact_other { Jsonkit.tag = "Unknown"; payload = Some [Jsonkit.of_string {|{"a":1}|}] } : catch_all_noncompact));
   C ({|1|}, user_of_json, user_to_json, 1);
   C ({|"9223372036854775807"|}, userid_of_json, userid_to_json, 9223372036854775807L);
   C ({|1.1|}, floaty_of_json, floaty_to_json, 1.1);
@@ -150,11 +166,11 @@ type must_be_array_3 = (int * int * int) [@@deriving json]
 let error_cases = [
   (* Should fail with "expected a JSON object" *)
   C ({|42|}, must_be_object_of_json, must_be_object_to_json, {field=1});
-  
+
   (* Should fail with "expected a JSON array of length 2" *)
   C ({|[1]|}, must_be_array_2_of_json, must_be_array_2_to_json, (1, 2));
   C ({|[1,2,3]|}, must_be_array_2_of_json, must_be_array_2_to_json, (1, 2));
-  
+
   (* Should fail with "expected a JSON array of length 3" *)
   C ({|[1,2]|}, must_be_array_3_of_json, must_be_array_3_to_json, (1, 2, 3));
   C ({|[1,2,3,4]|}, must_be_array_3_of_json, must_be_array_3_to_json, (1, 2, 3));

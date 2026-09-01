@@ -1,6 +1,8 @@
 ## Unreleased
 
-- Fix: remove the duplicated runtime deps from the `ppx` libraries.
+- Fix: use the `len` value as expression on the variant case function to avoid
+  expected "named" value to be declared on the function.
+- Fix: remove the duplicated runtime deps from the ppx libraries.
 - Move the JSON Schema runtime into the main packages, at `Jsonkit.Jsonschema`.
   It is the same API under a new path, on both backends, so sources shared
   between a native and a Melange build need no per-backend conditionals. The

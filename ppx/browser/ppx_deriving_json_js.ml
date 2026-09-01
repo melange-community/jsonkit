@@ -186,13 +186,13 @@ module Of_json = struct
   let build_unknown_variant_case_record ~loc ~tag ~array ~len =
     [%expr
       let payload =
-        if Stdlib.( = ) len 0 then Stdlib.Option.None
-        else if Stdlib.( = ) len 1 then Stdlib.Option.Some []
+        if Stdlib.( = ) [%e len] 0 then Stdlib.Option.None
+        else if Stdlib.( = ) [%e len] 1 then Stdlib.Option.Some []
         else
           let rest =
             Stdlib.Array.sub [%e array] 1 (Stdlib.( - ) [%e len] 1)
             |> Stdlib.Array.to_list
-            |> Stdlib.List.map (fun j -> (Obj.magic j : Jsonkit.t))
+            |> Stdlib.List.map (fun j -> Obj.magic j)
           in
           Stdlib.Option.Some rest
       in
@@ -432,9 +432,7 @@ module To_json = struct
       | Stdlib.Option.Some xs ->
           let head = (Obj.magic ([%e tag] : string) : Js.Json.t) in
           let rest =
-            Stdlib.List.map
-              (fun (j : Jsonkit.t) -> (Obj.magic j : Js.Json.t))
-              xs
+            Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs
           in
           (Obj.magic
              (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)

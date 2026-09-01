@@ -1525,6 +1525,323 @@
 Test for polyvariant without own cases (only inherits) - should not produce unused variable warning for `tag`:
 
   $ cat <<"EOF" | run
+  > type catch_all_variant = Catch_all_variant | Catch_all_variant_of_int of int | Catch_all_other of Jsonkit.unknown_variant_case [@json.catch_all] [@@deriving json] [@@json.compact_variants]
+  > EOF
+  type catch_all_variant =
+    | Catch_all_variant
+    | Catch_all_variant_of_int of int
+    | Catch_all_other of Jsonkit.unknown_variant_case [@json.catch_all]
+  [@@deriving json] [@@json.compact_variants]
+  
+  include struct
+    let _ = fun (_ : catch_all_variant) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_variant_of_json =
+      (fun x ->
+         if Js.Array.isArray x then
+           let array = (Obj.magic x : Js.Json.t array) in
+           let len = Js.Array.length array in
+           if Stdlib.( > ) len 0 then
+             let tag = Js.Array.unsafe_get array 0 in
+             if Stdlib.( = ) (Js.typeof tag) "string" then
+               if Stdlib.( = ) (Obj.magic tag : string) "Catch_all_variant"
+               then Catch_all_variant
+               else if
+                 Stdlib.( = )
+                   (Obj.magic tag : string)
+                   "Catch_all_variant_of_int"
+               then
+                 if Stdlib.( <> ) len 2 then
+                   Jsonkit.of_json_error ~json:x
+                     "expected a JSON array of length 2"
+                 else
+                   Catch_all_variant_of_int
+                     (int_of_json (Js.Array.unsafe_get array 1))
+               else
+                 Catch_all_other
+                   (let payload =
+                      if Stdlib.( = ) len 0 then Stdlib.Option.None
+                      else if Stdlib.( = ) len 1 then Stdlib.Option.Some []
+                      else
+                        let rest =
+                          Stdlib.Array.sub array 1 (Stdlib.( - ) len 1)
+                          |> Stdlib.Array.to_list
+                          |> Stdlib.List.map (fun j -> Obj.magic j)
+                        in
+                        Stdlib.Option.Some rest
+                    in
+                    ({ tag = (Obj.magic tag : string); payload }
+                      : Jsonkit.unknown_variant_case))
+             else
+               Jsonkit.of_json_error ~json:x
+                 "expected a non empty JSON array with element being a \
+                  string"
+           else
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+         else if Stdlib.( = ) (Js.typeof x) "string" then
+           if Stdlib.( = ) (Obj.magic x : string) "Catch_all_variant" then
+             Catch_all_variant
+           else
+             Catch_all_other
+               (let payload =
+                  if Stdlib.( = ) 0 0 then Stdlib.Option.None
+                  else if Stdlib.( = ) 0 1 then Stdlib.Option.Some []
+                  else
+                    let rest =
+                      Stdlib.Array.sub
+                        (Obj.magic [||] : Js.Json.t array)
+                        1 (Stdlib.( - ) 0 1)
+                      |> Stdlib.Array.to_list
+                      |> Stdlib.List.map (fun j -> Obj.magic j)
+                    in
+                    Stdlib.Option.Some rest
+                in
+                ({ tag = (Obj.magic x : string); payload }
+                  : Jsonkit.unknown_variant_case))
+         else
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+        : Js.Json.t -> catch_all_variant)
+  
+    let _ = catch_all_variant_of_json
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_variant_to_json =
+      (fun x ->
+         match x with
+         | Catch_all_variant -> (Obj.magic "Catch_all_variant" : Js.Json.t)
+         | Catch_all_variant_of_int x_0 ->
+             (Obj.magic
+                [|
+                  (Obj.magic "Catch_all_variant_of_int" : Js.Json.t);
+                  int_to_json x_0;
+                |]
+               : Js.Json.t)
+         | Catch_all_other x_0 -> (
+             match x_0.payload with
+             | Stdlib.Option.None ->
+                 (Obj.magic (x_0.tag : string) : Js.Json.t)
+             | Stdlib.Option.Some xs ->
+                 let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
+                 let rest =
+                   Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs
+                 in
+                 (Obj.magic
+                    (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
+                   : Js.Json.t))
+        : catch_all_variant -> Js.Json.t)
+  
+    let _ = catch_all_variant_to_json
+  end [@@ocaml.doc "@inline"] [@@merlin.hide]
+
+  $ cat <<"EOF" | run
+  > type catch_all_polyvariant = [`Catch_all_polyvariant | `Catch_all_polyvariant_of_int of int | `Catch_all_other of Jsonkit.unknown_variant_case [@json.catch_all]] [@@deriving json] [@@json.compact_variants]
+  > EOF
+  type catch_all_polyvariant =
+    [ `Catch_all_polyvariant
+    | `Catch_all_polyvariant_of_int of int
+    | `Catch_all_other of Jsonkit.unknown_variant_case [@json.catch_all] ]
+  [@@deriving json] [@@json.compact_variants]
+  
+  include struct
+    let _ = fun (_ : catch_all_polyvariant) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_polyvariant_of_json =
+      (fun x ->
+         if Js.Array.isArray x then
+           let array = (Obj.magic x : Js.Json.t array) in
+           let len = Js.Array.length array in
+           if Stdlib.( > ) len 0 then
+             let tag = Js.Array.unsafe_get array 0 in
+             if Stdlib.( = ) (Js.typeof tag) "string" then
+               if
+                 Stdlib.( = )
+                   (Obj.magic tag : string)
+                   "Catch_all_polyvariant"
+               then `Catch_all_polyvariant
+               else if
+                 Stdlib.( = )
+                   (Obj.magic tag : string)
+                   "Catch_all_polyvariant_of_int"
+               then
+                 if Stdlib.( <> ) len 2 then
+                   Jsonkit.of_json_error ~json:x
+                     "expected a JSON array of length 2"
+                 else
+                   `Catch_all_polyvariant_of_int
+                     (int_of_json (Js.Array.unsafe_get array 1))
+               else
+                 `Catch_all_other
+                   (let payload =
+                      if Stdlib.( = ) len 0 then Stdlib.Option.None
+                      else if Stdlib.( = ) len 1 then Stdlib.Option.Some []
+                      else
+                        let rest =
+                          Stdlib.Array.sub array 1 (Stdlib.( - ) len 1)
+                          |> Stdlib.Array.to_list
+                          |> Stdlib.List.map (fun j -> Obj.magic j)
+                        in
+                        Stdlib.Option.Some rest
+                    in
+                    ({ tag = (Obj.magic tag : string); payload }
+                      : Jsonkit.unknown_variant_case))
+             else
+               Jsonkit.of_json_error ~json:x
+                 "expected a non empty JSON array with element being a \
+                  string"
+           else
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+         else if Stdlib.( = ) (Js.typeof x) "string" then
+           if Stdlib.( = ) (Obj.magic x : string) "Catch_all_polyvariant"
+           then `Catch_all_polyvariant
+           else
+             `Catch_all_other
+               (let payload =
+                  if Stdlib.( = ) 0 0 then Stdlib.Option.None
+                  else if Stdlib.( = ) 0 1 then Stdlib.Option.Some []
+                  else
+                    let rest =
+                      Stdlib.Array.sub
+                        (Obj.magic [||] : Js.Json.t array)
+                        1 (Stdlib.( - ) 0 1)
+                      |> Stdlib.Array.to_list
+                      |> Stdlib.List.map (fun j -> Obj.magic j)
+                    in
+                    Stdlib.Option.Some rest
+                in
+                ({ tag = (Obj.magic x : string); payload }
+                  : Jsonkit.unknown_variant_case))
+         else
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+        : Js.Json.t -> catch_all_polyvariant)
+  
+    let _ = catch_all_polyvariant_of_json
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_polyvariant_to_json =
+      (fun x ->
+         match x with
+         | `Catch_all_polyvariant ->
+             (Obj.magic "Catch_all_polyvariant" : Js.Json.t)
+         | `Catch_all_polyvariant_of_int x_0 ->
+             (Obj.magic
+                [|
+                  (Obj.magic "Catch_all_polyvariant_of_int" : Js.Json.t);
+                  int_to_json x_0;
+                |]
+               : Js.Json.t)
+         | `Catch_all_other x_0 -> (
+             match x_0.payload with
+             | Stdlib.Option.None ->
+                 (Obj.magic (x_0.tag : string) : Js.Json.t)
+             | Stdlib.Option.Some xs ->
+                 let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
+                 let rest =
+                   Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs
+                 in
+                 (Obj.magic
+                    (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
+                   : Js.Json.t))
+        : catch_all_polyvariant -> Js.Json.t)
+  
+    let _ = catch_all_polyvariant_to_json
+  end [@@ocaml.doc "@inline"] [@@merlin.hide]
+
+  $ cat <<"EOF" | run
+  > type catch_all_noncompact = Catch_all_noncompact_of_int of int | Catch_all_noncompact_other of Jsonkit.unknown_variant_case [@json.catch_all] [@@deriving json]
+  > EOF
+  type catch_all_noncompact =
+    | Catch_all_noncompact_of_int of int
+    | Catch_all_noncompact_other of Jsonkit.unknown_variant_case
+        [@json.catch_all]
+  [@@deriving json]
+  
+  include struct
+    let _ = fun (_ : catch_all_noncompact) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_noncompact_of_json =
+      (fun x ->
+         if Js.Array.isArray x then
+           let array = (Obj.magic x : Js.Json.t array) in
+           let len = Js.Array.length array in
+           if Stdlib.( > ) len 0 then
+             let tag = Js.Array.unsafe_get array 0 in
+             if Stdlib.( = ) (Js.typeof tag) "string" then
+               if
+                 Stdlib.( = )
+                   (Obj.magic tag : string)
+                   "Catch_all_noncompact_of_int"
+               then
+                 if Stdlib.( <> ) len 2 then
+                   Jsonkit.of_json_error ~json:x
+                     "expected a JSON array of length 2"
+                 else
+                   Catch_all_noncompact_of_int
+                     (int_of_json (Js.Array.unsafe_get array 1))
+               else
+                 Catch_all_noncompact_other
+                   (let payload =
+                      if Stdlib.( = ) len 0 then Stdlib.Option.None
+                      else if Stdlib.( = ) len 1 then Stdlib.Option.Some []
+                      else
+                        let rest =
+                          Stdlib.Array.sub array 1 (Stdlib.( - ) len 1)
+                          |> Stdlib.Array.to_list
+                          |> Stdlib.List.map (fun j -> Obj.magic j)
+                        in
+                        Stdlib.Option.Some rest
+                    in
+                    ({ tag = (Obj.magic tag : string); payload }
+                      : Jsonkit.unknown_variant_case))
+             else
+               Jsonkit.of_json_error ~json:x
+                 "expected a non empty JSON array with element being a \
+                  string"
+           else
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+         else
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+        : Js.Json.t -> catch_all_noncompact)
+  
+    let _ = catch_all_noncompact_of_json
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_noncompact_to_json =
+      (fun x ->
+         match x with
+         | Catch_all_noncompact_of_int x_0 ->
+             (Obj.magic
+                [|
+                  (Obj.magic "Catch_all_noncompact_of_int" : Js.Json.t);
+                  int_to_json x_0;
+                |]
+               : Js.Json.t)
+         | Catch_all_noncompact_other x_0 -> (
+             match x_0.payload with
+             | Stdlib.Option.None ->
+                 (Obj.magic (x_0.tag : string) : Js.Json.t)
+             | Stdlib.Option.Some xs ->
+                 let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
+                 let rest =
+                   Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs
+                 in
+                 (Obj.magic
+                    (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
+                   : Js.Json.t))
+        : catch_all_noncompact -> Js.Json.t)
+  
+    let _ = catch_all_noncompact_to_json
+  end [@@ocaml.doc "@inline"] [@@merlin.hide]
+
+  $ cat <<"EOF" | run
   > type one = [ `C ] [@@deriving json]
   > type other = [ `C ] [@@deriving json]
   > type poly = [ one | other ] [@@deriving json]
