@@ -877,6 +877,177 @@
 
 
   $ cat <<"EOF" | run
+  > type catch_all_variant = Catch_all_variant | Catch_all_variant_of_int of int | Catch_all_other of Jsonkit.unknown_variant_case [@json.catch_all] [@@deriving json] [@@json.compact_variants]
+  > EOF
+  type catch_all_variant =
+    | Catch_all_variant
+    | Catch_all_variant_of_int of int
+    | Catch_all_other of Jsonkit.unknown_variant_case [@json.catch_all]
+  [@@deriving json] [@@json.compact_variants]
+  
+  include struct
+    let _ = fun (_ : catch_all_variant) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_variant_of_json =
+      (fun x ->
+         match x with
+         | `String "Catch_all_variant"
+         | `List (`String "Catch_all_variant" :: []) ->
+             Catch_all_variant
+         | `List [ `String "Catch_all_variant_of_int"; x_0 ] ->
+             Catch_all_variant_of_int (int_of_json x_0)
+         | (`String _ | `List (`String _ :: _)) as v ->
+             let tag, payload =
+               match v with
+               | `String s -> s, Stdlib.Option.None
+               | `List (`String s :: payload) ->
+                   s, Stdlib.Option.Some payload
+               | _ -> assert false
+             in
+             Catch_all_other
+               ({ tag; payload } : Jsonkit.unknown_variant_case)
+         | _ ->
+             Jsonkit.of_json_error ~json:x
+               "expected \"Catch_all_variant\" or \
+                [\"Catch_all_variant_of_int\", _] or [\"Catch_all_other\", \
+                _]"
+        : Yojson.Basic.t -> catch_all_variant)
+  
+    let _ = catch_all_variant_of_json
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_variant_to_json =
+      (fun x ->
+         match x with
+         | Catch_all_variant -> `String "Catch_all_variant"
+         | Catch_all_variant_of_int x_0 ->
+             `List [ `String "Catch_all_variant_of_int"; int_to_json x_0 ]
+         | Catch_all_other x_0 -> (
+             match x_0.payload with
+             | Stdlib.Option.None -> `String x_0.tag
+             | Stdlib.Option.Some xs -> `List (`String x_0.tag :: xs))
+        : catch_all_variant -> Yojson.Basic.t)
+  
+    let _ = catch_all_variant_to_json
+  end [@@ocaml.doc "@inline"] [@@merlin.hide]
+
+  $ cat <<"EOF" | run
+  > type catch_all_polyvariant = [`Catch_all_polyvariant | `Catch_all_polyvariant_of_int of int | `Catch_all_other of Jsonkit.unknown_variant_case [@json.catch_all]] [@@deriving json] [@@json.compact_variants]
+  > EOF
+  type catch_all_polyvariant =
+    [ `Catch_all_polyvariant
+    | `Catch_all_polyvariant_of_int of int
+    | `Catch_all_other of Jsonkit.unknown_variant_case [@json.catch_all] ]
+  [@@deriving json] [@@json.compact_variants]
+  
+  include struct
+    let _ = fun (_ : catch_all_polyvariant) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_polyvariant_of_json =
+      (fun x ->
+         match x with
+         | `String "Catch_all_polyvariant"
+         | `List (`String "Catch_all_polyvariant" :: []) ->
+             `Catch_all_polyvariant
+         | `List [ `String "Catch_all_polyvariant_of_int"; x_0 ] ->
+             `Catch_all_polyvariant_of_int (int_of_json x_0)
+         | (`String _ | `List (`String _ :: _)) as v ->
+             let tag, payload =
+               match v with
+               | `String s -> s, Stdlib.Option.None
+               | `List (`String s :: payload) ->
+                   s, Stdlib.Option.Some payload
+               | _ -> assert false
+             in
+             `Catch_all_other
+               ({ tag; payload } : Jsonkit.unknown_variant_case)
+         | x ->
+             Jsonkit.of_json_unexpected_variant ~json:x
+               "expected \"Catch_all_polyvariant\" or \
+                [\"Catch_all_polyvariant_of_int\", _] or \
+                [\"Catch_all_other\", _]"
+        : Yojson.Basic.t -> catch_all_polyvariant)
+  
+    let _ = catch_all_polyvariant_of_json
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_polyvariant_to_json =
+      (fun x ->
+         match x with
+         | `Catch_all_polyvariant -> `String "Catch_all_polyvariant"
+         | `Catch_all_polyvariant_of_int x_0 ->
+             `List
+               [ `String "Catch_all_polyvariant_of_int"; int_to_json x_0 ]
+         | `Catch_all_other x_0 -> (
+             match x_0.payload with
+             | Stdlib.Option.None -> `String x_0.tag
+             | Stdlib.Option.Some xs -> `List (`String x_0.tag :: xs))
+        : catch_all_polyvariant -> Yojson.Basic.t)
+  
+    let _ = catch_all_polyvariant_to_json
+  end [@@ocaml.doc "@inline"] [@@merlin.hide]
+
+  $ cat <<"EOF" | run
+  > type catch_all_noncompact = Catch_all_noncompact_of_int of int | Catch_all_noncompact_other of Jsonkit.unknown_variant_case [@json.catch_all] [@@deriving json]
+  > EOF
+  type catch_all_noncompact =
+    | Catch_all_noncompact_of_int of int
+    | Catch_all_noncompact_other of Jsonkit.unknown_variant_case
+        [@json.catch_all]
+  [@@deriving json]
+  
+  include struct
+    let _ = fun (_ : catch_all_noncompact) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_noncompact_of_json =
+      (fun x ->
+         match x with
+         | `List [ `String "Catch_all_noncompact_of_int"; x_0 ] ->
+             Catch_all_noncompact_of_int (int_of_json x_0)
+         | (`String _ | `List (`String _ :: _)) as v ->
+             let tag, payload =
+               match v with
+               | `String s -> s, Stdlib.Option.None
+               | `List (`String s :: payload) ->
+                   s, Stdlib.Option.Some payload
+               | _ -> assert false
+             in
+             Catch_all_noncompact_other
+               ({ tag; payload } : Jsonkit.unknown_variant_case)
+         | _ ->
+             Jsonkit.of_json_error ~json:x
+               "expected [\"Catch_all_noncompact_of_int\", _] or \
+                [\"Catch_all_noncompact_other\", _]"
+        : Yojson.Basic.t -> catch_all_noncompact)
+  
+    let _ = catch_all_noncompact_of_json
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_noncompact_to_json =
+      (fun x ->
+         match x with
+         | Catch_all_noncompact_of_int x_0 ->
+             `List
+               [ `String "Catch_all_noncompact_of_int"; int_to_json x_0 ]
+         | Catch_all_noncompact_other x_0 -> (
+             match x_0.payload with
+             | Stdlib.Option.None -> `String x_0.tag
+             | Stdlib.Option.Some xs -> `List (`String x_0.tag :: xs))
+        : catch_all_noncompact -> Yojson.Basic.t)
+  
+    let _ = catch_all_noncompact_to_json
+  end [@@ocaml.doc "@inline"] [@@merlin.hide]
+
+  $ cat <<"EOF" | run
   > type drop_default_option = { a: int; b_opt: int option; [@option] [@json.drop_default] } [@@deriving json]
   > EOF
   type drop_default_option = {
