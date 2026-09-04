@@ -3,7 +3,7 @@
  (name ppx_deriving_json_native)
  (modules :standard \ ppx_deriving_json_native_test)
  (libraries ppxlib)
- (ppx_runtime_libraries jsonkit yojson jsonkit.jsonschema)
+ (ppx_runtime_libraries jsonkit yojson)
  (preprocess
   (pps ppxlib.metaquot))
  (kind ppx_deriver))
@@ -55,7 +55,7 @@
 
 ; include_subdirs triggers a dependency cycle
 ; $ dune runtest
-; Error: Dependency cycle between:       
+; Error: Dependency cycle between:
 ;   alias .jsonkit-melange-files
 ; -> alias .jsonkit-files
 ; -> alias .jsonkit-melange-files

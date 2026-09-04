@@ -3,7 +3,7 @@
  (name ppx_deriving_json_js)
  (modules :standard \ ppx_deriving_json_js_test)
  (libraries ppxlib)
- (ppx_runtime_libraries jsonkit-melange jsonkit-melange.jsonschema)
+ (ppx_runtime_libraries jsonkit-melange)
  (preprocess
   (pps ppxlib.metaquot))
  (kind ppx_deriver))
