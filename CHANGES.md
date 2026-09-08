@@ -1,5 +1,6 @@
 ## Unreleased
 
+- Compare the melange and native e2e to avoid missalignments in the future.
 - Fix: remove the duplicated runtime deps from the `ppx` libraries.
 - Move the JSON Schema runtime into the main packages, at `Jsonkit.Jsonschema`.
   It is the same API under a new path, on both backends, so sources shared
