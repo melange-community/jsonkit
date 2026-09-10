@@ -956,21 +956,23 @@
              `Catch_all_polyvariant
          | `List [ `String "Catch_all_polyvariant_of_int"; x_0 ] ->
              `Catch_all_polyvariant_of_int (int_of_json x_0)
-         | (`String _ | `List (`String _ :: _)) as v ->
-             let tag, payload =
-               match v with
-               | `String s -> s, Stdlib.Option.None
-               | `List (`String s :: payload) ->
-                   s, Stdlib.Option.Some payload
-               | _ -> assert false
-             in
-             `Catch_all_other
-               ({ tag; payload } : Jsonkit.unknown_variant_case)
-         | x ->
-             Jsonkit.of_json_unexpected_variant ~json:x
-               "expected \"Catch_all_polyvariant\" or \
-                [\"Catch_all_polyvariant_of_int\", _] or \
-                [\"Catch_all_other\", _]"
+         | x -> (
+             match x with
+             | (`String _ | `List (`String _ :: _)) as v ->
+                 let tag, payload =
+                   match v with
+                   | `String s -> s, Stdlib.Option.None
+                   | `List (`String s :: payload) ->
+                       s, Stdlib.Option.Some payload
+                   | _ -> assert false
+                 in
+                 `Catch_all_other
+                   ({ tag; payload } : Jsonkit.unknown_variant_case)
+             | _ ->
+                 Jsonkit.of_json_unexpected_variant ~json:x
+                   "expected \"Catch_all_polyvariant\" or \
+                    [\"Catch_all_polyvariant_of_int\", _] or \
+                    [\"Catch_all_other\", _]")
         : Yojson.Basic.t -> catch_all_polyvariant)
   
     let _ = catch_all_polyvariant_of_json
@@ -1386,11 +1388,11 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
       (fun x ->
          match x with
          | x -> (
-             match other_of_json x with
+             match one_of_json x with
              | x -> (x :> [ one | other ])
              | exception
                  Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) -> (
-                 match one_of_json x with
+                 match other_of_json x with
                  | x -> (x :> [ one | other ])
                  | exception
                      Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
@@ -1410,4 +1412,95 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
         : poly -> Yojson.Basic.t)
   
     let _ = poly_to_json
+  end [@@ocaml.doc "@inline"] [@@merlin.hide]
+
+  $ cat <<"EOF" | run
+  > type poly_known = [ `Alpha | `Beta ] [@@deriving json]
+  > EOF
+  type poly_known = [ `Alpha | `Beta ] [@@deriving json]
+  
+  include struct
+    let _ = fun (_ : poly_known) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_known_of_json =
+      (fun x ->
+         match x with
+         | `List (`String "Alpha" :: []) -> `Alpha
+         | `List (`String "Beta" :: []) -> `Beta
+         | x ->
+             Jsonkit.of_json_unexpected_variant ~json:x
+               "expected [\"Alpha\"] or [\"Beta\"]"
+        : Yojson.Basic.t -> poly_known)
+  
+    let _ = poly_known_of_json
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_known_to_json =
+      (fun x ->
+         match x with
+         | `Alpha -> `List [ `String "Alpha" ]
+         | `Beta -> `List [ `String "Beta" ]
+        : poly_known -> Yojson.Basic.t)
+  
+    let _ = poly_known_to_json
+  end [@@ocaml.doc "@inline"] [@@merlin.hide]
+
+  $ cat <<"EOF" | run
+  > type poly_own_catch_all = [ poly_known | `Other of Jsonkit.unknown_variant_case [@json.catch_all] ] [@@deriving json]
+  > EOF
+  type poly_own_catch_all =
+    [ poly_known | `Other of Jsonkit.unknown_variant_case [@json.catch_all] ]
+  [@@deriving json]
+  
+  include struct
+    let _ = fun (_ : poly_own_catch_all) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_own_catch_all_of_json =
+      (fun x ->
+         match x with
+         | x -> (
+             match poly_known_of_json x with
+             | x ->
+                 (x
+                   :> [ poly_known
+                      | `Other of Jsonkit.unknown_variant_case
+                        [@json.catch_all] ])
+             | exception
+                 Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) -> (
+                 match x with
+                 | (`String _ | `List (`String _ :: _)) as v ->
+                     let tag, payload =
+                       match v with
+                       | `String s -> s, Stdlib.Option.None
+                       | `List (`String s :: payload) ->
+                           s, Stdlib.Option.Some payload
+                       | _ -> assert false
+                     in
+                     `Other
+                       ({ tag; payload } : Jsonkit.unknown_variant_case)
+                 | _ ->
+                     Jsonkit.of_json_unexpected_variant ~json:x
+                       "expected [\"Other\", _]"))
+        : Yojson.Basic.t -> poly_own_catch_all)
+  
+    let _ = poly_own_catch_all_of_json
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_own_catch_all_to_json =
+      (fun x ->
+         match x with
+         | #poly_known as x -> poly_known_to_json x
+         | `Other x_0 -> (
+             match x_0.payload with
+             | Stdlib.Option.None -> `String x_0.tag
+             | Stdlib.Option.Some xs -> `List (`String x_0.tag :: xs))
+        : poly_own_catch_all -> Yojson.Basic.t)
+  
+    let _ = poly_own_catch_all_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]

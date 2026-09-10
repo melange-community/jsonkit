@@ -1987,3 +1987,138 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
   
     let _ = poly_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
+
+  $ cat <<"EOF" | run
+  > type poly_known = [ `Alpha | `Beta ] [@@deriving json]
+  > EOF
+  type poly_known = [ `Alpha | `Beta ] [@@deriving json]
+  
+  include struct
+    let _ = fun (_ : poly_known) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_known_of_json =
+      (fun x ->
+         if Js.Array.isArray x then
+           let array = (Obj.magic x : Js.Json.t array) in
+           let len = Js.Array.length array in
+           if Stdlib.( > ) len 0 then
+             let tag = Js.Array.unsafe_get array 0 in
+             if Stdlib.( = ) (Js.typeof tag) "string" then
+               if Stdlib.( = ) (Obj.magic tag : string) "Alpha" then
+                 if Stdlib.( <> ) len 1 then
+                   Jsonkit.of_json_error ~json:x
+                     "expected a JSON array of length 1"
+                 else `Alpha
+               else if Stdlib.( = ) (Obj.magic tag : string) "Beta" then
+                 if Stdlib.( <> ) len 1 then
+                   Jsonkit.of_json_error ~json:x
+                     "expected a JSON array of length 1"
+                 else `Beta
+               else
+                 Jsonkit.of_json_unexpected_variant ~json:x
+                   "expected [\"Alpha\"] or [\"Beta\"]"
+             else
+               Jsonkit.of_json_error ~json:x
+                 "expected a non empty JSON array with element being a \
+                  string"
+           else
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+         else
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+        : Js.Json.t -> poly_known)
+  
+    let _ = poly_known_of_json
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_known_to_json =
+      (fun x ->
+         match x with
+         | `Alpha ->
+             (Obj.magic [| (Obj.magic "Alpha" : Js.Json.t) |] : Js.Json.t)
+         | `Beta ->
+             (Obj.magic [| (Obj.magic "Beta" : Js.Json.t) |] : Js.Json.t)
+        : poly_known -> Js.Json.t)
+  
+    let _ = poly_known_to_json
+  end [@@ocaml.doc "@inline"] [@@merlin.hide]
+
+  $ cat <<"EOF" | run
+  > type poly_own_catch_all = [ poly_known | `Other of Jsonkit.unknown_variant_case [@json.catch_all] ] [@@deriving json]
+  > EOF
+  type poly_own_catch_all =
+    [ poly_known | `Other of Jsonkit.unknown_variant_case [@json.catch_all] ]
+  [@@deriving json]
+  
+  include struct
+    let _ = fun (_ : poly_own_catch_all) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_own_catch_all_of_json =
+      (fun x ->
+         if Js.Array.isArray x then
+           let array = (Obj.magic x : Js.Json.t array) in
+           let len = Js.Array.length array in
+           if Stdlib.( > ) len 0 then
+             let tag = Js.Array.unsafe_get array 0 in
+             if Stdlib.( = ) (Js.typeof tag) "string" then
+               match poly_known_of_json x with
+               | e ->
+                   (e
+                     :> [ poly_known
+                        | `Other of Jsonkit.unknown_variant_case
+                          [@json.catch_all] ])
+               | exception
+                   Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
+                   `Other
+                     (let payload =
+                        if Stdlib.( = ) len 0 then Stdlib.Option.None
+                        else if Stdlib.( = ) len 1 then
+                          Stdlib.Option.Some []
+                        else
+                          let rest =
+                            Stdlib.Array.sub array 1 (Stdlib.( - ) len 1)
+                            |> Stdlib.Array.to_list
+                            |> Stdlib.List.map (fun j -> Obj.magic j)
+                          in
+                          Stdlib.Option.Some rest
+                      in
+                      ({ tag = (Obj.magic tag : string); payload }
+                        : Jsonkit.unknown_variant_case))
+             else
+               Jsonkit.of_json_error ~json:x
+                 "expected a non empty JSON array with element being a \
+                  string"
+           else
+             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+         else
+           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+        : Js.Json.t -> poly_own_catch_all)
+  
+    let _ = poly_own_catch_all_of_json
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_own_catch_all_to_json =
+      (fun x ->
+         match x with
+         | #poly_known as x -> poly_known_to_json x
+         | `Other x_0 -> (
+             match x_0.payload with
+             | Stdlib.Option.None ->
+                 (Obj.magic (x_0.tag : string) : Js.Json.t)
+             | Stdlib.Option.Some xs ->
+                 let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
+                 let rest =
+                   Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs
+                 in
+                 (Obj.magic
+                    (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
+                   : Js.Json.t))
+        : poly_own_catch_all -> Js.Json.t)
+  
+    let _ = poly_own_catch_all_to_json
+  end [@@ocaml.doc "@inline"] [@@merlin.hide]
