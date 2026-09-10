@@ -1,5 +1,12 @@
 ## Unreleased
 
+- Fix the `of_json` deriver for polymorphic variants with inherited rows, on
+  both backends. Decoding now tries, in this order: the type's own tags, then
+  the inherited types (in definition order), then the `[@json.catch_all]` row,
+  then the error (or `[@json.allow_any]`). It no longer depends on the row
+  order in the definition: an inherited type listed before an own tag used to
+  shadow it on Melange, and an own catch-all used to swallow every tag of the
+  inherited types on both backends.
 - Fix: use the `len` value as expression on the variant case function to avoid
   expected "named" value to be declared on the function.
 - Fix: remove the duplicated runtime deps from the ppx libraries.

@@ -181,30 +181,35 @@ module Of_json = struct
                 construct (Some (pexp_record ~loc fs None)))
 
   (* Sort key for variant cases. Smaller = visited earlier by the
-     fold-left in [derive_of_variant]/[derive_of_polyvariant] below, which
-     means it ends up *later* in the generated [match …] cases (the fold
-     prepends). So we want the widest catch-alls to come first here:
+     fold-left in [derive_of_variant] below, which means it ends up
+     *later* in the generated [match …] cases (the fold prepends). So we
+     want the widest catch-alls to come first here:
        - [@json.allow_any] (catches any JSON)
        - [@json.catch_all] (catches any string)
        - specific constructor cases
-   *)
+
+     [derive_of_polyvariant] does not sort: the wide cases (key < 2) go
+     into a nested [match] *after* the inherited decoders have been
+     tried, see [is_wide_case] and the comment there. *)
   let case_sort_key case =
     let attr = Variant.case_attr case in
     if attr.allow_any then 0 else if attr.catch_all then 1 else 2
 
   let cmp_sort_cases c1 c2 = compare (case_sort_key c1) (case_sort_key c2)
+  let is_catch_all_case case = case_sort_key case < 2
 
-  let cmp_sort_pvcs p1 p2 =
-    let key = function
-      | Variant.Pvc_tag case -> case_sort_key (Vcs_tuple case)
-      | Pvc_inherit _ -> 2
-    in
-    compare (key p1) (key p2)
+  let match_cases ~compact derive cases fallback =
+    List.fold_left
+      (List.stable_sort ~cmp:cmp_sort_cases (List.rev cases))
+      ~init:[ fallback ]
+      ~f:(fun next case ->
+        derive_of_variant_case ~is_compact_variants:compact derive case
+        :: next)
 
   (* of_json for native: JSON is [Yojson.Basic.t], a matchable ADT, so the
      variant decoder is a single [match] expression. This object plugs the
      module-local leaf builders into the shared [Conv.deriving_fn] traversal;
-     [cmp_sort_vcs] orders the arms so the widest catch-alls come first. *)
+     [cmp_sort_cases] orders the cases so the widest catch-alls come first. *)
   let deriving : Conv.deriving =
     (object (self)
        inherit deriving_fn
@@ -233,24 +238,14 @@ module Of_json = struct
            Variant.expected_message
              (List.map cases ~f:(Variant.case_json_shape ~compact))
          in
-         let cases =
-           List.stable_sort ~cmp:cmp_sort_cases (List.rev cases)
+         let error =
+           [%pat? _]
+           --> [%expr
+                 Jsonkit.of_json_error ~json:x
+                   [%e estring ~loc error_message]]
          in
-         let cases =
-           List.fold_left cases
-             ~init:
-               [
-                 [%pat? _]
-                 --> [%expr
-                       Jsonkit.of_json_error ~json:x
-                         [%e estring ~loc error_message]];
-               ]
-             ~f:(fun next case ->
-               derive_of_variant_case self#derive_of_core_type
-                 ~is_compact_variants:compact case
-               :: next)
-         in
-         pexp_match ~loc x cases
+         pexp_match ~loc x
+           (match_cases ~compact self#derive_of_core_type cases error)
 
        method! derive_of_polyvariant ?td t (cs : row_field list) x =
          let loc = t.ptyp_loc in
@@ -261,41 +256,42 @@ module Of_json = struct
            Variant.expected_message
              (Variant.polyvariant_json_shapes ~compact ~loc pvcs)
          in
-         let cases =
-           List.stable_sort ~cmp:cmp_sort_pvcs (List.rev pvcs)
-         in
          let ctors, inherits =
-           List.partition_map cases ~f:(function
+           List.partition_map pvcs ~f:(function
              | Variant.Pvc_tag case -> Left (Variant.Vcs_tuple case)
              | Pvc_inherit (n, ts) -> Right (n, ts))
          in
-         let catch_all =
-           [%pat? x]
-           --> List.fold_left (List.rev inherits)
-                 ~init:
-                   [%expr
-                     Jsonkit.of_json_unexpected_variant ~json:x
-                       [%e estring ~loc error_message]]
-                 ~f:(fun next (n, ts) ->
-                   let maybe =
-                     self#derive_type_ref ~loc self#name n ts x
-                   in
-                   let t = ptyp_variant ~loc cs Closed None in
-                   [%expr
-                     match [%e maybe] with
-                     | x -> (x :> [%t t])
-                     | exception
-                         Jsonkit.Of_json_error
-                           (Jsonkit.Unexpected_variant _) ->
-                         [%e next]])
+         let derive = self#derive_of_core_type in
+         let error =
+           [%expr
+             Jsonkit.of_json_unexpected_variant ~json:x
+               [%e estring ~loc error_message]]
          in
-         let cases =
-           List.fold_left ctors ~init:[ catch_all ] ~f:(fun next case ->
-               derive_of_variant_case ~is_compact_variants:compact
-                 self#derive_of_core_type case
-               :: next)
+         let catch_alls, ctors =
+           List.partition ctors ~f:is_catch_all_case
          in
-         pexp_match ~loc x cases
+         let fallback =
+           if catch_alls = [] then error
+           else
+             pexp_match ~loc x
+               (match_cases ~compact derive catch_alls
+                  ([%pat? _] --> error))
+         in
+         let inherits_chain =
+           List.fold_right inherits ~init:fallback ~f:(fun (n, ts) next ->
+               let maybe = self#derive_type_ref ~loc self#name n ts x in
+               let t = ptyp_variant ~loc cs Closed None in
+               [%expr
+                 match [%e maybe] with
+                 | x -> (x :> [%t t])
+                 | exception
+                     Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _)
+                   ->
+                     [%e next]])
+         in
+         pexp_match ~loc x
+           (match_cases ~compact derive ctors
+              ([%pat? x] --> inherits_chain))
      end
       :> Conv.deriving)
 end

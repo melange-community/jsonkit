@@ -376,41 +376,49 @@ module Of_json = struct
            resolve_polyvariant ?td cs
          in
          let cs, pvcs = without_allow_any_rows cs pvcs in
+         let tags, inherits =
+           List.partition_map pvcs ~f:(function
+             | Pvc_tag case -> Left case
+             | Pvc_inherit (n, ts) -> Right (n, ts))
+         in
+         let catch_alls, tags =
+           List.partition tags ~f:(fun (case : tuple_case) ->
+               case.attr.catch_all)
+         in
+         let fallback =
+           match allow_any_constr with
+           | Some allow_any_constr ->
+               fun ~array:_ ~len:_ ~tag:_ -> allow_any_constr x
+           | None ->
+               let error_message =
+                 expected_message
+                   (polyvariant_json_shapes ~compact ~loc pvcs)
+               in
+               fun ~array:_ ~len:_ ~tag:_ ->
+                 [%expr
+                   Jsonkit.of_json_unexpected_variant ~json:x
+                     [%e estring ~loc error_message]]
+         in
+         let link cases next =
+           List.fold_right cases ~init:next ~f:(fun case next ->
+               self#variant_case_link ~compact ~allow_any_constr
+                 ~case:(Vcs_tuple case) next)
+         in
+         let inherit_ (n, ts) next =
+           let maybe_e = self#derive_type_ref ~loc self#name n ts x in
+           let t = ptyp_variant ~loc cs Closed None in
+           fun ~array ~len ~tag ->
+             [%expr
+               match [%e maybe_e] with
+               | e -> (e :> [%t t])
+               | exception
+                   Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
+                   [%e next ~array ~len ~tag]]
+         in
          let body =
-           List.fold_left (List.rev pvcs)
-             ~init:
-               (match allow_any_constr with
-               | Some allow_any_constr ->
-                   fun ~array:_ ~len:_ ~tag:_ -> allow_any_constr x
-               | None ->
-                   let error_message =
-                     expected_message
-                       (polyvariant_json_shapes ~compact ~loc pvcs)
-                   in
-                   fun ~array:_ ~len:_ ~tag:_ ->
-                     [%expr
-                       Jsonkit.of_json_unexpected_variant ~json:x
-                         [%e estring ~loc error_message]])
-             ~f:(fun next pvc ->
-               match pvc with
-               | Pvc_tag case ->
-                   self#variant_case_link ~compact ~allow_any_constr
-                     ~case:(Vcs_tuple case) next
-               | Pvc_inherit (n, ts) ->
-                   let maybe_e =
-                     self#derive_type_ref ~loc self#name n ts x
-                   in
-                   let t = ptyp_variant ~loc cs Closed None in
-                   let next ~array ~len ~tag =
-                     [%expr
-                       match [%e maybe_e] with
-                       | e -> (e :> [%t t])
-                       | exception
-                           Jsonkit.Of_json_error
-                             (Jsonkit.Unexpected_variant _) ->
-                           [%e next ~array ~len ~tag]]
-                   in
-                   next)
+           link tags
+             (List.fold_right inherits ~f:inherit_
+                ~init:(link catch_alls fallback))
          in
          dispatch_on_tag ~loc ~is_compact_variants:compact
            ~allow_any_constr body x

@@ -480,6 +480,31 @@ type evt = [
 | `["future_tag"]`        | `{ tag = "future_tag"; payload = Some [] }`               | `["future_tag"]`       |
 | `["future_tag", 42]`    | `{ tag = "future_tag"; payload = Some [`Int 42] }`        | `["future_tag", 42]`   |
 
+##### Decoding order with inherited polymorphic variants
+
+When a polymorphic variant inherits other types (`[ base | `Own | ... ]`), the
+decoder always tries, in this order, whatever the row order in the definition:
+
+1. the type's own tags, in definition order
+2. the inherited types, in definition order
+3. the type's own `[@json.catch_all]` row
+4. an error, or the `[@json.allow_any]` constructor if there is one
+
+So an own catch-all never shadows a tag an inherited type knows how to decode,
+and an inherited type listed first never shadows an own tag:
+
+```ocaml
+type known = [ `Alpha | `Beta ] [@@deriving json]
+type evt = [ known | `Unknown of Jsonkit.unknown_variant_case [@json.catch_all] ]
+[@@deriving json]
+
+(* ["Alpha"] decodes to `Alpha, ["Zzz"] to `Unknown { tag = "Zzz"; ... } *)
+```
+
+Note that a catch-all *inside* an inherited type accepts every tag it is
+offered, so it hides the inherited types listed after it and the outer
+catch-all. Put the catch-all on the outermost type when you can.
+
 #### `[@@deriving json_string]`: a shortcut for JSON string conversion
 
 For convenience, one can use `[@@deriving json_string]` to generate converters

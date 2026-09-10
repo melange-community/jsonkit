@@ -14,6 +14,15 @@ type other = [ `C ] [@@deriving json]
 type poly = [ `A | `B of int | other ] [@@deriving json]
 type poly2 = [ `P2 of int * string ] [@@deriving json]
 type poly3 = [ poly | poly2 ] [@@deriving json]
+type poly_catch_all = [ `A | `Other of Jsonkit.unknown_variant_case [@json.catch_all] ] [@@deriving json]
+type poly_inherit_first = [ poly_catch_all | `B ] [@@deriving json]
+type poly_known = [ `Alpha | `Beta ] [@@deriving json]
+type poly_own_catch_all = [ poly_known | `Other of Jsonkit.unknown_variant_case [@json.catch_all] ] [@@deriving json]
+type poly_catch_all_inherit_second = [ `Other of Jsonkit.unknown_variant_case [@json.catch_all] | poly_known ] [@@deriving json]
+type poly_mixed_rows = [ `Other of Jsonkit.unknown_variant_case [@json.catch_all] | poly_known | `Gamma ] [@@deriving json]
+type poly_inherits_known_first = [ poly_known | poly_catch_all ] [@@deriving json]
+type poly_inherits_catch_all_first = [ poly_catch_all | poly_known ] [@@deriving json]
+
 type foo = A | B [@@deriving json]
 module X = struct
   type nonrec foo = foo [@@deriving json]
@@ -110,6 +119,23 @@ let of_json_cases = [
   C ({|["P2", 42, "hello"]|}, poly2_of_json, poly2_to_json, (`P2 (42, "hello") : poly2));
   C ({|["P2", 42, "hello"]|}, poly3_of_json, poly3_to_json, (`P2 (42, "hello") : poly3));
   C ({|["A"]|}, poly3_of_json, poly3_to_json, (`A : poly3));
+  C ({|["B"]|}, poly_inherit_first_of_json, poly_inherit_first_to_json, (`B : poly_inherit_first)); (* own tag wins over the inherited catch-all, even though the inherited type is listed first *)
+  C ({|["A"]|}, poly_inherit_first_of_json, poly_inherit_first_to_json, (`A : poly_inherit_first));
+  C ({|["Nope"]|}, poly_inherit_first_of_json, poly_inherit_first_to_json, (`Other { Jsonkit.tag = "Nope"; payload = Some [] } : poly_inherit_first));
+  C ({|["Alpha"]|}, poly_own_catch_all_of_json, poly_own_catch_all_to_json, (`Alpha : poly_own_catch_all)); (* inherited tag wins over this type's own catch-all *)
+  C ({|["Beta"]|}, poly_own_catch_all_of_json, poly_own_catch_all_to_json, (`Beta : poly_own_catch_all));
+  C ({|["Zzz"]|}, poly_own_catch_all_of_json, poly_own_catch_all_to_json, (`Other { Jsonkit.tag = "Zzz"; payload = Some [] } : poly_own_catch_all));
+  C ({|["Nope"]|}, poly_catch_all_inherit_second_of_json , poly_catch_all_inherit_second_to_json, (`Other { Jsonkit.tag = "Nope"; payload = Some [] } : poly_catch_all_inherit_second));
+  C ({|["Alpha"]|}, poly_catch_all_inherit_second_of_json, poly_catch_all_inherit_second_to_json, (`Alpha : poly_catch_all_inherit_second)); (* inherited tag wins even when the own catch-all is listed first *)
+  C ({|["Beta"]|}, poly_catch_all_inherit_second_of_json, poly_catch_all_inherit_second_to_json, (`Beta : poly_catch_all_inherit_second));
+  C ({|["Zzz", 1, "x"]|}, poly_catch_all_inherit_second_of_json, poly_catch_all_inherit_second_to_json, (`Other { Jsonkit.tag = "Zzz"; payload = Some [int_to_json 1; string_to_json "x"] } : poly_catch_all_inherit_second));
+  C ({|["Gamma"]|}, poly_mixed_rows_of_json, poly_mixed_rows_to_json, (`Gamma : poly_mixed_rows)); (* own tag, inherited tag and catch-all in one type, catch-all listed first *)
+  C ({|["Alpha"]|}, poly_mixed_rows_of_json, poly_mixed_rows_to_json, (`Alpha : poly_mixed_rows));
+  C ({|["Zzz"]|}, poly_mixed_rows_of_json, poly_mixed_rows_to_json, (`Other { Jsonkit.tag = "Zzz"; payload = Some [] } : poly_mixed_rows));
+  C ({|["Alpha"]|}, poly_inherits_known_first_of_json, poly_inherits_known_first_to_json, (`Alpha : poly_inherits_known_first)); (* inherited types are tried in definition order *)
+  C ({|["Nope"]|}, poly_inherits_known_first_of_json, poly_inherits_known_first_to_json, (`Other { Jsonkit.tag = "Nope"; payload = Some [] } : poly_inherits_known_first));
+  C ({|["Alpha"]|}, poly_inherits_catch_all_first_of_json, poly_inherits_catch_all_first_to_json, (`Other { Jsonkit.tag = "Alpha"; payload = Some [] } : poly_inherits_catch_all_first)); (* a catch-all inside an earlier inherited type hides the later ones *)
+  C ({|["A"]|}, poly_inherits_catch_all_first_of_json, poly_inherits_catch_all_first_to_json, (`A : poly_inherits_catch_all_first));
   C ({|["A"]|}, X.foo_of_json, X.foo_to_json, (A : X.foo));
   C ({|["B"]|}, X.foo_of_json, X.foo_to_json, (B : X.foo));
   C ({|["A", 42]|}, Recursive_types.a_of_json, Recursive_types.a_to_json, (Recursive_types.A 42 : Recursive_types.a));
@@ -187,6 +213,11 @@ let error_cases = [
   C ({|["Circle"]|}, shape_of_json, shape_to_json, Circle 1.0);
   C ({|["Rectangle", 10.0]|}, shape_of_json, shape_to_json, Rectangle (10.0, 20.0));
   C ({|["Point", 1.0, 2.0]|}, shape_of_json, shape_to_json, Point {x=1.0; y=2.0});
+
+  (* A catch-all only accepts string tags, whatever its position *)
+  C ({|42|}, poly_catch_all_of_json, poly_catch_all_to_json, `Other { Jsonkit.tag = "42"; payload = None });
+  C ({|[]|}, poly_catch_all_of_json, poly_catch_all_to_json, `Other { Jsonkit.tag = ""; payload = Some [] });
+  C ({|[1]|}, poly_catch_all_of_json, poly_catch_all_to_json, `Other { Jsonkit.tag = "1"; payload = Some [int_to_json 1] });
 ]
 
 let run_error_case' (C (data, of_json, _to_json, _v)) =
@@ -195,8 +226,11 @@ let run_error_case' (C (data, of_json, _to_json, _v)) =
   try
     let _v' = of_json json in
     print_endline "Error: should have failed"
-  with Jsonkit.Of_json_error (Json_error msg) ->
+  with
+  | Jsonkit.Of_json_error (Json_error msg) ->
     print_endline (Printf.sprintf "Got expected error: %s" msg)
+  | Jsonkit.Of_json_error (Unexpected_variant msg) ->
+    print_endline (Printf.sprintf "Got expected unexpected variant: %s" msg)
 
 let test () =
   List.iter run' of_json_cases;
