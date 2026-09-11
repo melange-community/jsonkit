@@ -1,0 +1,42 @@
+; End-to-end runtime snapshot for Melange: reuses ../example.ml,
+; ../example_json_string.ml and ../main.ml, emits JS and diffs the output of
+; running it with node against e2e.melange.expected.txt.
+
+(copy_files ../example.ml)
+
+(copy_files ../example_json_string.ml)
+
+(copy_files ../main.ml)
+
+(library
+ (name e2e_melange)
+ (modes melange)
+ (modules example example_json_string main)
+ (libraries jsonkit-melange)
+ (flags :standard -w -20-37-69 -open Jsonkit.Primitives)
+ (preprocess
+  (pps melange.ppx jsonkit-melange.ppx)))
+
+(melange.emit
+ (target output)
+ (modules)
+ (libraries e2e_melange)
+ (module_systems
+  (commonjs js)))
+
+(rule
+ (targets e2e.melange.actual.txt)
+ (deps
+  (alias melange)
+  ./output/ppx/test/melange/main.js)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run %{bin:node} ./output/ppx/test/melange/main.js))))
+
+(rule
+ (alias runtest)
+ (enabled_if
+  (= %{profile} dev))
+ (action
+  (diff e2e.melange.expected.txt e2e.melange.actual.txt)))

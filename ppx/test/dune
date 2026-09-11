@@ -4,8 +4,6 @@
  (deps
   (package jsonkit-melange)
   (package jsonkit)
-  ./example.ml
-  ./example_json_string.ml
   ./run.sh
   ../../.ocamlformat
   ../native/ppx_deriving_json_native_test.exe
@@ -23,3 +21,24 @@
  (applies_to labeled_tuples)
  (enabled_if
   (>= %{ocaml_version} 5.4.0)))
+
+(executable
+ (name main)
+ (modules example example_json_string main)
+ (flags :standard -w -37-69 -open Jsonkit.Primitives)
+ (preprocess
+  (pps jsonkit.ppx)))
+
+(rule
+ (targets e2e.actual.txt)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./main.exe))))
+
+(rule
+ (alias runtest)
+ (enabled_if
+  (= %{profile} dev))
+ (action
+  (diff e2e.expected.txt e2e.actual.txt)))
