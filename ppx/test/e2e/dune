@@ -1,0 +1,28 @@
+; End-to-end runtime snapshot, in the same shape as ppx/jsonschema/test: the
+; cases and the runner live once in shared/ and are compiled once per
+; backend, each output diffed against a committed expectation. This file is
+; the native side; melange/dune is the Melange side.
+
+(copy_files shared/*.ml)
+
+(executable
+ (name run)
+ (modules cases json_string_cases run)
+ (libraries jsonkit)
+ (flags :standard -w -37-69 -open Jsonkit.Primitives)
+ (preprocess
+  (pps jsonkit.ppx)))
+
+(rule
+ (targets e2e.actual.txt)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run ./run.exe))))
+
+(rule
+ (alias runtest)
+ (enabled_if
+  (= %{profile} dev))
+ (action
+  (diff e2e.expected.txt e2e.actual.txt)))

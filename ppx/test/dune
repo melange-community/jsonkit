@@ -4,8 +4,6 @@
  (deps
   (package jsonkit-melange)
   (package jsonkit)
-  ./example.ml
-  ./example_json_string.ml
   ./run.sh
   ../../.ocamlformat
   ../native/ppx_deriving_json_native_test.exe

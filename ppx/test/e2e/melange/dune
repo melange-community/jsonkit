@@ -1,0 +1,32 @@
+; Melange side of the end-to-end runtime snapshot: the shared cases are
+; compiled again with the Melange ppx and runtime, emitted to JS, and the
+; output of running them with node is diffed against e2e.melange.expected.txt.
+
+(copy_files ../shared/*.ml)
+
+(melange.emit
+ (target output)
+ (modules cases json_string_cases run)
+ (libraries jsonkit-melange)
+ (compile_flags :standard -w -20-37-69 -open Jsonkit.Primitives)
+ (preprocess
+  (pps melange.ppx jsonkit-melange.ppx))
+ (module_systems
+  (commonjs js)))
+
+(rule
+ (targets e2e.melange.actual.txt)
+ (deps
+  (alias melange)
+  ./output/ppx/test/e2e/melange/run.js)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run %{bin:node} ./output/ppx/test/e2e/melange/run.js))))
+
+(rule
+ (alias runtest)
+ (enabled_if
+  (= %{profile} dev))
+ (action
+  (diff e2e.melange.expected.txt e2e.melange.actual.txt)))
