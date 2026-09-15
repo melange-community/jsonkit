@@ -26,7 +26,7 @@
   `json_schema` is still there under that name, so existing code compiles
   unchanged.
 
-## 1.0.0 (2026-07-30)
+## jsonkit.1.0.0 (2026-07-30)
 
 - **[breaking]** Rename the project from `melange-json` to `jsonkit`. The
   derivers, the runtime and the JSON Schema support all behave the same on
