@@ -8,7 +8,8 @@
 
 (maintainers
  "Antonio Nuno Monteiro <anmonteiro@gmail.com>"
- "Javier Chávarri <javier.chavarri@gmail.com>")
+ "Javier Chávarri <javier.chavarri@gmail.com>"
+ "Pedro Lisboa <pedrobslisboa@gmail.com>")
 
 (license "LGPL-3.0-only" "MPL-2.0")
 
@@ -21,7 +22,7 @@
 
 (package
  (name jsonkit-melange)
- (authors "glennsl" "Andrey Popp")
+ (authors "glennsl" "Andrey Popp" "Pedro Lisboa")
  (synopsis "Compositional JSON encode/decode library and PPX for Melange")
  (description
   "Provides tools for converting JSON to typed OCaml values in Melange. It includes custom encoders, decoders, and a PPX for automating these conversions.")
@@ -48,7 +49,7 @@
 
 (package
  (name jsonkit)
- (authors "Andrey Popp")
+ (authors "Andrey Popp" "Pedro Lisboa")
  (synopsis "Compositional JSON encode/decode PPX for OCaml")
  (description
   "A PPX for OCaml that automates encoding and decoding JSON into typed values. It supports custom encoders and decoders, and integrates with Yojson")
