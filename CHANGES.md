@@ -1,5 +1,7 @@
 ## Unreleased
 
+## jsonkit.1.1.0 (2026-08-01)
+
 - Fix the `of_json` deriver for polymorphic variants with inherited rows, on
   both backends. Decoding now tries, in this order: the type's own tags, then
   the inherited types (in definition order), then the `[@json.catch_all]` row,
@@ -26,7 +28,7 @@
   `json_schema` is still there under that name, so existing code compiles
   unchanged.
 
-## 1.0.0 (2026-07-30)
+## jsonkit.1.0.0 (2026-07-30)
 
 - **[breaking]** Rename the project from `melange-json` to `jsonkit`. The
   derivers, the runtime and the JSON Schema support all behave the same on
