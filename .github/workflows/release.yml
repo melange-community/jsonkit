@@ -1,0 +1,33 @@
+name: release
+
+# `make release bump=...` turns the CHANGES.md Unreleased section into the next
+# version, commits it on main and tags it jsonkit.X.Y.Z. Pushing the tag
+# creates the GitHub Release, with that CHANGES.md section as release notes.
+
+on:
+  push:
+    tags:
+      - jsonkit.*
+
+permissions:
+  contents: write
+
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      tag: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Create the GitHub Release from the CHANGES.md entry
+        run: |
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "Release $tag already exists"
+            exit 0
+          fi
+          awk -v header="## $tag (" \
+            'index($0, header) == 1 { on = 1; next } on && /^## / { exit } on' CHANGES.md > notes.md
+          test -s notes.md || { echo "no '## $tag (...)' entry in CHANGES.md"; exit 1; }
+          gh release create "$tag" --verify-tag --title "$tag" --notes-file notes.md

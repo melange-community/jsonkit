@@ -14,7 +14,7 @@ while read -r old new ref; do
   case "$(ps -o args= -p $PPID 2>/dev/null)" in
   *fetch* | *pull* | *clone*) continue ;;
   esac
-  echo >&2 "tag '${ref#refs/tags/}' rejected: tag creation is blocked, use 'make tag version=X.Y.Z'"
+  echo >&2 "tag '${ref#refs/tags/}' rejected: tag creation is blocked, use 'make release bump=major|minor|patch' (or 'make tag version=X.Y.Z')"
   status=1
 done
 exit $status
