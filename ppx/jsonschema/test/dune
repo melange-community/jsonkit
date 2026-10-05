@@ -106,3 +106,14 @@
   (= %{profile} dev))
  (action
   (diff test_schemas.expected.json test_schemas.actual.json)))
+
+; Runtime checks on the code generated for recursive type groups.
+
+(test
+ (name recursive_group)
+ (modules recursive_group)
+ (enabled_if
+  (= %{profile} dev))
+ (libraries jsonkit jsonkit.jsonschema)
+ (preprocess
+  (pps jsonkit.ppx)))

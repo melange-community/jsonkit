@@ -5,6 +5,61 @@ open Cases
    This module only enumerates which generated schemas are included in the shared
    native/Melange snapshot. *)
 
+(* Hand-assembled documents exercising the hoisting of nested [$defs] done by
+   [Jsonkit.Jsonschema.make]. *)
+module Hoist = struct
+  let assoc fields : Jsonkit.Jsonschema.t = `Assoc fields
+  let string value : Jsonkit.Jsonschema.t = `String value
+  let ref_ name = assoc [ "$ref", string ("#/$defs/" ^ name) ]
+  let const value = assoc [ "const", string value ]
+
+  (* Names passed through [~definitions] win over the root's own [$defs]. *)
+  let root_vs_definitions =
+    Jsonkit.Jsonschema.make
+      ~definitions:[ "same", const "same"; "different", const "existing" ]
+      (assoc
+         [
+           ( "$defs",
+             assoc [ "same", const "same"; "different", const "new" ] );
+           "same", ref_ "same";
+           "different", ref_ "different";
+         ])
+
+  (* Derived values nested by hand carry no [$id] and are hoisted too. A
+     [$ref] pointing inside a renamed definition follows the rename. *)
+  let hand_assembled =
+    Jsonkit.Jsonschema.make
+      (assoc
+         [
+           ( "properties",
+             assoc
+               [
+                 "a", Same_name_a.t_jsonschema;
+                 "b", Same_name_b.t_jsonschema;
+                 ( "c",
+                   assoc
+                     [
+                       "$defs", assoc [ "t", const "c" ];
+                       "$ref", string "#/$defs/t/const";
+                     ] );
+               ] );
+         ])
+
+  (* A nested resource with its own [$id] is left alone. *)
+  let foreign_resource =
+    Jsonkit.Jsonschema.make
+      (assoc
+         [
+           ( "resource",
+             assoc
+               [
+                 "$id", string "https://example.test/resource";
+                 "$defs", assoc [ "t", const "local" ];
+                 "$ref", string "#/$defs/t";
+               ] );
+         ])
+end
+
 let schemas =
   [
     Jsonkit.Jsonschema.make Mod1.m_1_jsonschema;
@@ -129,6 +184,14 @@ let schemas =
       (Recursive_shapes.tree_jsonschema string_jsonschema);
     Jsonkit.Jsonschema.make
       (Recursive_shapes.forest_jsonschema string_jsonschema);
+    Jsonkit.Jsonschema.make same_name_jsonschema;
+    Jsonkit.Jsonschema.make shared_dep_jsonschema;
+    Jsonkit.Jsonschema.make boxed_jsonschema;
+    Jsonkit.Jsonschema.make boxed_tail_jsonschema;
+    Jsonkit.Jsonschema.make described_pair_jsonschema;
+    Hoist.root_vs_definitions;
+    Hoist.hand_assembled;
+    Hoist.foreign_resource;
   ]
 
 let snapshot =

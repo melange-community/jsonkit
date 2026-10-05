@@ -527,3 +527,46 @@ module Recursive_shapes = struct
   and 'a forest = Empty | Base of 'a tree * 'a forest
   [@@deriving jsonschema]
 end
+
+(* Recursive groups emit their definitions once and [Jsonkit.Jsonschema.make]
+   hoists them into the root [$defs]: the same type name in two modules, two
+   groups whose entry types match but whose dependencies differ, a member
+   wrapping another member in an external recursive type, and descriptions on
+   every member of a group. *)
+module Same_name_a = struct
+  type t = { next : t option; x : int } [@@deriving jsonschema]
+end
+
+module Same_name_b = struct
+  type t = { next : t option; y : string } [@@deriving jsonschema]
+end
+
+type same_name = { a : Same_name_a.t; b : Same_name_b.t }
+[@@deriving jsonschema]
+
+module Shared_dep_a = struct
+  type t = { next : t option; u : u }
+  and u = { x : int } [@@deriving jsonschema]
+end
+
+module Shared_dep_b = struct
+  type t = { next : t option; u : u }
+  and u = { x : string } [@@deriving jsonschema]
+end
+
+type shared_dep = { a : Shared_dep_a.t; b : Shared_dep_b.t }
+[@@deriving jsonschema]
+
+type boxed = Boxed of boxed_tail | Boxed_end
+
+and boxed_tail = Boxed_tail of boxed Recursive_shapes.lst
+[@@deriving jsonschema]
+
+type described_a = { b : described_b option }
+[@@jsonschema.description "A"]
+
+and described_b = { a : described_a option }
+[@@jsonschema.description "B"] [@@deriving jsonschema]
+
+type described_pair = { x : described_a; y : described_b }
+[@@deriving jsonschema]

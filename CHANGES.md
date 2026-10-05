@@ -1,5 +1,14 @@
 ## Unreleased
 
+- Generate the definitions of a mutually recursive type group once, in a
+  helper shared by the group's values, instead of once per value. The
+  generated code is now linear in the size of the group, and every value
+  carries the description, format and bound annotations of every member.
+- `Jsonkit.Jsonschema.make` hoists the `$defs` of nested derived schemas
+  into the root `$defs`: identical definitions are emitted once, clashing
+  names are renamed to `name_2`, `name_3`, ... with their `$ref`s rewritten,
+  and objects with a non-`file://` `$id` are left untouched. Builds on #117.
+
 ## jsonkit.1.1.0 (2026-08-01)
 
 - Fix the `of_json` deriver for polymorphic variants with inherited rows, on
