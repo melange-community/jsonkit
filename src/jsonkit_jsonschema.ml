@@ -12,18 +12,12 @@ let make ?id ?title ?description ?definitions types =
       (fun x -> x)
       [
         Some ("$schema", `String schema_version);
-        (match id with
-        | None -> None
-        | Some id -> Some ("$id", `String id));
-        (match title with
-        | None -> None
-        | Some title -> Some ("title", `String title));
-        (match description with
-        | None -> None
-        | Some description -> Some ("description", `String description));
-        (match definitions with
-        | None -> None
-        | Some defs -> Some ("$defs", `Assoc defs));
+        Option.map (fun id -> "$id", `String id) id;
+        Option.map (fun title -> "title", `String title) title;
+        Option.map
+          (fun description -> "description", `String description)
+          description;
+        Option.map (fun defs -> "$defs", `Assoc defs) definitions;
       ]
   in
   `Assoc (metadata @ fields)
