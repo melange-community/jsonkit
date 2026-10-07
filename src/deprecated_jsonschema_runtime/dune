@@ -1,5 +1,5 @@
 ; Melange runtime for [@@deriving jsonschema] (part of the jsonkit-melange package).
-; The native counterpart lives in ../native/jsonschema and shares the
+; The native counterpart lives in ./native and shares the
 ; platform-neutral sources via copy_files.
 
 (library

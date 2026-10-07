@@ -3,7 +3,7 @@ type json = t
 type unknown_variant_case = { tag : string; payload : t list option }
 
 (* Schema literal for [unknown_variant_case]: polyvariant constructors
-   are compatible with Ppx_deriving_jsonschema_runtime.t — no library
+   are compatible with Jsonkit.Jsonschema.t — no library
    dependency added; the polyvariant literal unifies with the runtime
    type at the use site. The schema is "oneOf string / non-empty array
    of any" — the two wire shapes a catch-all constructor can take. *)

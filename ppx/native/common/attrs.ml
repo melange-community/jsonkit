@@ -90,6 +90,26 @@ struct
       Attribute.T ld_default;
       Attribute.T td_compact_variants;
     ]
+
+  let resolve_extra_fields ~loc allow disallow =
+    match allow, disallow with
+    | Some (), Some () ->
+        Location.raise_errorf ~loc
+          "[@%s.allow_extra_fields] and [@%s.disallow_extra_fields] are \
+           mutually exclusive"
+          deriver deriver
+    | _, Some () -> false
+    | _ -> true
+
+  let td_allows_extra_fields (td : type_declaration) =
+    resolve_extra_fields ~loc:td.ptype_loc
+      (Attribute.get td_allow_extra_fields td)
+      (Attribute.get td_disallow_extra_fields td)
+
+  let cd_allows_extra_fields (cd : constructor_declaration) =
+    resolve_extra_fields ~loc:cd.pcd_loc
+      (Attribute.get cd_allow_extra_fields cd)
+      (Attribute.get cd_disallow_extra_fields cd)
 end
 
 module Json = struct
@@ -173,27 +193,10 @@ module Json = struct
   let ld_attr_json_option = Attribute.get record_value_option
 
   (* [@@json.allow_extra_fields] / [@json.allow_extra_fields] and their
-     [@@json.disallow_extra_fields] / [@json.disallow_extra_fields] counterparts.
-     [td_allow_extra_fields] / [cd_allow_extra_fields] resolve the pair into a
-     single policy (extra fields are permitted unless explicitly disallowed). *)
-  let resolve_allow_extra_fields ~loc allow disallow =
-    match allow, disallow with
-    | Some (), Some () ->
-        Location.raise_errorf ~loc
-          "[@json.allow_extra_fields] and [@json.disallow_extra_fields] \
-           are mutually exclusive"
-    | _, Some () -> false
-    | _ -> true
-
-  let td_allow_extra_fields (td : type_declaration) =
-    resolve_allow_extra_fields ~loc:td.ptype_loc
-      (Attribute.get td_allow_extra_fields td)
-      (Attribute.get td_disallow_extra_fields td)
-
-  let cd_allow_extra_fields (cd : constructor_declaration) =
-    resolve_allow_extra_fields ~loc:cd.pcd_loc
-      (Attribute.get cd_allow_extra_fields cd)
-      (Attribute.get cd_disallow_extra_fields cd)
+     [@@json.disallow_extra_fields] / [@json.disallow_extra_fields]
+     counterparts, resolved into a single policy by [Common]. *)
+  let td_allow_extra_fields = td_allows_extra_fields
+  let cd_allow_extra_fields = cd_allows_extra_fields
 
   (* [@json.default expr] on a record field. [ld_attr_default] also treats a
      [@json.option] field as defaulting to [None]. *)
@@ -344,10 +347,6 @@ module Jsonschema = struct
 
   let variant_name = variant_name
   let polymorphic_variant_name = polymorphic_variant_name
-  let td_allow_extra_fields = td_allow_extra_fields
-  let cd_allow_extra_fields = cd_allow_extra_fields
-  let td_disallow_extra_fields = td_disallow_extra_fields
-  let cd_disallow_extra_fields = cd_disallow_extra_fields
   let option = record_value_option
 
   let ld_description =

@@ -76,13 +76,8 @@ module Jsonschema : sig
   val polymorphic_variant_name :
     (row_field, string Location.loc) Attribute.t
 
-  val td_allow_extra_fields : (type_declaration, unit) Attribute.t
-  val cd_allow_extra_fields : (constructor_declaration, unit) Attribute.t
-  val td_disallow_extra_fields : (type_declaration, unit) Attribute.t
-
-  val cd_disallow_extra_fields :
-    (constructor_declaration, unit) Attribute.t
-
+  val td_allows_extra_fields : type_declaration -> bool
+  val cd_allows_extra_fields : constructor_declaration -> bool
   val option : label_declaration Attribute.flag
   val td_format : (type_declaration, string Location.loc) Attribute.t
   val ld_format : (label_declaration, string Location.loc) Attribute.t

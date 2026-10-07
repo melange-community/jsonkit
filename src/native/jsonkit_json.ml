@@ -19,7 +19,7 @@ type unknown_variant_case = { tag : string; payload : t list option }
     Captures any unknown-variant wire shape, lossless. *)
 
 (* Companion schema for ppx_deriving_jsonschema callers. Structurally
-   compatible with Ppx_deriving_jsonschema_runtime.t — no library
+   compatible with Jsonkit.Jsonschema.t — no library
    dependency added; the polyvariant literal unifies with the runtime
    type at the use site. The schema is "oneOf string / non-empty array
    of any" — the two wire shapes a catch-all constructor can take. *)

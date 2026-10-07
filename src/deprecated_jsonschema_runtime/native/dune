@@ -1,6 +1,6 @@
 ; Deprecated compatibility layer for [@@deriving jsonschema] (part of the
 ; jsonkit package): the runtime now lives in [Jsonkit.Jsonschema]. The shim
-; implementations are platform-neutral and shared from ../../jsonschema via
+; implementations are platform-neutral and shared from .. via
 ; copy_files; only the .mli files differ, to name the right opam package in
 ; the deprecation alert.
 
