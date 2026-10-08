@@ -1,4 +1,4 @@
-; The jsonschema deriver now ships inside jsonkit.ppx / jsonkit-melange.ppx,
+; The jsonschema deriver ships inside jsonkit.ppx / jsonkit-melange.ppx,
 ; so the standalone ppx drivers below only link those (plus melange.ppx for the
 ; Melange-flavoured driver) rather than a separate ppx_deriving_jsonschema deriver.
 
@@ -44,6 +44,8 @@
 
 (copy_files shared/cases.ml)
 
+(copy_files shared/yojson_cases.ml)
+
 (copy_files shared/schema_snapshot.ml)
 
 (copy_files shared/generate_schemas_cases.ml)
@@ -55,7 +57,7 @@
 
 (library
  (name cases_support)
- (modules cases)
+ (modules cases yojson_cases)
  (wrapped false)
  (libraries jsonkit)
  (preprocess
@@ -65,7 +67,7 @@
  (name generate_schemas_support)
  (modules generate_schemas_cases)
  (wrapped false)
- (libraries jsonkit.jsonschema schema_snapshot_support cases_support))
+ (libraries jsonkit schema_snapshot_support cases_support))
 
 (cram
  (enabled_if
@@ -78,7 +80,7 @@
 (executable
  (name wire)
  (modules wire)
- (libraries unix yojson jsonkit jsonkit.jsonschema)
+ (libraries unix yojson jsonkit)
  (preprocess
   (pps jsonkit.ppx)))
 
@@ -112,7 +114,7 @@
  (modules shared_recursive_group)
  (enabled_if
   (= %{profile} dev))
- (libraries jsonkit jsonkit.jsonschema)
+ (libraries jsonkit)
  (preprocess
   (pps jsonkit.ppx)))
 
@@ -121,8 +123,4 @@
  (modules schema_properties)
  (enabled_if
   (= %{profile} dev))
- (libraries
-  jsonkit
-  jsonkit.jsonschema
-  cases_support
-  generate_schemas_support))
+ (libraries jsonkit cases_support generate_schemas_support))

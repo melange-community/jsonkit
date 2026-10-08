@@ -2917,6 +2917,79 @@
         "$defs": { "t": { "const": "local" } },
         "$ref": "#/$defs/t"
       }
+    },
+    {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "description": "a pair",
+      "type": "object",
+      "properties": { "l": { "type": "integer" } },
+      "required": [ "l" ],
+      "additionalProperties": true
+    },
+    {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "description": "a unit holder",
+      "type": "object",
+      "properties": { "u": { "type": "null" } },
+      "required": [ "u" ],
+      "additionalProperties": true
+    },
+    {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$defs": {
+        "ann_a": {
+          "anyOf": [
+            {
+              "type": "array",
+              "prefixItems": [
+                { "const": "AA" }, { "$ref": "#/$defs/ann_b" }
+              ],
+              "unevaluatedItems": false,
+              "minItems": 2,
+              "maxItems": 2
+            }
+          ]
+        },
+        "ann_b": { "minimum": 0, "description": "b", "type": "integer" }
+      },
+      "$ref": "#/$defs/ann_a"
+    },
+    {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$defs": {
+        "ann_a": {
+          "anyOf": [
+            {
+              "type": "array",
+              "prefixItems": [
+                { "const": "AA" }, { "$ref": "#/$defs/ann_b" }
+              ],
+              "unevaluatedItems": false,
+              "minItems": 2,
+              "maxItems": 2
+            }
+          ]
+        },
+        "ann_b": { "minimum": 0, "description": "b", "type": "integer" }
+      },
+      "$ref": "#/$defs/ann_b"
+    },
+    {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "format": "date-time",
+      "type": "string"
+    },
+    {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "type": "object",
+      "properties": {
+        "items": { "type": "array", "items": { "type": "string" } },
+        "nothing": { "type": "null" },
+        "maybe": { "type": [ "integer", "null" ] },
+        "big": { "type": "integer" }
+      },
+      "required": [ "items", "nothing", "maybe", "big" ],
+      "additionalProperties": true
     }
   ]
 }

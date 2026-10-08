@@ -1,6 +1,6 @@
 [@@@deprecated
-"This module and its library are deprecated. Install jsonkit-melange and \
- use Jsonkit.Jsonschema instead."]
+"This module and its library are deprecated. Install jsonkit and use \
+ Jsonkit.Jsonschema instead."]
 
 include
   module type of Jsonkit.Jsonschema

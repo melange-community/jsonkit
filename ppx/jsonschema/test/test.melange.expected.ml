@@ -3519,3 +3519,73 @@ module Hoist =
                  ("$defs", (assoc [("t", (const "local"))]));
                  ("$ref", (string "#/$defs/t"))]))])
   end
+type 'a annotated_pair = {
+  l: 'a }[@@jsonschema.description "a pair"]
+and annotated_unit = {
+  u: unit }[@@jsonschema.description "a unit holder"][@@deriving jsonschema]
+include
+  struct
+    let annotated_pair_jsonschema a =
+      Jsonkit_jsonschema_defs.non_recursive
+        (`Assoc
+           [("description", (`String "a pair"));
+           ("type", (`String "object"));
+           ("properties", (`Assoc [("l", a)]));
+           ("required", (`List [`String "l"]));
+           ("additionalProperties", (`Bool true))])[@@warning "-32-39"]
+    let annotated_unit_jsonschema =
+      `Assoc
+        [("description", (`String "a unit holder"));
+        ("type", (`String "object"));
+        ("properties", (`Assoc [("u", unit_jsonschema)]));
+        ("required", (`List [`String "u"]));
+        ("additionalProperties", (`Bool true))][@@warning "-32-39"]
+  end[@@ocaml.doc "@inline"][@@merlin.hide ]
+type ann_a =
+  | AA of ann_b 
+and ann_b = int[@@jsonschema.description "b"][@@jsonschema.minimum 0]
+[@@deriving jsonschema]
+include
+  struct
+    let (ann_a_jsonschema, ann_b_jsonschema) =
+      let ppx_defs =
+        [("ann_a",
+           (`Assoc
+              [("anyOf",
+                 (`List
+                    [`Assoc
+                       [("type", (`String "array"));
+                       ("prefixItems",
+                         (`List
+                            [`Assoc [("const", (`String "AA"))];
+                            `Assoc [("$ref", (`String "#/$defs/ann_b"))]]));
+                       ("unevaluatedItems", (`Bool false));
+                       ("minItems", (`Int 2));
+                       ("maxItems", (`Int 2))]]))]));
+        ("ann_b",
+          ((match match int_jsonschema with
+                  | `Assoc ppx_fields ->
+                      `Assoc (("description", (`String "b")) :: ppx_fields)
+                  | ppx_other -> ppx_other
+            with
+            | `Assoc ppx_fields ->
+                `Assoc (("minimum", (`Int 0)) :: ppx_fields)
+            | ppx_other -> ppx_other)))] in
+      let ann_a_jsonschema =
+        `Assoc
+          [("$defs", (`Assoc ppx_defs)); ("$ref", (`String "#/$defs/ann_a"))] in
+      let ann_b_jsonschema =
+        `Assoc
+          [("$defs", (`Assoc ppx_defs)); ("$ref", (`String "#/$defs/ann_b"))] in
+      (ann_a_jsonschema, ann_b_jsonschema)[@@warning "-32-39"]
+  end[@@ocaml.doc "@inline"][@@merlin.hide ]
+type manifest_attrs = string[@@jsonschema.attrs { format = "date-time" }]
+[@@deriving jsonschema]
+include
+  struct
+    let manifest_attrs_jsonschema =
+      match string_jsonschema with
+      | `Assoc ppx_fields ->
+          `Assoc (("format", (`String "date-time")) :: ppx_fields)
+      | ppx_other -> ppx_other[@@warning "-32-39"]
+  end[@@ocaml.doc "@inline"][@@merlin.hide ]
