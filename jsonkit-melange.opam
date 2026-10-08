@@ -19,7 +19,7 @@ depends: [
   "melange-jest" {with-test}
   "reason" {>= "3.10.0" & with-test}
   "ppxlib" {>= "0.38.0"}
-  "opam-check-npm-deps" {>= "4.1.0" & with-dev-setup}
+  "opam-check-npm-deps" {>= "4.1.0" & with-dev-setup & opam-version < "2.6"}
   "ocaml-lsp-server" {with-dev-setup}
   "ocamlformat" {= "0.28.1" & with-dev-setup}
   "odoc" {with-doc}
