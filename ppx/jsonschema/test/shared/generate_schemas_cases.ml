@@ -129,6 +129,16 @@ let schemas =
       (Recursive_shapes.tree_jsonschema string_jsonschema);
     Jsonkit.Jsonschema.make
       (Recursive_shapes.forest_jsonschema string_jsonschema);
+    Jsonkit.Jsonschema.make same_name_jsonschema;
+    Jsonkit.Jsonschema.make same_ref_jsonschema;
+    Jsonkit.Jsonschema.make described_pair_jsonschema;
+    Jsonkit.Jsonschema.make wrapped_a_jsonschema;
+    Jsonkit.Jsonschema.make wrapped_b_jsonschema;
+    Jsonkit.Jsonschema.make (described_box_jsonschema int_jsonschema);
+    Jsonkit.Jsonschema.make described_tag_jsonschema;
+    Hoist.nested_scope;
+    Hoist.mixed_collision;
+    Hoist.user_resource;
   ]
 
 let snapshot =

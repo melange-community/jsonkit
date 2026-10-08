@@ -6,7 +6,7 @@ plain record produces "additionalProperties": true.
   > EOF
   $ ./pp.exe -deriving-keep-w32 both --impl default.ml -o default.actual.ml
   $ grep additionalProperties default.actual.ml
-            ("additionalProperties", (`Bool true))] in
+          ("additionalProperties", (`Bool true))][@@warning "-32-39"]
 
 [@@jsonschema.disallow_extra_fields] opts into strict objects with
 "additionalProperties": false.
@@ -16,7 +16,7 @@ plain record produces "additionalProperties": true.
   > EOF
   $ ./pp.exe -deriving-keep-w32 both --impl strict.ml -o strict.actual.ml
   $ grep additionalProperties strict.actual.ml
-            ("additionalProperties", (`Bool false))] in
+          ("additionalProperties", (`Bool false))][@@warning "-32-39"]
 
 Using [@jsonschema.allow_extra_fields] and [@jsonschema.disallow_extra_fields]
 together is rejected.

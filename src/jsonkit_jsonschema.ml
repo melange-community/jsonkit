@@ -5,25 +5,22 @@ type t = Jsonkit_jsonschema_classify.t
 let classify = Jsonkit_jsonschema_classify.classify
 let declassify = Jsonkit_jsonschema_classify.declassify
 
-let make ?id ?title ?description ?definitions types =
+let make ?id ?title ?description ?(definitions = []) types =
+  let defs, types = Jsonkit_jsonschema_defs.bundle ~definitions types in
   let fields = match types with `Assoc fields -> fields | _ -> [] in
   let metadata =
     List.filter_map
       (fun x -> x)
       [
         Some ("$schema", `String schema_version);
-        (match id with
-        | None -> None
-        | Some id -> Some ("$id", `String id));
-        (match title with
-        | None -> None
-        | Some title -> Some ("title", `String title));
-        (match description with
-        | None -> None
-        | Some description -> Some ("description", `String description));
-        (match definitions with
-        | None -> None
-        | Some defs -> Some ("$defs", `Assoc defs));
+        Option.map (fun id -> "$id", `String id) id;
+        Option.map (fun title -> "title", `String title) title;
+        Option.map
+          (fun description -> "description", `String description)
+          description;
+        (match defs with
+        | [] -> None
+        | defs -> Some ("$defs", `Assoc defs));
       ]
   in
   `Assoc (metadata @ fields)

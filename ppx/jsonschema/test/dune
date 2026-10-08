@@ -106,3 +106,23 @@
   (= %{profile} dev))
  (action
   (diff test_schemas.expected.json test_schemas.actual.json)))
+
+(test
+ (name shared_recursive_group)
+ (modules shared_recursive_group)
+ (enabled_if
+  (= %{profile} dev))
+ (libraries jsonkit jsonkit.jsonschema)
+ (preprocess
+  (pps jsonkit.ppx)))
+
+(test
+ (name schema_properties)
+ (modules schema_properties)
+ (enabled_if
+  (= %{profile} dev))
+ (libraries
+  jsonkit
+  jsonkit.jsonschema
+  cases_support
+  generate_schemas_support))

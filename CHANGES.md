@@ -1,5 +1,28 @@
 ## Unreleased
 
+- JSON Schema: a derived schema now carries a single `$defs` at its root.
+  Recursive types used inside other types no longer leave nested `$defs` with
+  a generated `file://` `$id`; their definitions are collected into the root
+  one while the schema is built. Different definitions that share a name are
+  renamed (`t_2`, ...) and identical ones are kept once.
+- JSON Schema: much smaller generated code for large mutually recursive type
+  groups. Each group's schemas are built once and shared by all its members.
+- Fix: a recursive type using another recursive type with a definition of the
+  same name (`type t = Leaf | Node of t M.t`) produced a schema with duplicate
+  `$defs` keys and wrong `$ref`s.
+- Fix: in a recursive group, every member now gets its own
+  `[@@jsonschema.description]` and format/minimum/maximum annotations, and
+  `[@@jsonschema.attrs]` is applied in groups too.
+- `Jsonkit.Jsonschema.make` flattens nested `$defs` of hand-composed schemas
+  into the root one, with the same renaming.
+- A derived `foo_jsonschema` that embeds another type's schema or a type
+  argument now has the type `Jsonkit.Jsonschema.t`, the one the deriver
+  already declares in signatures, instead of an inferred polymorphic variant.
+  Schemas that embed nothing (enums, literals) keep their inferred type. Code
+  without a signature that passed such a schema, built only from enums, where
+  a `Yojson.Safe.t` is expected now needs a coercion:
+  `(foo_jsonschema :> Yojson.Safe.t)`.
+
 ## jsonkit.1.1.0 (2026-08-01)
 
 - Fix the `of_json` deriver for polymorphic variants with inherited rows, on

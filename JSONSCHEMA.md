@@ -933,6 +933,44 @@ The secondary type `stmt_jsonschema` is also a self-contained schema, with the s
 }
 ```
 
+##### Using recursive types in other types
+
+A schema that uses a recursive type keeps a single `$defs` at its root: the
+definitions of every recursive type it contains are collected there. When two
+different definitions have the same name, for example two modules that both
+define a recursive `t`, the one that comes later in the schema is renamed
+(`t_2`, `t_3`, ...) and its `$ref`s are updated:
+
+```ocaml
+module A = struct
+  type t = { next : t option; x : int } [@@deriving jsonschema]
+end
+
+module B = struct
+  type t = { next : t option; y : string } [@@deriving jsonschema]
+end
+
+type both = { a : A.t; b : B.t } [@@deriving jsonschema]
+```
+
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "t": { "type": "object", "properties": { "y": ..., "next": ... } },
+    "t_2": { "type": "object", "properties": { "x": ..., "next": ... } }
+  },
+  "type": "object",
+  "properties": {
+    "b": { "$ref": "#/$defs/t" },
+    "a": { "$ref": "#/$defs/t_2" }
+  }
+}
+```
+
+Definitions that are identical, such as the same type used in two fields, are
+kept once.
+
 
 ### Annotations
 

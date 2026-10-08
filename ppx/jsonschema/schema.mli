@@ -1,5 +1,9 @@
 val const : loc:Warnings.loc -> string -> Ppxlib.expression
 val type_ref : loc:Warnings.loc -> string -> Ppxlib.expression
+
+val definitions_ref :
+  loc:Warnings.loc -> string -> Ppxlib.expression -> Ppxlib.expression
+
 val type_def : loc:Warnings.loc -> string -> Ppxlib.expression
 
 val oneOf :
