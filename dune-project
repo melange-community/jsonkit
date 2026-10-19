@@ -1,6 +1,6 @@
-(lang dune 3.16)
+(lang dune 3.25)
 
-(using melange 0.1)
+(using melange 1.0)
 
 (name jsonkit)
 
@@ -29,6 +29,7 @@
   "jsonkit for Melange: converts JSON to typed OCaml values, where a JSON value is the Js.Json.t that JSON.parse returns, so no intermediate representation is built and the runtime stays small. It includes composable encoders and decoders and a deriving PPX that generates the conversions. For native OCaml there is the jsonkit package: it exposes the same Jsonkit module, takes the same attributes and produces the same JSON, on top of Yojson.")
  (depends
   ocaml
+  (jsonkit (= :version))
   (melange
    (>= "4.0.0"))
   (melange-jest :with-test)
@@ -62,4 +63,5 @@
   (ppxlib
    (>= "0.38.0"))
   (yojson
-   (>= "1.6.0"))))
+   (>= "1.6.0")))
+ (depopts melange))

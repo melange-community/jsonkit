@@ -18,6 +18,14 @@
  (alias run-examples)
  (deps
   run_examples.sh
-  (alias_rec examples))
+  (alias_rec examples)
+  (:js
+   examples/examples/examples/complex.js
+   examples/examples/examples/decode.js
+   examples/examples/examples/dynamicDict_Ocaml.js
+   examples/examples/examples/dynamicDict_Reason.js
+   examples/examples/examples/encode.js
+   examples/examples/examples/parse.js
+   examples/examples/examples/tree.js))
  (action
-  (run ./run_examples.sh)))
+  (run ./run_examples.sh %{js})))

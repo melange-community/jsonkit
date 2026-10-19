@@ -2,8 +2,8 @@ val schema_version : string
 
 type t = Jsonkit_jsonschema_classify.t
 
-val classify : t -> t
-val declassify : t -> t
+val classify : Js.Json.t -> t
+val declassify : t -> Js.Json.t
 
 val make :
   ?id:string ->

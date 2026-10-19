@@ -1,0 +1,8 @@
+(library
+ (name jsonkit_melange)
+ (public_name jsonkit-melange)
+ (modes melange)
+ (wrapped false)
+ (modules)
+ (libraries
+  (re_export jsonkit)))

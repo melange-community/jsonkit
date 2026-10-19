@@ -16,6 +16,7 @@
   crashed past a few hundred thousand elements. Both now go through a
   `[@tail_mod_cons]` map, which walks the list once and allocates one cell
   per element, the same as the OCaml 5.1 `List.map` it replaces.
+- Build: `jsonkit` and `jsonkit-melange` are now built from the same sources in a single Dune context. The runtime is one `(modes :standard melange)` library under `src/`, with the backend-specific modules spelled `jsonkit_json.melange.ml`, `jsonkit_json_classify.melange.ml`, `jsonkit_jsonschema_classify.melange.ml` and their `.melange.mli` counterparts; the `src/native/` mirror and its `copy_files` are gone. `jsonkit-melange` becomes a wrapper over `jsonkit` and keeps the same library, package and module names, so consumer `dune` files are unchanged. Needs Dune >= 3.25 with `(using melange 1.0)`, and `melange` is now a `depopt` of the `jsonkit` package.
 - **[breaking]** JSON Schema: a derived schema now carries a single `$defs`
   at its root. Recursive types used inside other types no longer leave nested
   `$defs` with a generated `file://` `$id`; their definitions are collected
