@@ -98,7 +98,7 @@ ocaml54_switch = jsonkit-54
 
 .PHONY: test-labeled-tuples
 test-labeled-tuples: ## Run the labeled tuples tests (needs an OCaml >= 5.4 switch, override with ocaml54_switch=...)
-	opam exec --switch $(ocaml54_switch) -- dune build @labeled_tuples --auto-promote
+	opam exec --switch $(ocaml54_switch) -- dune build @labeled_tuples.t --auto-promote
 
 .PHONY: test-watch
 test-watch: ## Run the tests and watch for changes

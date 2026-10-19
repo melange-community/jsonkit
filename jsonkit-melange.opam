@@ -13,8 +13,9 @@ license: ["LGPL-3.0-only" "MPL-2.0"]
 homepage: "https://github.com/melange-community/jsonkit/"
 bug-reports: "https://github.com/melange-community/jsonkit/issues"
 depends: [
-  "dune" {>= "3.16"}
+  "dune" {>= "3.25"}
   "ocaml"
+  "jsonkit" {= version}
   "melange" {>= "4.0.0"}
   "melange-jest" {with-test}
   "reason" {>= "3.10.0" & with-test}
@@ -39,3 +40,4 @@ build: [
   ]
 ]
 dev-repo: "git+https://github.com/melange-community/jsonkit.git"
+x-maintenance-intent: ["(latest)"]

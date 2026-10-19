@@ -83,7 +83,7 @@
   (pps jsonkit.ppx)))
 
 (cram
- (applies_to wire)
+ (applies_to wire.t)
  (enabled_if
   (= %{profile} dev))
  (deps %{exe:wire.exe}))

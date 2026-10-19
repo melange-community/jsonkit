@@ -38,6 +38,8 @@ jobs:
           opam-repositories: |
             default: https://github.com/ocaml/opam-repository.git
 
+      - run: opam pin add -y dune https://github.com/ocaml/dune.git#3.25.0_alpha0
+
       - run: opam install . --deps-only --with-test --with-dev-setup
 
       - run: opam exec -- dune build

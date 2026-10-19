@@ -10,7 +10,7 @@
   ../browser/ppx_deriving_json_js_test.exe))
 
 (cram
- (applies_to ptype_open)
+ (applies_to ptype_open.t)
  (enabled_if
   (>= %{ocaml_version} 5.2.0)))
 
@@ -18,6 +18,6 @@
 ; the OCaml 5.4+ frontend, so this test can only run there.
 
 (cram
- (applies_to labeled_tuples)
+ (applies_to labeled_tuples.t)
  (enabled_if
   (>= %{ocaml_version} 5.4.0)))

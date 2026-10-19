@@ -1,13 +1,12 @@
 (dirs :standard __tests__)
 
-; [wrapped false] mirrors the native library in ./native: the internal name has
-; to differ from the native library's public name ([jsonkit]), but the exposed
-; module must stay [Jsonkit] so the same sources build against either backend.
-
 (library
- (name jsonkit_melange)
- (public_name jsonkit-melange)
- (modes melange)
+ (name jsonkit)
+ (public_name jsonkit)
+ (modes :standard melange)
  (wrapped false)
- (preprocess
+ (libraries
+  (re_export yojson))
+ (melange.libraries)
+ (melange.preprocess
   (pps melange.ppx)))
