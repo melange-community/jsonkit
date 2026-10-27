@@ -176,7 +176,8 @@ module Annotation = struct
           match [%e default_value_expr] with
           | [%p ppat_tuple ~loc pats] -> `List [%e elist ~loc exprs]]
     | { ptyp_desc = Ptyp_var name; _ } ->
-        [%expr [%e evar ~loc name] [%e default_value_expr]]
+        let param = Ast_helpers.derive_of_type_param "jsonschema" name in
+        [%expr [%e evar ~loc param] [%e default_value_expr]]
     | { ptyp_desc = Ptyp_constr (id, args); _ } ->
         let arg_serializers =
           List.map

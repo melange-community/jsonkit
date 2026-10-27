@@ -52,15 +52,15 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec param_of_json a_of_json =
-      (fun x -> a_of_json x : Yojson.Basic.t -> 'a param)
+    let rec param_of_json of_json__a =
+      (fun x -> of_json__a x : Yojson.Basic.t -> 'a param)
   
     let _ = param_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec param_to_json a_to_json =
-      (fun x -> a_to_json x : 'a param -> Yojson.Basic.t)
+    let rec param_to_json to_json__a =
+      (fun x -> to_json__a x : 'a param -> Yojson.Basic.t)
   
     let _ = param_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -536,10 +536,10 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec c_of_json a_of_json =
+    let rec c_of_json of_json__a =
       (fun x ->
          match x with
-         | `List [ `String "C"; x_0 ] -> `C (a_of_json x_0)
+         | `List [ `String "C"; x_0 ] -> `C (of_json__a x_0)
          | x ->
              Jsonkit.of_json_unexpected_variant ~json:x
                "expected [\"C\", _]"
@@ -549,9 +549,9 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec c_to_json a_to_json =
+    let rec c_to_json to_json__a =
       (fun x ->
-         match x with `C x_0 -> `List [ `String "C"; a_to_json x_0 ]
+         match x with `C x_0 -> `List [ `String "C"; to_json__a x_0 ]
         : 'a c -> Yojson.Basic.t)
   
     let _ = c_to_json
@@ -703,11 +703,11 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec p2_of_json a_of_json b_of_json =
+    let rec p2_of_json of_json__a of_json__b =
       (fun x ->
          match x with
-         | `List [ `String "A"; x_0 ] -> A (a_of_json x_0)
-         | `List [ `String "B"; x_0 ] -> B (b_of_json x_0)
+         | `List [ `String "A"; x_0 ] -> A (of_json__a x_0)
+         | `List [ `String "B"; x_0 ] -> B (of_json__b x_0)
          | _ ->
              Jsonkit.of_json_error ~json:x
                "expected [\"A\", _] or [\"B\", _]"
@@ -717,11 +717,11 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec p2_to_json a_to_json b_to_json =
+    let rec p2_to_json to_json__a to_json__b =
       (fun x ->
          match x with
-         | A x_0 -> `List [ `String "A"; a_to_json x_0 ]
-         | B x_0 -> `List [ `String "B"; b_to_json x_0 ]
+         | A x_0 -> `List [ `String "A"; to_json__a x_0 ]
+         | B x_0 -> `List [ `String "B"; to_json__b x_0 ]
         : ('a, 'b) p2 -> Yojson.Basic.t)
   
     let _ = p2_to_json

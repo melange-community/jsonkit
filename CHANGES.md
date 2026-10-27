@@ -26,6 +26,16 @@
   without a signature that passed such a schema, built only from enums, where
   a `Yojson.Safe.t` is expected now needs a coercion:
   `(foo_jsonschema :> Yojson.Safe.t)`.
+- Fix: a type parameter named after a type in scope no longer shadows that
+  type's converter inside the generated code. `type 'string t = { a : 'string;
+  b : string }` used to encode `b` with the converter passed for `'string`,
+  and a parameter `'t` used to shadow the converter of the type named `t`;
+  both surfaced as an unrelated-looking type error at a later use (#41). The
+  converter argument for a type parameter `'a` is now named `to_json__a` /
+  `of_json__a`, and `jsonschema__a` for JSON Schema. A derived converter is
+  always `<type>_to_json`, so an argument in this shape can never collide
+  with one, whatever the types in scope are called. Generated signatures are
+  positional, so they are unchanged.
 
 ## jsonkit.1.1.0 (2026-08-01)
 

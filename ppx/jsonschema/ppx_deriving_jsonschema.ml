@@ -17,13 +17,19 @@ let create_value ~loc name value =
   [%stri
     let[@warning "-32-39"] [%p value_name_pattern ~loc name] = [%e value]]
 
+let type_param_name param =
+  Ast_helpers.derive_of_type_param deriver_name param
+
 (* Wraps [body] in nested lambdas, one per type parameter.
-   Parametric types like [('a, 'b) t] derive as [fun a b -> <schema>],
-   so callers can pass schemas for each type variable. *)
+   Parametric types like [('a, 'b) t] derive as
+   [fun jsonschema__a jsonschema__b -> <schema>], so callers can pass
+   schemas for each type variable. *)
 let wrap_type_params ~loc params body =
   List.fold_right
     (fun param body ->
-      [%expr fun [%p ppat_var ~loc { txt = param; loc }] -> [%e body]])
+      [%expr
+        fun [%p ppat_var ~loc { txt = type_param_name param; loc }] ->
+          [%e body]])
     params body
 
 (* schema_of_core_type and schema_of_poly_variant are mutually recursive.
@@ -67,7 +73,7 @@ let rec schema_of_core_type ~(config : Attrs.config)
     | _ -> (
         match core_type.ptyp_desc with
         | Ptyp_var name -> (
-            ( evar ~loc name,
+            ( evar ~loc (type_param_name name),
               match position with
               | `Body -> [ Embedded_schema ]
               | `Argument -> [] ))
@@ -444,7 +450,9 @@ let recursive_group ~loc ~path names schemas =
           ~path:[%e estring ~loc path]
           [%e
             eapply ~loc (evar ~loc group_defs)
-              (List.map (evar ~loc) group_params)]]
+              (List.map
+                 (fun param -> evar ~loc (type_param_name param))
+                 group_params)]]
     in
     (* Without type parameters the group is built once and shared. *)
     let member group name =

@@ -12,22 +12,29 @@ let expand_via ~what ~through make ~ctxt (rec_flag, tds) =
     let loc = td.ptype_loc in
     let pat =
       let { txt; loc } = td.ptype_name in
-      let txt = Expansion_helpers.mangle what txt in
+      let txt =
+        Expansion_helpers.mangle (Expansion_helpers.Suffix what) txt
+      in
       ppat_var ~loc { Location.txt; loc }
     in
     let name_of_td_param idx (ty, _) =
-      match ty.ptyp_desc with
-      | Ptyp_any -> Printf.sprintf "_%d" idx
-      | Ptyp_var name -> name
-      | _ ->
-          Location.raise_errorf ~loc:ty.ptyp_loc
-            "unsupported type parameter"
+      let param =
+        match ty.ptyp_desc with
+        | Ptyp_any -> Printf.sprintf "_%d" idx
+        | Ptyp_var name -> name
+        | _ ->
+            Location.raise_errorf ~loc:ty.ptyp_loc
+              "unsupported type parameter"
+      in
+      Ast_helpers.derive_of_type_param through param
     in
     let names = List.mapi td.ptype_params ~f:name_of_td_param in
     let expr =
       let of_json =
         let { txt; loc = _ } = td.ptype_name in
-        let txt = Expansion_helpers.mangle through txt in
+        let txt =
+          Expansion_helpers.mangle (Expansion_helpers.Suffix through) txt
+        in
         let of_json = pexp_ident ~loc { loc; txt = lident txt } in
         pexp_apply ~loc of_json
           (List.map names ~f:(fun name -> Nolabel, evar ~loc name))
@@ -42,8 +49,8 @@ let expand_via ~what ~through make ~ctxt (rec_flag, tds) =
 
 module Of_json_string = struct
   let expand =
-    expand_via ~what:(Expansion_helpers.Suffix "of_json_string")
-      ~through:(Expansion_helpers.Suffix "of_json") (fun ~loc of_json ->
+    expand_via ~what:"of_json_string" ~through:"of_json"
+      (fun ~loc of_json ->
         [%expr fun _json -> [%e of_json] (Jsonkit.of_string _json)])
 
   let register ~of_json () =
@@ -55,8 +62,8 @@ end
 
 module To_json_string = struct
   let expand =
-    expand_via ~what:(Expansion_helpers.Suffix "to_json_string")
-      ~through:(Expansion_helpers.Suffix "to_json") (fun ~loc to_json ->
+    expand_via ~what:"to_json_string" ~through:"to_json"
+      (fun ~loc to_json ->
         [%expr fun _data -> Jsonkit.to_string ([%e to_json] _data)])
 
   let register ~to_json () =
