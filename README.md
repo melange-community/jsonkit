@@ -470,6 +470,18 @@ type evt = [
 ] [@@deriving json] [@@json.compact_variants]
 ```
 
+Open rows (`[> ... ]`) are not supported: a decoder cannot build a tag it
+has never been told about. A closed row with a catch-all leaves the same
+room for tags the server adds later, and the type stays monomorphic:
+
+```ocaml
+type status = [
+  | `Foo
+  | `Bar
+  | `Unknown of Jsonkit.unknown_variant_case [@json.catch_all]
+] [@@deriving json]
+```
+
 ##### Wire shape mapping
 
 `payload` distinguishes the wire shape so the value round-trips faithfully:

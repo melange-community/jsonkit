@@ -171,7 +171,7 @@ class virtual deriving_fn =
       let expr =
         match repr_type_declaration td with
         | `Ptype_core_type
-            ({ ptyp_desc = Ptyp_variant (fs, _, _); _ } as t) ->
+            ({ ptyp_desc = Ptyp_variant (fs, Closed, None); _ } as t) ->
             self#derive_of_polyvariant ~td t fs x
         | `Ptype_core_type t -> self#derive_of_core_type t x
         | `Ptype_variant ctors -> self#derive_of_variant td ctors x

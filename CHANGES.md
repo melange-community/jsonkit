@@ -26,6 +26,11 @@
   without a signature that passed such a schema, built only from enums, where
   a `Yojson.Safe.t` is expected now needs a coercion:
   `(foo_jsonschema :> Yojson.Safe.t)`.
+- **[breaking]** A polymorphic variant row that is not closed is now rejected
+  with an error pointing at `[@json.catch_all]` and `[@json.allow_any]`, the
+  supported way to accept tags added later. `[> ... ]`, `[< ... ]` and
+  `[< ... > ... ]` were already rejected inside another type; as the whole of
+  a type declaration they used to reach the deriver unchecked.
 
 ## jsonkit.1.1.0 (2026-08-01)
 

@@ -54,7 +54,11 @@ let rec repr_core_type ty =
       invalid_labeled_tuple ~loc "invalid representation"
   | Ptyp_extension (name, _) ->
       not_supportedf ~loc "extension nodes (%s)" name.txt
-  | Ptyp_variant _ -> not_supported ~loc "non closed polyvariants"
+  | Ptyp_variant _ ->
+      Location.raise_errorf ~loc
+        "non closed polyvariants ([> ...] and [< ...]) are not \
+         supported; for forward compatibility use a closed polyvariant \
+         with a [@json.catch_all] or [@json.allow_any] row"
   | Ptyp_arrow _ -> not_supported ~loc "function types"
   | Ptyp_any -> not_supported ~loc "type placeholders"
   | Ptyp_object _ -> not_supported ~loc "object types"
