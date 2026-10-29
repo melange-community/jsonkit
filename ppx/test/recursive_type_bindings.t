@@ -13,9 +13,9 @@
   >   | Base of 'a tree * 'a forest [@@deriving json]
   > EOF
     let rec a_of_json =
-    and b_of_json = (fun x -> int_of_json x : Yojson.Basic.t -> b)
+    and b_of_json =
     let rec a_to_json =
-    and b_to_json = (fun x -> int_to_json x : b -> Yojson.Basic.t)
+    and b_to_json =
     let rec of_json =
     let rec to_json =
     let rec lst_of_json of_json__a =
@@ -38,9 +38,9 @@
   >   | Base of 'a tree * 'a forest [@@deriving json]
   > EOF
     let rec a_of_json =
-    and b_of_json = (fun x -> int_of_json x : Js.Json.t -> b)
+    and b_of_json =
     let rec a_to_json =
-    and b_to_json = (fun x -> int_to_json x : b -> Js.Json.t)
+    and b_to_json =
     let rec of_json =
     let rec to_json =
     let rec lst_of_json of_json__a =

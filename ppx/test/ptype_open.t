@@ -18,17 +18,22 @@ We can use the `Ptyp_open` AST node:
           let rec x_of_json =
             (fun x ->
                match x with
-               | `List (x_0::x_1::[]) -> ((int_of_json x_0), (int_of_json x_1))
+               | `List (x_0::x_1::[]) ->
+                   (((int_of_json : Jsonkit.Json.t -> int) x_0),
+                     ((int_of_json : Jsonkit.Json.t -> int) x_1))
                | _ ->
                    Jsonkit.of_json_error ~json:x
-                     "expected a JSON array of length 2" : Yojson.Basic.t -> x)
+                     "expected a JSON array of length 2" : Jsonkit.Json.t -> x)
           let _ = x_of_json
           [@@@ocaml.warning "-39-11-27"]
           let rec x_to_json =
             (fun x ->
                match x with
-               | (x_0, x_1) -> `List [int_to_json x_0; int_to_json x_1] : 
-            x -> Yojson.Basic.t)
+               | (x_0, x_1) ->
+                   `List
+                     [(int_to_json : int -> Jsonkit.Json.t) x_0;
+                     (int_to_json : int -> Jsonkit.Json.t) x_1] : x ->
+                                                                    Jsonkit.Json.t)
           let _ = x_to_json
         end[@@ocaml.doc "@inline"][@@merlin.hide ]
     end
@@ -37,10 +42,14 @@ We can use the `Ptyp_open` AST node:
     struct
       let _ = fun (_ : u) -> ()
       [@@@ocaml.warning "-39-11-27"]
-      let rec u_of_json = (fun x -> X.x_of_json x : Yojson.Basic.t -> u)
+      let rec u_of_json =
+        (fun x -> (X.x_of_json : Jsonkit.Json.t -> X.(x)) x : Jsonkit.Json.t ->
+                                                                u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
-      let rec u_to_json = (fun x -> X.x_to_json x : u -> Yojson.Basic.t)
+      let rec u_to_json =
+        (fun x -> (X.x_to_json : X.(x) -> Jsonkit.Json.t) x : u ->
+                                                                Jsonkit.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () = print_endline (Jsonkit.to_string (u_to_json (1, 2)))
@@ -61,19 +70,25 @@ We can use the `Ptyp_open` AST node:
                       (Js.Array.length (Obj.magic x : Js.Json.t array)) 2)
                then
                  let es = (Obj.magic x : Js.Json.t array) in
-                 ((int_of_json (Js.Array.unsafe_get es 0)),
-                   (int_of_json (Js.Array.unsafe_get es 1)))
+                 (((int_of_json : Jsonkit.Json.t -> int)
+                     (Js.Array.unsafe_get es 0)),
+                   ((int_of_json : Jsonkit.Json.t -> int)
+                      (Js.Array.unsafe_get es 1)))
                else
                  Jsonkit.of_json_error ~json:x
-                   "expected a JSON array of length 2" : Js.Json.t -> x)
+                   "expected a JSON array of length 2" : Jsonkit.Json.t -> x)
           let _ = x_of_json
           [@@@ocaml.warning "-39-11-27"]
           let rec x_to_json =
             (fun x ->
                match x with
                | (x_0, x_1) ->
-                   (Obj.magic [|(int_to_json x_0);(int_to_json x_1)|] : 
-                   Js.Json.t) : x -> Js.Json.t)
+                   (Obj.magic
+                      [|((int_to_json : int -> Jsonkit.Json.t) x_0);((int_to_json : 
+                                                                      int ->
+                                                                      Jsonkit.Json.t)
+                                                                      x_1)|] : 
+                   Js.Json.t) : x -> Jsonkit.Json.t)
           let _ = x_to_json
         end[@@ocaml.doc "@inline"][@@merlin.hide ]
     end
@@ -82,10 +97,14 @@ We can use the `Ptyp_open` AST node:
     struct
       let _ = fun (_ : u) -> ()
       [@@@ocaml.warning "-39-11-27"]
-      let rec u_of_json = (fun x -> X.x_of_json x : Js.Json.t -> u)
+      let rec u_of_json =
+        (fun x -> (X.x_of_json : Jsonkit.Json.t -> X.(x)) x : Jsonkit.Json.t ->
+                                                                u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
-      let rec u_to_json = (fun x -> X.x_to_json x : u -> Js.Json.t)
+      let rec u_to_json =
+        (fun x -> (X.x_to_json : X.(x) -> Jsonkit.Json.t) x : u ->
+                                                                Jsonkit.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () = print_endline (Jsonkit.to_string (u_to_json (1, 2)))

@@ -18,13 +18,13 @@ We can alias poly variants:
            | `List ((`String "B")::[]) -> `B
            | x ->
                Jsonkit.of_json_unexpected_variant ~json:x
-                 "expected [\"A\"] or [\"B\"]" : Yojson.Basic.t -> t)
+                 "expected [\"A\"] or [\"B\"]" : Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
         (fun x ->
            match x with | `A -> `List [`String "A"] | `B -> `List [`String "B"] : 
-        t -> Yojson.Basic.t)
+        t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type u = t[@@deriving json]
@@ -32,10 +32,12 @@ We can alias poly variants:
     struct
       let _ = fun (_ : u) -> ()
       [@@@ocaml.warning "-39-11-27"]
-      let rec u_of_json = (fun x -> of_json x : Yojson.Basic.t -> u)
+      let rec u_of_json =
+        (fun x -> (of_json : Jsonkit.Json.t -> t) x : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
-      let rec u_to_json = (fun x -> to_json x : u -> Yojson.Basic.t)
+      let rec u_to_json =
+        (fun x -> (to_json : t -> Jsonkit.Json.t) x : u -> Jsonkit.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () = print_endline (Jsonkit.to_string (u_to_json `A))
@@ -81,7 +83,7 @@ We can alias poly variants:
               else
                 Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
            else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Js.Json.t -> t)
+        Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
@@ -89,7 +91,7 @@ We can alias poly variants:
            match x with
            | `A -> (Obj.magic [|(Obj.magic "A" : Js.Json.t)|] : Js.Json.t)
            | `B -> (Obj.magic [|(Obj.magic "B" : Js.Json.t)|] : Js.Json.t) : 
-        t -> Js.Json.t)
+        t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type u = t[@@deriving json]
@@ -97,10 +99,12 @@ We can alias poly variants:
     struct
       let _ = fun (_ : u) -> ()
       [@@@ocaml.warning "-39-11-27"]
-      let rec u_of_json = (fun x -> of_json x : Js.Json.t -> u)
+      let rec u_of_json =
+        (fun x -> (of_json : Jsonkit.Json.t -> t) x : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
-      let rec u_to_json = (fun x -> to_json x : u -> Js.Json.t)
+      let rec u_to_json =
+        (fun x -> (to_json : t -> Jsonkit.Json.t) x : u -> Jsonkit.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () = print_endline (Jsonkit.to_string (u_to_json `A))
@@ -132,13 +136,13 @@ We can extend aliased polyvariants:
            | `List ((`String "B")::[]) -> `B
            | x ->
                Jsonkit.of_json_unexpected_variant ~json:x
-                 "expected [\"A\"] or [\"B\"]" : Yojson.Basic.t -> t)
+                 "expected [\"A\"] or [\"B\"]" : Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
         (fun x ->
            match x with | `A -> `List [`String "A"] | `B -> `List [`String "B"] : 
-        t -> Yojson.Basic.t)
+        t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type u = [ | t | `C ][@@deriving json]
@@ -151,18 +155,19 @@ We can extend aliased polyvariants:
            match x with
            | `List ((`String "C")::[]) -> `C
            | x ->
-               (match of_json x with
+               (match (of_json : Jsonkit.Json.t -> t) x with
                 | x -> (x :> [ | t | `C ])
                 | exception Jsonkit.Of_json_error (Jsonkit.Unexpected_variant
                     _) ->
                     Jsonkit.of_json_unexpected_variant ~json:x
-                      "expected [\"C\"]") : Yojson.Basic.t -> u)
+                      "expected [\"C\"]") : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
         (fun x ->
-           match x with | #t as x -> to_json x | `C -> `List [`String "C"] : 
-        u -> Yojson.Basic.t)
+           match x with
+           | #t as x -> (to_json : t -> Jsonkit.Json.t) x
+           | `C -> `List [`String "C"] : u -> Jsonkit.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () = print_endline (Jsonkit.to_string (u_to_json `A))
@@ -210,7 +215,7 @@ We can extend aliased polyvariants:
               else
                 Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
            else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Js.Json.t -> t)
+        Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
@@ -218,7 +223,7 @@ We can extend aliased polyvariants:
            match x with
            | `A -> (Obj.magic [|(Obj.magic "A" : Js.Json.t)|] : Js.Json.t)
            | `B -> (Obj.magic [|(Obj.magic "B" : Js.Json.t)|] : Js.Json.t) : 
-        t -> Js.Json.t)
+        t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type u = [ | t | `C ][@@deriving json]
@@ -245,7 +250,7 @@ We can extend aliased polyvariants:
                            "expected a JSON array of length 1"
                        else `C)
                     else
-                      (match of_json x with
+                      (match (of_json : Jsonkit.Json.t -> t) x with
                        | e -> (e :> [ | t | `C ])
                        | exception Jsonkit.Of_json_error
                            (Jsonkit.Unexpected_variant _) ->
@@ -257,15 +262,15 @@ We can extend aliased polyvariants:
               else
                 Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
            else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Js.Json.t -> u)
+        Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
         (fun x ->
            match x with
-           | #t as x -> to_json x
+           | #t as x -> (to_json : t -> Jsonkit.Json.t) x
            | `C -> (Obj.magic [|(Obj.magic "C" : Js.Json.t)|] : Js.Json.t) : 
-        u -> Js.Json.t)
+        u -> Jsonkit.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () = print_endline (Jsonkit.to_string (u_to_json `A))
@@ -299,8 +304,8 @@ We can extend poly variants which are placed behind signatures:
       include
         sig
           [@@@ocaml.warning "-32"]
-          val of_json : Yojson.Basic.t -> t
-          val to_json : t -> Yojson.Basic.t
+          val of_json : Jsonkit.Json.t -> t
+          val to_json : t -> Jsonkit.Json.t
         end[@@ocaml.doc "@inline"][@@merlin.hide ]
     end =
     struct
@@ -316,14 +321,14 @@ We can extend poly variants which are placed behind signatures:
                | `List ((`String "B")::[]) -> `B
                | x ->
                    Jsonkit.of_json_unexpected_variant ~json:x
-                     "expected [\"A\"] or [\"B\"]" : Yojson.Basic.t -> t)
+                     "expected [\"A\"] or [\"B\"]" : Jsonkit.Json.t -> t)
           let _ = of_json
           [@@@ocaml.warning "-39-11-27"]
           let rec to_json =
             (fun x ->
                match x with
                | `A -> `List [`String "A"]
-               | `B -> `List [`String "B"] : t -> Yojson.Basic.t)
+               | `B -> `List [`String "B"] : t -> Jsonkit.Json.t)
           let _ = to_json
         end[@@ocaml.doc "@inline"][@@merlin.hide ]
     end 
@@ -337,18 +342,19 @@ We can extend poly variants which are placed behind signatures:
            match x with
            | `List ((`String "C")::[]) -> `C
            | x ->
-               (match P.of_json x with
+               (match (P.of_json : Jsonkit.Json.t -> P.t) x with
                 | x -> (x :> [ | P.t | `C ])
                 | exception Jsonkit.Of_json_error (Jsonkit.Unexpected_variant
                     _) ->
                     Jsonkit.of_json_unexpected_variant ~json:x
-                      "expected [\"C\"]") : Yojson.Basic.t -> u)
+                      "expected [\"C\"]") : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
         (fun x ->
-           match x with | #P.t as x -> P.to_json x | `C -> `List [`String "C"] : 
-        u -> Yojson.Basic.t)
+           match x with
+           | #P.t as x -> (P.to_json : P.t -> Jsonkit.Json.t) x
+           | `C -> `List [`String "C"] : u -> Jsonkit.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () = print_endline (Jsonkit.to_string (u_to_json `A))
@@ -362,8 +368,8 @@ We can extend poly variants which are placed behind signatures:
       include
         sig
           [@@@ocaml.warning "-32"]
-          val of_json : Js.Json.t -> t
-          val to_json : t -> Js.Json.t
+          val of_json : Jsonkit.Json.t -> t
+          val to_json : t -> Jsonkit.Json.t
         end[@@ocaml.doc "@inline"][@@merlin.hide ]
     end =
     struct
@@ -409,7 +415,7 @@ We can extend poly variants which are placed behind signatures:
                       "expected a non empty JSON array")
                else
                  Jsonkit.of_json_error ~json:x
-                   "expected a non empty JSON array" : Js.Json.t -> t)
+                   "expected a non empty JSON array" : Jsonkit.Json.t -> t)
           let _ = of_json
           [@@@ocaml.warning "-39-11-27"]
           let rec to_json =
@@ -417,7 +423,7 @@ We can extend poly variants which are placed behind signatures:
                match x with
                | `A -> (Obj.magic [|(Obj.magic "A" : Js.Json.t)|] : Js.Json.t)
                | `B -> (Obj.magic [|(Obj.magic "B" : Js.Json.t)|] : Js.Json.t) : 
-            t -> Js.Json.t)
+            t -> Jsonkit.Json.t)
           let _ = to_json
         end[@@ocaml.doc "@inline"][@@merlin.hide ]
     end 
@@ -445,7 +451,7 @@ We can extend poly variants which are placed behind signatures:
                            "expected a JSON array of length 1"
                        else `C)
                     else
-                      (match P.of_json x with
+                      (match (P.of_json : Jsonkit.Json.t -> P.t) x with
                        | e -> (e :> [ | P.t | `C ])
                        | exception Jsonkit.Of_json_error
                            (Jsonkit.Unexpected_variant _) ->
@@ -457,15 +463,15 @@ We can extend poly variants which are placed behind signatures:
               else
                 Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
            else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Js.Json.t -> u)
+        Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
         (fun x ->
            match x with
-           | #P.t as x -> P.to_json x
+           | #P.t as x -> (P.to_json : P.t -> Jsonkit.Json.t) x
            | `C -> (Obj.magic [|(Obj.magic "C" : Js.Json.t)|] : Js.Json.t) : 
-        u -> Js.Json.t)
+        u -> Jsonkit.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () = print_endline (Jsonkit.to_string (u_to_json `A))
@@ -515,7 +521,7 @@ this way):
                     `Other ({ tag; payload } : Jsonkit.unknown_variant_case)
                 | _ ->
                     Jsonkit.of_json_unexpected_variant ~json:x
-                      "expected [\"A\"] or [\"Other\", _]") : Yojson.Basic.t ->
+                      "expected [\"A\"] or [\"Other\", _]") : Jsonkit.Json.t ->
                                                                 t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -527,7 +533,7 @@ this way):
                (match x_0.payload with
                 | Stdlib.Option.None -> `String (x_0.tag)
                 | Stdlib.Option.Some xs -> `List ((`String (x_0.tag)) :: xs)) : 
-        t -> Yojson.Basic.t)
+        t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type u = [ | t | `B ][@@deriving json]
@@ -540,18 +546,19 @@ this way):
            match x with
            | `List ((`String "B")::[]) -> `B
            | x ->
-               (match of_json x with
+               (match (of_json : Jsonkit.Json.t -> t) x with
                 | x -> (x :> [ | t | `B ])
                 | exception Jsonkit.Of_json_error (Jsonkit.Unexpected_variant
                     _) ->
                     Jsonkit.of_json_unexpected_variant ~json:x
-                      "expected [\"B\"]") : Yojson.Basic.t -> u)
+                      "expected [\"B\"]") : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
         (fun x ->
-           match x with | #t as x -> to_json x | `B -> `List [`String "B"] : 
-        u -> Yojson.Basic.t)
+           match x with
+           | #t as x -> (to_json : t -> Jsonkit.Json.t) x
+           | `B -> `List [`String "B"] : u -> Jsonkit.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =
@@ -608,7 +615,7 @@ this way):
               else
                 Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
            else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Js.Json.t -> t)
+        Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
@@ -625,7 +632,7 @@ this way):
                       Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs in
                     (Obj.magic
                        (Stdlib.Array.of_list (head :: rest) : Js.Json.t array) : 
-                      Js.Json.t)) : t -> Js.Json.t)
+                      Js.Json.t)) : t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type u = [ | t | `B ][@@deriving json]
@@ -652,7 +659,7 @@ this way):
                            "expected a JSON array of length 1"
                        else `B)
                     else
-                      (match of_json x with
+                      (match (of_json : Jsonkit.Json.t -> t) x with
                        | e -> (e :> [ | t | `B ])
                        | exception Jsonkit.Of_json_error
                            (Jsonkit.Unexpected_variant _) ->
@@ -664,15 +671,15 @@ this way):
               else
                 Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
            else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Js.Json.t -> u)
+        Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
         (fun x ->
            match x with
-           | #t as x -> to_json x
+           | #t as x -> (to_json : t -> Jsonkit.Json.t) x
            | `B -> (Obj.magic [|(Obj.magic "B" : Js.Json.t)|] : Js.Json.t) : 
-        u -> Js.Json.t)
+        u -> Jsonkit.Json.t)
       let _ = u_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =
@@ -714,7 +721,7 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
            | `List ((`String "Beta")::[]) -> `Beta
            | x ->
                Jsonkit.of_json_unexpected_variant ~json:x
-                 "expected [\"Alpha\"] or [\"Beta\"]" : Yojson.Basic.t ->
+                 "expected [\"Alpha\"] or [\"Beta\"]" : Jsonkit.Json.t ->
                                                           poly_known)
       let _ = poly_known_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -722,7 +729,7 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
         (fun x ->
            match x with
            | `Alpha -> `List [`String "Alpha"]
-           | `Beta -> `List [`String "Beta"] : poly_known -> Yojson.Basic.t)
+           | `Beta -> `List [`String "Beta"] : poly_known -> Jsonkit.Json.t)
       let _ = poly_known_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type poly_own_catch_all =
@@ -736,7 +743,8 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
         (fun x ->
            match x with
            | x ->
-               (match poly_known_of_json x with
+               (match (poly_known_of_json : Jsonkit.Json.t -> poly_known) x
+                with
                 | x ->
                     (x :> [ | poly_known
                           | `Other of Jsonkit.unknown_variant_case
@@ -755,19 +763,20 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                            ({ tag; payload } : Jsonkit.unknown_variant_case)
                      | _ ->
                          Jsonkit.of_json_unexpected_variant ~json:x
-                           "expected [\"Other\", _]")) : Yojson.Basic.t ->
+                           "expected [\"Other\", _]")) : Jsonkit.Json.t ->
                                                            poly_own_catch_all)
       let _ = poly_own_catch_all_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_own_catch_all_to_json =
         (fun x ->
            match x with
-           | #poly_known as x -> poly_known_to_json x
+           | #poly_known as x ->
+               (poly_known_to_json : poly_known -> Jsonkit.Json.t) x
            | `Other x_0 ->
                (match x_0.payload with
                 | Stdlib.Option.None -> `String (x_0.tag)
                 | Stdlib.Option.Some xs -> `List ((`String (x_0.tag)) :: xs)) : 
-        poly_own_catch_all -> Yojson.Basic.t)
+        poly_own_catch_all -> Jsonkit.Json.t)
       let _ = poly_own_catch_all_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =
@@ -821,7 +830,7 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
               else
                 Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
            else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Js.Json.t -> poly_known)
+        Jsonkit.Json.t -> poly_known)
       let _ = poly_known_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_known_to_json =
@@ -831,7 +840,7 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                (Obj.magic [|(Obj.magic "Alpha" : Js.Json.t)|] : Js.Json.t)
            | `Beta ->
                (Obj.magic [|(Obj.magic "Beta" : Js.Json.t)|] : Js.Json.t) : 
-        poly_known -> Js.Json.t)
+        poly_known -> Jsonkit.Json.t)
       let _ = poly_known_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type poly_own_catch_all =
@@ -852,7 +861,8 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                 let tag = Js.Array.unsafe_get array 0 in
                 (if Stdlib.(=) (Js.typeof tag) "string"
                  then
-                   match poly_known_of_json x with
+                   match (poly_known_of_json : Jsonkit.Json.t -> poly_known) x
+                   with
                    | e ->
                        (e :> [ | poly_known
                              | `Other of Jsonkit.unknown_variant_case
@@ -882,13 +892,14 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
               else
                 Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
            else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Js.Json.t -> poly_own_catch_all)
+        Jsonkit.Json.t -> poly_own_catch_all)
       let _ = poly_own_catch_all_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_own_catch_all_to_json =
         (fun x ->
            match x with
-           | #poly_known as x -> poly_known_to_json x
+           | #poly_known as x ->
+               (poly_known_to_json : poly_known -> Jsonkit.Json.t) x
            | `Other x_0 ->
                (match x_0.payload with
                 | Stdlib.Option.None ->
@@ -899,7 +910,7 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                       Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs in
                     (Obj.magic
                        (Stdlib.Array.of_list (head :: rest) : Js.Json.t array) : 
-                      Js.Json.t)) : poly_own_catch_all -> Js.Json.t)
+                      Js.Json.t)) : poly_own_catch_all -> Jsonkit.Json.t)
       let _ = poly_own_catch_all_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =
@@ -947,7 +958,7 @@ backends:
            | `List ((`String "Beta")::[]) -> `Beta
            | x ->
                Jsonkit.of_json_unexpected_variant ~json:x
-                 "expected [\"Alpha\"] or [\"Beta\"]" : Yojson.Basic.t ->
+                 "expected [\"Alpha\"] or [\"Beta\"]" : Jsonkit.Json.t ->
                                                           poly_known)
       let _ = poly_known_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -955,7 +966,7 @@ backends:
         (fun x ->
            match x with
            | `Alpha -> `List [`String "Alpha"]
-           | `Beta -> `List [`String "Beta"] : poly_known -> Yojson.Basic.t)
+           | `Beta -> `List [`String "Beta"] : poly_known -> Jsonkit.Json.t)
       let _ = poly_known_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type poly_catch_all_inherit_second =
@@ -969,7 +980,8 @@ backends:
         (fun x ->
            match x with
            | x ->
-               (match poly_known_of_json x with
+               (match (poly_known_of_json : Jsonkit.Json.t -> poly_known) x
+                with
                 | x ->
                     (x :> [
                             `Other of Jsonkit.unknown_variant_case
@@ -989,7 +1001,7 @@ backends:
                            ({ tag; payload } : Jsonkit.unknown_variant_case)
                      | _ ->
                          Jsonkit.of_json_unexpected_variant ~json:x
-                           "expected [\"Other\", _]")) : Yojson.Basic.t ->
+                           "expected [\"Other\", _]")) : Jsonkit.Json.t ->
                                                            poly_catch_all_inherit_second)
       let _ = poly_catch_all_inherit_second_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -1000,8 +1012,9 @@ backends:
                (match x_0.payload with
                 | Stdlib.Option.None -> `String (x_0.tag)
                 | Stdlib.Option.Some xs -> `List ((`String (x_0.tag)) :: xs))
-           | #poly_known as x -> poly_known_to_json x : poly_catch_all_inherit_second
-                                                          -> Yojson.Basic.t)
+           | #poly_known as x ->
+               (poly_known_to_json : poly_known -> Jsonkit.Json.t) x : 
+        poly_catch_all_inherit_second -> Jsonkit.Json.t)
       let _ = poly_catch_all_inherit_second_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =
@@ -1058,7 +1071,7 @@ backends:
               else
                 Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
            else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Js.Json.t -> poly_known)
+        Jsonkit.Json.t -> poly_known)
       let _ = poly_known_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_known_to_json =
@@ -1068,7 +1081,7 @@ backends:
                (Obj.magic [|(Obj.magic "Alpha" : Js.Json.t)|] : Js.Json.t)
            | `Beta ->
                (Obj.magic [|(Obj.magic "Beta" : Js.Json.t)|] : Js.Json.t) : 
-        poly_known -> Js.Json.t)
+        poly_known -> Jsonkit.Json.t)
       let _ = poly_known_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type poly_catch_all_inherit_second =
@@ -1089,7 +1102,8 @@ backends:
                 let tag = Js.Array.unsafe_get array 0 in
                 (if Stdlib.(=) (Js.typeof tag) "string"
                  then
-                   match poly_known_of_json x with
+                   match (poly_known_of_json : Jsonkit.Json.t -> poly_known) x
+                   with
                    | e ->
                        (e :> [
                                `Other of Jsonkit.unknown_variant_case
@@ -1120,7 +1134,7 @@ backends:
               else
                 Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
            else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Js.Json.t -> poly_catch_all_inherit_second)
+        Jsonkit.Json.t -> poly_catch_all_inherit_second)
       let _ = poly_catch_all_inherit_second_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_catch_all_inherit_second_to_json =
@@ -1137,8 +1151,9 @@ backends:
                     (Obj.magic
                        (Stdlib.Array.of_list (head :: rest) : Js.Json.t array) : 
                       Js.Json.t))
-           | #poly_known as x -> poly_known_to_json x : poly_catch_all_inherit_second
-                                                          -> Js.Json.t)
+           | #poly_known as x ->
+               (poly_known_to_json : poly_known -> Jsonkit.Json.t) x : 
+        poly_catch_all_inherit_second -> Jsonkit.Json.t)
       let _ = poly_catch_all_inherit_second_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =

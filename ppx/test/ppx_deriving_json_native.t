@@ -10,12 +10,18 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec user_of_json = (fun x -> int_of_json x : Yojson.Basic.t -> user)
+    let rec user_of_json =
+      (fun x -> (int_of_json : Jsonkit.Json.t -> int) x
+        : Jsonkit.Json.t -> user)
+  
     let _ = user_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec user_to_json = (fun x -> int_to_json x : user -> Yojson.Basic.t)
+    let rec user_to_json =
+      (fun x -> (int_to_json : int -> Jsonkit.Json.t) x
+        : user -> Jsonkit.Json.t)
+  
     let _ = user_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
 
@@ -30,14 +36,16 @@
     [@@@ocaml.warning "-39-11-27"]
   
     let rec floaty_of_json =
-      (fun x -> float_of_json x : Yojson.Basic.t -> floaty)
+      (fun x -> (float_of_json : Jsonkit.Json.t -> float) x
+        : Jsonkit.Json.t -> floaty)
   
     let _ = floaty_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
     let rec floaty_to_json =
-      (fun x -> float_to_json x : floaty -> Yojson.Basic.t)
+      (fun x -> (float_to_json : float -> Jsonkit.Json.t) x
+        : floaty -> Jsonkit.Json.t)
   
     let _ = floaty_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -53,14 +61,14 @@
     [@@@ocaml.warning "-39-11-27"]
   
     let rec param_of_json of_json__a =
-      (fun x -> of_json__a x : Yojson.Basic.t -> 'a param)
+      (fun x -> of_json__a x : Jsonkit.Json.t -> 'a param)
   
     let _ = param_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
     let rec param_to_json to_json__a =
-      (fun x -> to_json__a x : 'a param -> Yojson.Basic.t)
+      (fun x -> to_json__a x : 'a param -> Jsonkit.Json.t)
   
     let _ = param_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -76,14 +84,22 @@
     [@@@ocaml.warning "-39-11-27"]
   
     let rec opt_of_json =
-      (fun x -> (option_of_json string_of_json) x : Yojson.Basic.t -> opt)
+      (fun x ->
+         (option_of_json (string_of_json : Jsonkit.Json.t -> string)
+           : Jsonkit.Json.t -> string option)
+           x
+        : Jsonkit.Json.t -> opt)
   
     let _ = opt_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
     let rec opt_to_json =
-      (fun x -> (option_to_json string_to_json) x : opt -> Yojson.Basic.t)
+      (fun x ->
+         (option_to_json (string_to_json : string -> Jsonkit.Json.t)
+           : string option -> Jsonkit.Json.t)
+           x
+        : opt -> Jsonkit.Json.t)
   
     let _ = opt_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -99,16 +115,26 @@
     [@@@ocaml.warning "-39-11-27"]
   
     let rec res_of_json =
-      (fun x -> (result_of_json int_of_json string_of_json) x
-        : Yojson.Basic.t -> res)
+      (fun x ->
+         (result_of_json
+            (int_of_json : Jsonkit.Json.t -> int)
+            (string_of_json : Jsonkit.Json.t -> string)
+           : Jsonkit.Json.t -> (int, string) result)
+           x
+        : Jsonkit.Json.t -> res)
   
     let _ = res_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
     let rec res_to_json =
-      (fun x -> (result_to_json int_to_json string_to_json) x
-        : res -> Yojson.Basic.t)
+      (fun x ->
+         (result_to_json
+            (int_to_json : int -> Jsonkit.Json.t)
+            (string_to_json : string -> Jsonkit.Json.t)
+           : (int, string) result -> Jsonkit.Json.t)
+           x
+        : res -> Jsonkit.Json.t)
   
     let _ = res_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -126,11 +152,13 @@
     let rec tuple_of_json =
       (fun x ->
          match x with
-         | `List [ x_0; x_1 ] -> int_of_json x_0, string_of_json x_1
+         | `List [ x_0; x_1 ] ->
+             ( (int_of_json : Jsonkit.Json.t -> int) x_0,
+               (string_of_json : Jsonkit.Json.t -> string) x_1 )
          | _ ->
              Jsonkit.of_json_error ~json:x
                "expected a JSON array of length 2"
-        : Yojson.Basic.t -> tuple)
+        : Jsonkit.Json.t -> tuple)
   
     let _ = tuple_of_json
   
@@ -139,8 +167,13 @@
     let rec tuple_to_json =
       (fun x ->
          match x with
-         | x_0, x_1 -> `List [ int_to_json x_0; string_to_json x_1 ]
-        : tuple -> Yojson.Basic.t)
+         | x_0, x_1 ->
+             `List
+               [
+                 (int_to_json : int -> Jsonkit.Json.t) x_0;
+                 (string_to_json : string -> Jsonkit.Json.t) x_1;
+               ]
+        : tuple -> Jsonkit.Json.t)
   
     let _ = tuple_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -166,8 +199,13 @@
                | (n', v) :: fs ->
                    (match n' with
                    | "name" ->
-                       x_name := Stdlib.Option.Some (string_of_json v)
-                   | "age" -> x_age := Stdlib.Option.Some (int_of_json v)
+                       x_name :=
+                         Stdlib.Option.Some
+                           ((string_of_json : Jsonkit.Json.t -> string) v)
+                   | "age" ->
+                       x_age :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
                    | _ -> ());
                    iter fs
              in
@@ -185,7 +223,7 @@
                      Jsonkit.of_json_error ~json:x "expected field \"age\"");
              }
          | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
-        : Yojson.Basic.t -> record)
+        : Jsonkit.Json.t -> record)
   
     let _ = record_of_json
   
@@ -197,12 +235,17 @@
          | { name = x_name; age = x_age } ->
              `Assoc
                (let bnds__001_ = [] in
-                let bnds__001_ = ("age", int_to_json x_age) :: bnds__001_ in
                 let bnds__001_ =
-                  ("name", string_to_json x_name) :: bnds__001_
+                  ("age", (int_to_json : int -> Jsonkit.Json.t) x_age)
+                  :: bnds__001_
+                in
+                let bnds__001_ =
+                  ( "name",
+                    (string_to_json : string -> Jsonkit.Json.t) x_name )
+                  :: bnds__001_
                 in
                 bnds__001_)
-        : record -> Yojson.Basic.t)
+        : record -> Jsonkit.Json.t)
   
     let _ = record_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -232,8 +275,13 @@
                | (n', v) :: fs ->
                    (match n' with
                    | "my_name" ->
-                       x_name := Stdlib.Option.Some (string_of_json v)
-                   | "my_age" -> x_age := Stdlib.Option.Some (int_of_json v)
+                       x_name :=
+                         Stdlib.Option.Some
+                           ((string_of_json : Jsonkit.Json.t -> string) v)
+                   | "my_age" ->
+                       x_age :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
                    | _ -> ());
                    iter fs
              in
@@ -251,7 +299,7 @@
                  | Stdlib.Option.None -> 100);
              }
          | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
-        : Yojson.Basic.t -> record_aliased)
+        : Jsonkit.Json.t -> record_aliased)
   
     let _ = record_aliased_of_json
   
@@ -264,13 +312,16 @@
              `Assoc
                (let bnds__001_ = [] in
                 let bnds__001_ =
-                  ("my_age", int_to_json x_age) :: bnds__001_
+                  ("my_age", (int_to_json : int -> Jsonkit.Json.t) x_age)
+                  :: bnds__001_
                 in
                 let bnds__001_ =
-                  ("my_name", string_to_json x_name) :: bnds__001_
+                  ( "my_name",
+                    (string_to_json : string -> Jsonkit.Json.t) x_name )
+                  :: bnds__001_
                 in
                 bnds__001_)
-        : record_aliased -> Yojson.Basic.t)
+        : record_aliased -> Jsonkit.Json.t)
   
     let _ = record_aliased_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -296,7 +347,11 @@
                    (match n' with
                    | "k" ->
                        x_k :=
-                         Stdlib.Option.Some ((option_of_json int_of_json) v)
+                         Stdlib.Option.Some
+                           ((option_of_json
+                               (int_of_json : Jsonkit.Json.t -> int)
+                              : Jsonkit.Json.t -> int option)
+                              v)
                    | _ -> ());
                    iter fs
              in
@@ -308,7 +363,7 @@
                  | Stdlib.Option.None -> Stdlib.Option.None);
              }
          | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
-        : Yojson.Basic.t -> record_opt)
+        : Jsonkit.Json.t -> record_opt)
   
     let _ = record_opt_of_json
   
@@ -321,10 +376,14 @@
              `Assoc
                (let bnds__001_ = [] in
                 let bnds__001_ =
-                  ("k", (option_to_json int_to_json) x_k) :: bnds__001_
+                  ( "k",
+                    (option_to_json (int_to_json : int -> Jsonkit.Json.t)
+                      : int option -> Jsonkit.Json.t)
+                      x_k )
+                  :: bnds__001_
                 in
                 bnds__001_)
-        : record_opt -> Yojson.Basic.t)
+        : record_opt -> Jsonkit.Json.t)
   
     let _ = record_opt_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -343,7 +402,8 @@
       (fun x ->
          match x with
          | `List (`String "A" :: []) -> A
-         | `List [ `String "B"; x_0 ] -> B (int_of_json x_0)
+         | `List [ `String "B"; x_0 ] ->
+             B ((int_of_json : Jsonkit.Json.t -> int) x_0)
          | `List [ `String "C"; `Assoc fs ] ->
              let x_name = ref Stdlib.Option.None in
              let rec iter = function
@@ -351,7 +411,9 @@
                | (n', v) :: fs ->
                    (match n' with
                    | "name" ->
-                       x_name := Stdlib.Option.Some (string_of_json v)
+                       x_name :=
+                         Stdlib.Option.Some
+                           ((string_of_json : Jsonkit.Json.t -> string) v)
                    | _ -> ());
                    iter fs
              in
@@ -368,7 +430,7 @@
          | _ ->
              Jsonkit.of_json_error ~json:x
                "expected [\"A\"] or [\"B\", _] or [\"C\", { _ }]"
-        : Yojson.Basic.t -> sum)
+        : Jsonkit.Json.t -> sum)
   
     let _ = sum_of_json
   
@@ -378,7 +440,9 @@
       (fun x ->
          match x with
          | A -> `List [ `String "A" ]
-         | B x_0 -> `List [ `String "B"; int_to_json x_0 ]
+         | B x_0 ->
+             `List
+               [ `String "B"; (int_to_json : int -> Jsonkit.Json.t) x_0 ]
          | C { name = x_name } ->
              `List
                [
@@ -386,11 +450,14 @@
                  `Assoc
                    (let bnds__001_ = [] in
                     let bnds__001_ =
-                      ("name", string_to_json x_name) :: bnds__001_
+                      ( "name",
+                        (string_to_json : string -> Jsonkit.Json.t) x_name
+                      )
+                      :: bnds__001_
                     in
                     bnds__001_);
                ]
-        : sum -> Yojson.Basic.t)
+        : sum -> Jsonkit.Json.t)
   
     let _ = sum_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -409,9 +476,11 @@
       (fun x ->
          match x with
          | `List [ `String "S2"; x_0; x_1 ] ->
-             S2 (int_of_json x_0, string_of_json x_1)
+             S2
+               ( (int_of_json : Jsonkit.Json.t -> int) x_0,
+                 (string_of_json : Jsonkit.Json.t -> string) x_1 )
          | _ -> Jsonkit.of_json_error ~json:x "expected [\"S2\", _, _]"
-        : Yojson.Basic.t -> sum2)
+        : Jsonkit.Json.t -> sum2)
   
     let _ = sum2_of_json
   
@@ -421,8 +490,13 @@
       (fun x ->
          match x with
          | S2 (x_0, x_1) ->
-             `List [ `String "S2"; int_to_json x_0; string_to_json x_1 ]
-        : sum2 -> Yojson.Basic.t)
+             `List
+               [
+                 `String "S2";
+                 (int_to_json : int -> Jsonkit.Json.t) x_0;
+                 (string_to_json : string -> Jsonkit.Json.t) x_1;
+               ]
+        : sum2 -> Jsonkit.Json.t)
   
     let _ = sum2_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -443,7 +517,7 @@
          | `List (`String "C" :: []) -> `C
          | x ->
              Jsonkit.of_json_unexpected_variant ~json:x "expected [\"C\"]"
-        : Yojson.Basic.t -> other)
+        : Jsonkit.Json.t -> other)
   
     let _ = other_of_json
   
@@ -451,7 +525,7 @@
   
     let rec other_to_json =
       (fun x -> match x with `C -> `List [ `String "C" ]
-        : other -> Yojson.Basic.t)
+        : other -> Jsonkit.Json.t)
   
     let _ = other_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -467,15 +541,16 @@
       (fun x ->
          match x with
          | `List (`String "A" :: []) -> `A
-         | `List [ `String "B"; x_0 ] -> `B (int_of_json x_0)
+         | `List [ `String "B"; x_0 ] ->
+             `B ((int_of_json : Jsonkit.Json.t -> int) x_0)
          | x -> (
-             match other_of_json x with
+             match (other_of_json : Jsonkit.Json.t -> other) x with
              | x -> (x :> [ `A | `B of int | other ])
              | exception
                  Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
                  Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"A\"] or [\"B\", _]")
-        : Yojson.Basic.t -> poly)
+        : Jsonkit.Json.t -> poly)
   
     let _ = poly_of_json
   
@@ -485,9 +560,11 @@
       (fun x ->
          match x with
          | `A -> `List [ `String "A" ]
-         | `B x_0 -> `List [ `String "B"; int_to_json x_0 ]
-         | #other as x -> other_to_json x
-        : poly -> Yojson.Basic.t)
+         | `B x_0 ->
+             `List
+               [ `String "B"; (int_to_json : int -> Jsonkit.Json.t) x_0 ]
+         | #other as x -> (other_to_json : other -> Jsonkit.Json.t) x
+        : poly -> Jsonkit.Json.t)
   
     let _ = poly_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -506,11 +583,13 @@
       (fun x ->
          match x with
          | `List [ `String "P2"; x_0; x_1 ] ->
-             `P2 (int_of_json x_0, string_of_json x_1)
+             `P2
+               ( (int_of_json : Jsonkit.Json.t -> int) x_0,
+                 (string_of_json : Jsonkit.Json.t -> string) x_1 )
          | x ->
              Jsonkit.of_json_unexpected_variant ~json:x
                "expected [\"P2\", _, _]"
-        : Yojson.Basic.t -> poly2)
+        : Jsonkit.Json.t -> poly2)
   
     let _ = poly2_of_json
   
@@ -520,8 +599,13 @@
       (fun x ->
          match x with
          | `P2 (x_0, x_1) ->
-             `List [ `String "P2"; int_to_json x_0; string_to_json x_1 ]
-        : poly2 -> Yojson.Basic.t)
+             `List
+               [
+                 `String "P2";
+                 (int_to_json : int -> Jsonkit.Json.t) x_0;
+                 (string_to_json : string -> Jsonkit.Json.t) x_1;
+               ]
+        : poly2 -> Jsonkit.Json.t)
   
     let _ = poly2_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -543,7 +627,7 @@
          | x ->
              Jsonkit.of_json_unexpected_variant ~json:x
                "expected [\"C\", _]"
-        : Yojson.Basic.t -> 'a c)
+        : Jsonkit.Json.t -> 'a c)
   
     let _ = c_of_json
   
@@ -552,7 +636,7 @@
     let rec c_to_json to_json__a =
       (fun x ->
          match x with `C x_0 -> `List [ `String "C"; to_json__a x_0 ]
-        : 'a c -> Yojson.Basic.t)
+        : 'a c -> Jsonkit.Json.t)
   
     let _ = c_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -571,11 +655,12 @@
       (fun x ->
          match x with
          | `List (`String "A" :: []) -> A
-         | `List [ `String "Fix"; x_0 ] -> Fix (recur_of_json x_0)
+         | `List [ `String "Fix"; x_0 ] ->
+             Fix ((recur_of_json : Jsonkit.Json.t -> recur) x_0)
          | _ ->
              Jsonkit.of_json_error ~json:x
                "expected [\"A\"] or [\"Fix\", _]"
-        : Yojson.Basic.t -> recur)
+        : Jsonkit.Json.t -> recur)
   
     let _ = recur_of_json
   
@@ -585,8 +670,13 @@
       (fun x ->
          match x with
          | A -> `List [ `String "A" ]
-         | Fix x_0 -> `List [ `String "Fix"; recur_to_json x_0 ]
-        : recur -> Yojson.Basic.t)
+         | Fix x_0 ->
+             `List
+               [
+                 `String "Fix";
+                 (recur_to_json : recur -> Jsonkit.Json.t) x_0;
+               ]
+        : recur -> Jsonkit.Json.t)
   
     let _ = recur_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -605,11 +695,12 @@
       (fun x ->
          match x with
          | `List (`String "A" :: []) -> `A
-         | `List [ `String "Fix"; x_0 ] -> `Fix (polyrecur_of_json x_0)
+         | `List [ `String "Fix"; x_0 ] ->
+             `Fix ((polyrecur_of_json : Jsonkit.Json.t -> polyrecur) x_0)
          | x ->
              Jsonkit.of_json_unexpected_variant ~json:x
                "expected [\"A\"] or [\"Fix\", _]"
-        : Yojson.Basic.t -> polyrecur)
+        : Jsonkit.Json.t -> polyrecur)
   
     let _ = polyrecur_of_json
   
@@ -619,8 +710,13 @@
       (fun x ->
          match x with
          | `A -> `List [ `String "A" ]
-         | `Fix x_0 -> `List [ `String "Fix"; polyrecur_to_json x_0 ]
-        : polyrecur -> Yojson.Basic.t)
+         | `Fix x_0 ->
+             `List
+               [
+                 `String "Fix";
+                 (polyrecur_to_json : polyrecur -> Jsonkit.Json.t) x_0;
+               ]
+        : polyrecur -> Jsonkit.Json.t)
   
     let _ = polyrecur_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -643,7 +739,7 @@
          | _ ->
              Jsonkit.of_json_error ~json:x
                "expected [\"A\"] or [\"b_aliased\"]"
-        : Yojson.Basic.t -> evar)
+        : Jsonkit.Json.t -> evar)
   
     let _ = evar_of_json
   
@@ -654,7 +750,7 @@
          match x with
          | A -> `List [ `String "A" ]
          | B -> `List [ `String "b_aliased" ]
-        : evar -> Yojson.Basic.t)
+        : evar -> Jsonkit.Json.t)
   
     let _ = evar_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -677,7 +773,7 @@
          | x ->
              Jsonkit.of_json_unexpected_variant ~json:x
                "expected [\"A_aliased\"] or [\"b\"]"
-        : Yojson.Basic.t -> epoly)
+        : Jsonkit.Json.t -> epoly)
   
     let _ = epoly_of_json
   
@@ -688,7 +784,7 @@
          match x with
          | `a -> `List [ `String "A_aliased" ]
          | `b -> `List [ `String "b" ]
-        : epoly -> Yojson.Basic.t)
+        : epoly -> Jsonkit.Json.t)
   
     let _ = epoly_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -711,7 +807,7 @@
          | _ ->
              Jsonkit.of_json_error ~json:x
                "expected [\"A\", _] or [\"B\", _]"
-        : Yojson.Basic.t -> ('a, 'b) p2)
+        : Jsonkit.Json.t -> ('a, 'b) p2)
   
     let _ = p2_of_json
   
@@ -722,7 +818,7 @@
          match x with
          | A x_0 -> `List [ `String "A"; to_json__a x_0 ]
          | B x_0 -> `List [ `String "B"; to_json__b x_0 ]
-        : ('a, 'b) p2 -> Yojson.Basic.t)
+        : ('a, 'b) p2 -> Jsonkit.Json.t)
   
     let _ = p2_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -747,7 +843,10 @@
                | [] -> ()
                | (n', v) :: fs ->
                    (match n' with
-                   | "a" -> x_a := Stdlib.Option.Some (int_of_json v)
+                   | "a" ->
+                       x_a :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
                    | _ -> ());
                    iter fs
              in
@@ -760,7 +859,7 @@
                      Jsonkit.of_json_error ~json:x "expected field \"a\"");
              }
          | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
-        : Yojson.Basic.t -> allow_extra_fields)
+        : Jsonkit.Json.t -> allow_extra_fields)
   
     let _ = allow_extra_fields_of_json
   
@@ -772,9 +871,12 @@
          | { a = x_a } ->
              `Assoc
                (let bnds__001_ = [] in
-                let bnds__001_ = ("a", int_to_json x_a) :: bnds__001_ in
+                let bnds__001_ =
+                  ("a", (int_to_json : int -> Jsonkit.Json.t) x_a)
+                  :: bnds__001_
+                in
                 bnds__001_)
-        : allow_extra_fields -> Yojson.Basic.t)
+        : allow_extra_fields -> Jsonkit.Json.t)
   
     let _ = allow_extra_fields_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -799,7 +901,10 @@
                | [] -> ()
                | (n', v) :: fs ->
                    (match n' with
-                   | "a" -> x_a := Stdlib.Option.Some (int_of_json v)
+                   | "a" ->
+                       x_a :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
                    | _ -> ());
                    iter fs
              in
@@ -813,7 +918,7 @@
                        Jsonkit.of_json_error ~json:x "expected field \"a\"");
                }
          | _ -> Jsonkit.of_json_error ~json:x "expected [\"A\", { _ }]"
-        : Yojson.Basic.t -> allow_extra_fields2)
+        : Jsonkit.Json.t -> allow_extra_fields2)
   
     let _ = allow_extra_fields2_of_json
   
@@ -828,10 +933,13 @@
                  `String "A";
                  `Assoc
                    (let bnds__001_ = [] in
-                    let bnds__001_ = ("a", int_to_json x_a) :: bnds__001_ in
+                    let bnds__001_ =
+                      ("a", (int_to_json : int -> Jsonkit.Json.t) x_a)
+                      :: bnds__001_
+                    in
                     bnds__001_);
                ]
-        : allow_extra_fields2 -> Yojson.Basic.t)
+        : allow_extra_fields2 -> Jsonkit.Json.t)
   
     let _ = allow_extra_fields2_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -851,9 +959,10 @@
       (fun x ->
          match x with
          | `String "A" | `List (`String "A" :: []) -> A
-         | `List [ `String "B"; x_0 ] -> B (int_of_json x_0)
+         | `List [ `String "B"; x_0 ] ->
+             B ((int_of_json : Jsonkit.Json.t -> int) x_0)
          | _ -> Jsonkit.of_json_error ~json:x "expected \"A\" or [\"B\", _]"
-        : Yojson.Basic.t -> compact_variant)
+        : Jsonkit.Json.t -> compact_variant)
   
     let _ = compact_variant_of_json
   
@@ -863,8 +972,10 @@
       (fun x ->
          match x with
          | A -> `String "A"
-         | B x_0 -> `List [ `String "B"; int_to_json x_0 ]
-        : compact_variant -> Yojson.Basic.t)
+         | B x_0 ->
+             `List
+               [ `String "B"; (int_to_json : int -> Jsonkit.Json.t) x_0 ]
+        : compact_variant -> Jsonkit.Json.t)
   
     let _ = compact_variant_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -897,7 +1008,8 @@
          | `List (`String "Catch_all_variant" :: []) ->
              Catch_all_variant
          | `List [ `String "Catch_all_variant_of_int"; x_0 ] ->
-             Catch_all_variant_of_int (int_of_json x_0)
+             Catch_all_variant_of_int
+               ((int_of_json : Jsonkit.Json.t -> int) x_0)
          | (`String _ | `List (`String _ :: _)) as v ->
              let tag, payload =
                match v with
@@ -913,7 +1025,7 @@
                "expected \"Catch_all_variant\" or \
                 [\"Catch_all_variant_of_int\", _] or [\"Catch_all_other\", \
                 _]"
-        : Yojson.Basic.t -> catch_all_variant)
+        : Jsonkit.Json.t -> catch_all_variant)
   
     let _ = catch_all_variant_of_json
   
@@ -924,12 +1036,16 @@
          match x with
          | Catch_all_variant -> `String "Catch_all_variant"
          | Catch_all_variant_of_int x_0 ->
-             `List [ `String "Catch_all_variant_of_int"; int_to_json x_0 ]
+             `List
+               [
+                 `String "Catch_all_variant_of_int";
+                 (int_to_json : int -> Jsonkit.Json.t) x_0;
+               ]
          | Catch_all_other x_0 -> (
              match x_0.payload with
              | Stdlib.Option.None -> `String x_0.tag
              | Stdlib.Option.Some xs -> `List (`String x_0.tag :: xs))
-        : catch_all_variant -> Yojson.Basic.t)
+        : catch_all_variant -> Jsonkit.Json.t)
   
     let _ = catch_all_variant_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -955,7 +1071,8 @@
          | `List (`String "Catch_all_polyvariant" :: []) ->
              `Catch_all_polyvariant
          | `List [ `String "Catch_all_polyvariant_of_int"; x_0 ] ->
-             `Catch_all_polyvariant_of_int (int_of_json x_0)
+             `Catch_all_polyvariant_of_int
+               ((int_of_json : Jsonkit.Json.t -> int) x_0)
          | x -> (
              match x with
              | (`String _ | `List (`String _ :: _)) as v ->
@@ -973,7 +1090,7 @@
                    "expected \"Catch_all_polyvariant\" or \
                     [\"Catch_all_polyvariant_of_int\", _] or \
                     [\"Catch_all_other\", _]")
-        : Yojson.Basic.t -> catch_all_polyvariant)
+        : Jsonkit.Json.t -> catch_all_polyvariant)
   
     let _ = catch_all_polyvariant_of_json
   
@@ -985,12 +1102,15 @@
          | `Catch_all_polyvariant -> `String "Catch_all_polyvariant"
          | `Catch_all_polyvariant_of_int x_0 ->
              `List
-               [ `String "Catch_all_polyvariant_of_int"; int_to_json x_0 ]
+               [
+                 `String "Catch_all_polyvariant_of_int";
+                 (int_to_json : int -> Jsonkit.Json.t) x_0;
+               ]
          | `Catch_all_other x_0 -> (
              match x_0.payload with
              | Stdlib.Option.None -> `String x_0.tag
              | Stdlib.Option.Some xs -> `List (`String x_0.tag :: xs))
-        : catch_all_polyvariant -> Yojson.Basic.t)
+        : catch_all_polyvariant -> Jsonkit.Json.t)
   
     let _ = catch_all_polyvariant_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1013,7 +1133,8 @@
       (fun x ->
          match x with
          | `List [ `String "Catch_all_noncompact_of_int"; x_0 ] ->
-             Catch_all_noncompact_of_int (int_of_json x_0)
+             Catch_all_noncompact_of_int
+               ((int_of_json : Jsonkit.Json.t -> int) x_0)
          | (`String _ | `List (`String _ :: _)) as v ->
              let tag, payload =
                match v with
@@ -1028,7 +1149,7 @@
              Jsonkit.of_json_error ~json:x
                "expected [\"Catch_all_noncompact_of_int\", _] or \
                 [\"Catch_all_noncompact_other\", _]"
-        : Yojson.Basic.t -> catch_all_noncompact)
+        : Jsonkit.Json.t -> catch_all_noncompact)
   
     let _ = catch_all_noncompact_of_json
   
@@ -1039,12 +1160,15 @@
          match x with
          | Catch_all_noncompact_of_int x_0 ->
              `List
-               [ `String "Catch_all_noncompact_of_int"; int_to_json x_0 ]
+               [
+                 `String "Catch_all_noncompact_of_int";
+                 (int_to_json : int -> Jsonkit.Json.t) x_0;
+               ]
          | Catch_all_noncompact_other x_0 -> (
              match x_0.payload with
              | Stdlib.Option.None -> `String x_0.tag
              | Stdlib.Option.Some xs -> `List (`String x_0.tag :: xs))
-        : catch_all_noncompact -> Yojson.Basic.t)
+        : catch_all_noncompact -> Jsonkit.Json.t)
   
     let _ = catch_all_noncompact_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1073,10 +1197,17 @@
                | [] -> ()
                | (n', v) :: fs ->
                    (match n' with
-                   | "a" -> x_a := Stdlib.Option.Some (int_of_json v)
+                   | "a" ->
+                       x_a :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
                    | "b_opt" ->
                        x_b_opt :=
-                         Stdlib.Option.Some ((option_of_json int_of_json) v)
+                         Stdlib.Option.Some
+                           ((option_of_json
+                               (int_of_json : Jsonkit.Json.t -> int)
+                              : Jsonkit.Json.t -> int option)
+                              v)
                    | _ -> ());
                    iter fs
              in
@@ -1093,7 +1224,7 @@
                  | Stdlib.Option.None -> Stdlib.Option.None);
              }
          | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
-        : Yojson.Basic.t -> drop_default_option)
+        : Jsonkit.Json.t -> drop_default_option)
   
     let _ = drop_default_option_of_json
   
@@ -1109,12 +1240,19 @@
                   match x_b_opt with
                   | Stdlib.Option.None -> bnds__001_
                   | Stdlib.Option.Some _ ->
-                      ("b_opt", (option_to_json int_to_json) x_b_opt)
+                      ( "b_opt",
+                        (option_to_json
+                           (int_to_json : int -> Jsonkit.Json.t)
+                          : int option -> Jsonkit.Json.t)
+                          x_b_opt )
                       :: bnds__001_
                 in
-                let bnds__001_ = ("a", int_to_json x_a) :: bnds__001_ in
+                let bnds__001_ =
+                  ("a", (int_to_json : int -> Jsonkit.Json.t) x_a)
+                  :: bnds__001_
+                in
                 bnds__001_)
-        : drop_default_option -> Yojson.Basic.t)
+        : drop_default_option -> Jsonkit.Json.t)
   
     let _ = drop_default_option_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1145,8 +1283,14 @@
                | [] -> ()
                | (n', v) :: fs ->
                    (match n' with
-                   | "a" -> x_a := Stdlib.Option.Some (int_of_json v)
-                   | "b" -> x_b := Stdlib.Option.Some (int_of_json v)
+                   | "a" ->
+                       x_a :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
+                   | "b" ->
+                       x_b :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
                    | _ -> ());
                    iter fs
              in
@@ -1163,7 +1307,7 @@
                  | Stdlib.Option.None -> 1);
              }
          | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
-        : Yojson.Basic.t -> drop_default)
+        : Jsonkit.Json.t -> drop_default)
   
     let _ = drop_default_of_json
   
@@ -1180,11 +1324,16 @@
                     (fun a b -> if compare a b = 0 then true else false)
                       x_b 1
                   then bnds__001_
-                  else ("b", int_to_json x_b) :: bnds__001_
+                  else
+                    ("b", (int_to_json : int -> Jsonkit.Json.t) x_b)
+                    :: bnds__001_
                 in
-                let bnds__001_ = ("a", int_to_json x_a) :: bnds__001_ in
+                let bnds__001_ =
+                  ("a", (int_to_json : int -> Jsonkit.Json.t) x_a)
+                  :: bnds__001_
+                in
                 bnds__001_)
-        : drop_default -> Yojson.Basic.t)
+        : drop_default -> Jsonkit.Json.t)
   
     let _ = drop_default_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1212,8 +1361,14 @@
                | [] -> ()
                | (n', v) :: fs ->
                    (match n' with
-                   | "a" -> x_a := Stdlib.Option.Some (int_of_json v)
-                   | "b" -> x_b := Stdlib.Option.Some (int_of_json v)
+                   | "a" ->
+                       x_a :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
+                   | "b" ->
+                       x_b :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
                    | _ -> ());
                    iter fs
              in
@@ -1230,7 +1385,7 @@
                  | Stdlib.Option.None -> 1);
              }
          | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
-        : Yojson.Basic.t -> drop_default_default_eq)
+        : Jsonkit.Json.t -> drop_default_default_eq)
   
     let _ = drop_default_default_eq_of_json
   
@@ -1244,11 +1399,16 @@
                (let bnds__001_ = [] in
                 let bnds__001_ =
                   if equal_int x_b 1 then bnds__001_
-                  else ("b", int_to_json x_b) :: bnds__001_
+                  else
+                    ("b", (int_to_json : int -> Jsonkit.Json.t) x_b)
+                    :: bnds__001_
                 in
-                let bnds__001_ = ("a", int_to_json x_a) :: bnds__001_ in
+                let bnds__001_ =
+                  ("a", (int_to_json : int -> Jsonkit.Json.t) x_a)
+                  :: bnds__001_
+                in
                 bnds__001_)
-        : drop_default_default_eq -> Yojson.Basic.t)
+        : drop_default_default_eq -> Jsonkit.Json.t)
   
     let _ = drop_default_default_eq_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1276,8 +1436,14 @@
                | [] -> ()
                | (n', v) :: fs ->
                    (match n' with
-                   | "a" -> x_a := Stdlib.Option.Some (int_of_json v)
-                   | "b" -> x_b := Stdlib.Option.Some (int_of_json v)
+                   | "a" ->
+                       x_a :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
+                   | "b" ->
+                       x_b :=
+                         Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v)
                    | _ -> ());
                    iter fs
              in
@@ -1294,7 +1460,7 @@
                  | Stdlib.Option.None -> 1);
              }
          | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
-        : Yojson.Basic.t -> drop_default_if_json_equal)
+        : Jsonkit.Json.t -> drop_default_if_json_equal)
   
     let _ = drop_default_if_json_equal_of_json
   
@@ -1307,13 +1473,19 @@
              `Assoc
                (let bnds__001_ = [] in
                 let bnds__001_ =
-                  let json = int_to_json x_b in
-                  if Jsonkit.equal json (int_to_json 1) then bnds__001_
+                  let json = (int_to_json : int -> Jsonkit.Json.t) x_b in
+                  if
+                    Jsonkit.equal json
+                      ((int_to_json : int -> Jsonkit.Json.t) 1)
+                  then bnds__001_
                   else ("b", json) :: bnds__001_
                 in
-                let bnds__001_ = ("a", int_to_json x_a) :: bnds__001_ in
+                let bnds__001_ =
+                  ("a", (int_to_json : int -> Jsonkit.Json.t) x_a)
+                  :: bnds__001_
+                in
                 bnds__001_)
-        : drop_default_if_json_equal -> Yojson.Basic.t)
+        : drop_default_if_json_equal -> Jsonkit.Json.t)
   
     let _ = drop_default_if_json_equal_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1338,7 +1510,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
          | `List (`String "C" :: []) -> `C
          | x ->
              Jsonkit.of_json_unexpected_variant ~json:x "expected [\"C\"]"
-        : Yojson.Basic.t -> one)
+        : Jsonkit.Json.t -> one)
   
     let _ = one_of_json
   
@@ -1346,7 +1518,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
   
     let rec one_to_json =
       (fun x -> match x with `C -> `List [ `String "C" ]
-        : one -> Yojson.Basic.t)
+        : one -> Jsonkit.Json.t)
   
     let _ = one_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1364,7 +1536,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
          | `List (`String "C" :: []) -> `C
          | x ->
              Jsonkit.of_json_unexpected_variant ~json:x "expected [\"C\"]"
-        : Yojson.Basic.t -> other)
+        : Jsonkit.Json.t -> other)
   
     let _ = other_of_json
   
@@ -1372,7 +1544,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
   
     let rec other_to_json =
       (fun x -> match x with `C -> `List [ `String "C" ]
-        : other -> Yojson.Basic.t)
+        : other -> Jsonkit.Json.t)
   
     let _ = other_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1388,17 +1560,17 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
       (fun x ->
          match x with
          | x -> (
-             match one_of_json x with
+             match (one_of_json : Jsonkit.Json.t -> one) x with
              | x -> (x :> [ one | other ])
              | exception
                  Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) -> (
-                 match other_of_json x with
+                 match (other_of_json : Jsonkit.Json.t -> other) x with
                  | x -> (x :> [ one | other ])
                  | exception
                      Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
                      Jsonkit.of_json_unexpected_variant ~json:x "expected ")
              )
-        : Yojson.Basic.t -> poly)
+        : Jsonkit.Json.t -> poly)
   
     let _ = poly_of_json
   
@@ -1407,9 +1579,9 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
     let rec poly_to_json =
       (fun x ->
          match x with
-         | #one as x -> one_to_json x
-         | #other as x -> other_to_json x
-        : poly -> Yojson.Basic.t)
+         | #one as x -> (one_to_json : one -> Jsonkit.Json.t) x
+         | #other as x -> (other_to_json : other -> Jsonkit.Json.t) x
+        : poly -> Jsonkit.Json.t)
   
     let _ = poly_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1432,7 +1604,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
          | x ->
              Jsonkit.of_json_unexpected_variant ~json:x
                "expected [\"Alpha\"] or [\"Beta\"]"
-        : Yojson.Basic.t -> poly_known)
+        : Jsonkit.Json.t -> poly_known)
   
     let _ = poly_known_of_json
   
@@ -1443,7 +1615,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
          match x with
          | `Alpha -> `List [ `String "Alpha" ]
          | `Beta -> `List [ `String "Beta" ]
-        : poly_known -> Yojson.Basic.t)
+        : poly_known -> Jsonkit.Json.t)
   
     let _ = poly_known_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1464,7 +1636,9 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
       (fun x ->
          match x with
          | x -> (
-             match poly_known_of_json x with
+             match
+               (poly_known_of_json : Jsonkit.Json.t -> poly_known) x
+             with
              | x ->
                  (x
                    :> [ poly_known
@@ -1486,7 +1660,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                  | _ ->
                      Jsonkit.of_json_unexpected_variant ~json:x
                        "expected [\"Other\", _]"))
-        : Yojson.Basic.t -> poly_own_catch_all)
+        : Jsonkit.Json.t -> poly_own_catch_all)
   
     let _ = poly_own_catch_all_of_json
   
@@ -1495,12 +1669,13 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
     let rec poly_own_catch_all_to_json =
       (fun x ->
          match x with
-         | #poly_known as x -> poly_known_to_json x
+         | #poly_known as x ->
+             (poly_known_to_json : poly_known -> Jsonkit.Json.t) x
          | `Other x_0 -> (
              match x_0.payload with
              | Stdlib.Option.None -> `String x_0.tag
              | Stdlib.Option.Some xs -> `List (`String x_0.tag :: xs))
-        : poly_own_catch_all -> Yojson.Basic.t)
+        : poly_own_catch_all -> Jsonkit.Json.t)
   
     let _ = poly_own_catch_all_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]

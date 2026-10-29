@@ -103,17 +103,24 @@ class virtual deriving_fn =
         label -> longident loc -> expression =
       fun name n -> ederiver name n
 
-    method private derive_type_ref' ~loc name n ts =
+    method private derive_type_ref' ~loc ~referenced_type name n ts =
       let f = self#derive_type_ref_name name n in
       let args =
         List.fold_left (List.rev ts) ~init:[] ~f:(fun args a ->
             let a = as_fun ~loc (self#derive_of_core_type' a) in
             (Nolabel, a) :: args)
       in
-      As_val (pexp_apply ~loc f args)
+      let converter = pexp_apply ~loc f args in
+      let converter_type =
+        self#t ~loc (map_loc Lid.last n) referenced_type
+      in
+      As_val (pexp_constraint ~loc converter converter_type)
 
     method derive_type_ref ~loc name n ts x =
-      as_val ~loc (self#derive_type_ref' ~loc name n ts) x
+      let referenced_type = ptyp_constr ~loc n ts in
+      as_val ~loc
+        (self#derive_type_ref' ~loc ~referenced_type name n ts)
+        x
 
     method private derive_of_core_type' t =
       let loc = t.ptyp_loc in
@@ -141,7 +148,7 @@ class virtual deriving_fn =
                 }
             | None -> id
           in
-          self#derive_type_ref' self#name ~loc id ts
+          self#derive_type_ref' self#name ~loc ~referenced_type:t id ts
       | `Ptyp_variant fs -> As_fun (self#derive_of_polyvariant t fs)
 
     method derive_of_core_type t x =

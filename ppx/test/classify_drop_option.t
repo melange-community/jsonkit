@@ -29,8 +29,14 @@ We can classify the JSON produced by `to_json` for a record with a dropped optio
                     match x_a with
                     | Stdlib.Option.None -> bnds__001_
                     | Stdlib.Option.Some _ ->
-                        ("a", ((option_to_json int_to_json) x_a)) :: bnds__001_ in
-                  bnds__001_) : t -> Yojson.Basic.t)
+                        ("a",
+                          ((option_to_json
+                              (int_to_json : int -> Jsonkit.Json.t) : int
+                                                                      option ->
+                                                                      Jsonkit.Json.t)
+                             x_a))
+                        :: bnds__001_ in
+                  bnds__001_) : t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =
@@ -61,8 +67,10 @@ We can classify the JSON produced by `to_json` for a record with a dropped optio
                           | Stdlib.Option.None -> Js.Undefined.empty
                           | Stdlib.Option.Some _ ->
                               Js.Undefined.return
-                                ((option_to_json int_to_json) x_a))
-                     }]) : Js.Json.t) : t -> Js.Json.t)
+                                ((option_to_json
+                                    (int_to_json : int -> Jsonkit.Json.t) : 
+                                   int option -> Jsonkit.Json.t) x_a))
+                     }]) : Js.Json.t) : t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =

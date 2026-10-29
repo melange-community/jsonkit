@@ -13,6 +13,11 @@ module Lid = struct
     in
     fun lid -> flat [] lid
 
+  let rec last = function
+    | Lident s -> s
+    | Ldot (_, s) -> s
+    | Lapply (_, lid) -> last lid
+
   let unflatten l =
     match l with
     | [] -> None

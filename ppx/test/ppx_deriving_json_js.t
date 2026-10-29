@@ -10,12 +10,18 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec user_of_json = (fun x -> int_of_json x : Js.Json.t -> user)
+    let rec user_of_json =
+      (fun x -> (int_of_json : Jsonkit.Json.t -> int) x
+        : Jsonkit.Json.t -> user)
+  
     let _ = user_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec user_to_json = (fun x -> int_to_json x : user -> Js.Json.t)
+    let rec user_to_json =
+      (fun x -> (int_to_json : int -> Jsonkit.Json.t) x
+        : user -> Jsonkit.Json.t)
+  
     let _ = user_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
 
@@ -30,14 +36,16 @@
     [@@@ocaml.warning "-39-11-27"]
   
     let rec floaty_of_json =
-      (fun x -> float_of_json x : Js.Json.t -> floaty)
+      (fun x -> (float_of_json : Jsonkit.Json.t -> float) x
+        : Jsonkit.Json.t -> floaty)
   
     let _ = floaty_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
     let rec floaty_to_json =
-      (fun x -> float_to_json x : floaty -> Js.Json.t)
+      (fun x -> (float_to_json : float -> Jsonkit.Json.t) x
+        : floaty -> Jsonkit.Json.t)
   
     let _ = floaty_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -53,14 +61,14 @@
     [@@@ocaml.warning "-39-11-27"]
   
     let rec param_of_json of_json__a =
-      (fun x -> of_json__a x : Js.Json.t -> 'a param)
+      (fun x -> of_json__a x : Jsonkit.Json.t -> 'a param)
   
     let _ = param_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
     let rec param_to_json to_json__a =
-      (fun x -> to_json__a x : 'a param -> Js.Json.t)
+      (fun x -> to_json__a x : 'a param -> Jsonkit.Json.t)
   
     let _ = param_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -76,14 +84,22 @@
     [@@@ocaml.warning "-39-11-27"]
   
     let rec opt_of_json =
-      (fun x -> (option_of_json string_of_json) x : Js.Json.t -> opt)
+      (fun x ->
+         (option_of_json (string_of_json : Jsonkit.Json.t -> string)
+           : Jsonkit.Json.t -> string option)
+           x
+        : Jsonkit.Json.t -> opt)
   
     let _ = opt_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
     let rec opt_to_json =
-      (fun x -> (option_to_json string_to_json) x : opt -> Js.Json.t)
+      (fun x ->
+         (option_to_json (string_to_json : string -> Jsonkit.Json.t)
+           : string option -> Jsonkit.Json.t)
+           x
+        : opt -> Jsonkit.Json.t)
   
     let _ = opt_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -99,16 +115,26 @@
     [@@@ocaml.warning "-39-11-27"]
   
     let rec res_of_json =
-      (fun x -> (result_of_json int_of_json string_of_json) x
-        : Js.Json.t -> res)
+      (fun x ->
+         (result_of_json
+            (int_of_json : Jsonkit.Json.t -> int)
+            (string_of_json : Jsonkit.Json.t -> string)
+           : Jsonkit.Json.t -> (int, string) result)
+           x
+        : Jsonkit.Json.t -> res)
   
     let _ = res_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
     let rec res_to_json =
-      (fun x -> (result_to_json int_to_json string_to_json) x
-        : res -> Js.Json.t)
+      (fun x ->
+         (result_to_json
+            (int_to_json : int -> Jsonkit.Json.t)
+            (string_to_json : string -> Jsonkit.Json.t)
+           : (int, string) result -> Jsonkit.Json.t)
+           x
+        : res -> Jsonkit.Json.t)
   
     let _ = res_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -132,11 +158,12 @@
                 2)
          then
            let es = (Obj.magic x : Js.Json.t array) in
-           ( int_of_json (Js.Array.unsafe_get es 0),
-             string_of_json (Js.Array.unsafe_get es 1) )
+           ( (int_of_json : Jsonkit.Json.t -> int) (Js.Array.unsafe_get es 0),
+             (string_of_json : Jsonkit.Json.t -> string)
+               (Js.Array.unsafe_get es 1) )
          else
            Jsonkit.of_json_error ~json:x "expected a JSON array of length 2"
-        : Js.Json.t -> tuple)
+        : Jsonkit.Json.t -> tuple)
   
     let _ = tuple_of_json
   
@@ -146,9 +173,13 @@
       (fun x ->
          match x with
          | x_0, x_1 ->
-             (Obj.magic [| int_to_json x_0; string_to_json x_1 |]
+             (Obj.magic
+                [|
+                  (int_to_json : int -> Jsonkit.Json.t) x_0;
+                  (string_to_json : string -> Jsonkit.Json.t) x_1;
+                |]
                : Js.Json.t)
-        : tuple -> Js.Json.t)
+        : tuple -> Jsonkit.Json.t)
   
     let _ = tuple_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -183,18 +214,20 @@
          {
            name =
              (match Js.Undefined.toOption fs##name with
-             | Stdlib.Option.Some v -> string_of_json v
+             | Stdlib.Option.Some v ->
+                 (string_of_json : Jsonkit.Json.t -> string) v
              | Stdlib.Option.None ->
                  Jsonkit.of_json_error ~json:x
                    "expected field \"name\" to be present");
            age =
              (match Js.Undefined.toOption fs##age with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v ->
+                 (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
                  Jsonkit.of_json_error ~json:x
                    "expected field \"age\" to be present");
          }
-        : Js.Json.t -> record)
+        : Jsonkit.Json.t -> record)
   
     let _ = record_of_json
   
@@ -206,9 +239,13 @@
          | { name = x_name; age = x_age } ->
              (Obj.magic
                 [%mel.obj
-                  { name = string_to_json x_name; age = int_to_json x_age }]
+                  {
+                    name =
+                      (string_to_json : string -> Jsonkit.Json.t) x_name;
+                    age = (int_to_json : int -> Jsonkit.Json.t) x_age;
+                  }]
                : Js.Json.t)
-        : record -> Js.Json.t)
+        : record -> Jsonkit.Json.t)
   
     let _ = record_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -247,16 +284,18 @@
          {
            name =
              (match Js.Undefined.toOption fs##my_name with
-             | Stdlib.Option.Some v -> string_of_json v
+             | Stdlib.Option.Some v ->
+                 (string_of_json : Jsonkit.Json.t -> string) v
              | Stdlib.Option.None ->
                  Jsonkit.of_json_error ~json:x
                    "expected field \"my_name\" to be present");
            age =
              (match Js.Undefined.toOption fs##my_age with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v ->
+                 (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None -> 100);
          }
-        : Js.Json.t -> record_aliased)
+        : Jsonkit.Json.t -> record_aliased)
   
     let _ = record_aliased_of_json
   
@@ -269,11 +308,12 @@
              (Obj.magic
                 [%mel.obj
                   {
-                    my_name = string_to_json x_name;
-                    my_age = int_to_json x_age;
+                    my_name =
+                      (string_to_json : string -> Jsonkit.Json.t) x_name;
+                    my_age = (int_to_json : int -> Jsonkit.Json.t) x_age;
                   }]
                : Js.Json.t)
-        : record_aliased -> Js.Json.t)
+        : record_aliased -> Jsonkit.Json.t)
   
     let _ = record_aliased_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -303,10 +343,13 @@
          {
            k =
              (match Js.Undefined.toOption fs##k with
-             | Stdlib.Option.Some v -> (option_of_json int_of_json) v
+             | Stdlib.Option.Some v ->
+                 (option_of_json (int_of_json : Jsonkit.Json.t -> int)
+                   : Jsonkit.Json.t -> int option)
+                   v
              | Stdlib.Option.None -> Stdlib.Option.None);
          }
-        : Js.Json.t -> record_opt)
+        : Jsonkit.Json.t -> record_opt)
   
     let _ = record_opt_of_json
   
@@ -316,9 +359,16 @@
       (fun x ->
          match x with
          | { k = x_k } ->
-             (Obj.magic [%mel.obj { k = (option_to_json int_to_json) x_k }]
+             (Obj.magic
+                [%mel.obj
+                  {
+                    k =
+                      (option_to_json (int_to_json : int -> Jsonkit.Json.t)
+                        : int option -> Jsonkit.Json.t)
+                        x_k;
+                  }]
                : Js.Json.t)
-        : record_opt -> Js.Json.t)
+        : record_opt -> Jsonkit.Json.t)
   
     let _ = record_opt_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -350,7 +400,10 @@
                  if Stdlib.( <> ) len 2 then
                    Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
-                 else B (int_of_json (Js.Array.unsafe_get array 1))
+                 else
+                   B
+                     ((int_of_json : Jsonkit.Json.t -> int)
+                        (Js.Array.unsafe_get array 1))
                else if Stdlib.( = ) (Obj.magic tag : string) "C" then (
                  if Stdlib.( <> ) len 2 then
                    Jsonkit.of_json_error ~json:x
@@ -376,7 +429,8 @@
                      {
                        name =
                          (match Js.Undefined.toOption fs##name with
-                         | Stdlib.Option.Some v -> string_of_json v
+                         | Stdlib.Option.Some v ->
+                             (string_of_json : Jsonkit.Json.t -> string) v
                          | Stdlib.Option.None ->
                              Jsonkit.of_json_error ~json:x
                                "expected field \"name\" to be present");
@@ -392,7 +446,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> sum)
+        : Jsonkit.Json.t -> sum)
   
     let _ = sum_of_json
   
@@ -403,17 +457,27 @@
          match x with
          | A -> (Obj.magic [| (Obj.magic "A" : Js.Json.t) |] : Js.Json.t)
          | B x_0 ->
-             (Obj.magic [| (Obj.magic "B" : Js.Json.t); int_to_json x_0 |]
+             (Obj.magic
+                [|
+                  (Obj.magic "B" : Js.Json.t);
+                  (int_to_json : int -> Jsonkit.Json.t) x_0;
+                |]
                : Js.Json.t)
          | C { name = x_name } ->
              (Obj.magic
                 [|
                   (Obj.magic "C" : Js.Json.t);
-                  (Obj.magic [%mel.obj { name = string_to_json x_name }]
+                  (Obj.magic
+                     [%mel.obj
+                       {
+                         name =
+                           (string_to_json : string -> Jsonkit.Json.t)
+                             x_name;
+                       }]
                     : Js.Json.t);
                 |]
                : Js.Json.t)
-        : sum -> Js.Json.t)
+        : sum -> Jsonkit.Json.t)
   
     let _ = sum_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -442,8 +506,10 @@
                      "expected a JSON array of length 3"
                  else
                    S2
-                     ( int_of_json (Js.Array.unsafe_get array 1),
-                       string_of_json (Js.Array.unsafe_get array 2) )
+                     ( (int_of_json : Jsonkit.Json.t -> int)
+                         (Js.Array.unsafe_get array 1),
+                       (string_of_json : Jsonkit.Json.t -> string)
+                         (Js.Array.unsafe_get array 2) )
                else Jsonkit.of_json_error ~json:x "expected [\"S2\", _, _]"
              else
                Jsonkit.of_json_error ~json:x
@@ -453,7 +519,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> sum2)
+        : Jsonkit.Json.t -> sum2)
   
     let _ = sum2_of_json
   
@@ -466,11 +532,11 @@
              (Obj.magic
                 [|
                   (Obj.magic "S2" : Js.Json.t);
-                  int_to_json x_0;
-                  string_to_json x_1;
+                  (int_to_json : int -> Jsonkit.Json.t) x_0;
+                  (string_to_json : string -> Jsonkit.Json.t) x_1;
                 |]
                : Js.Json.t)
-        : sum2 -> Js.Json.t)
+        : sum2 -> Jsonkit.Json.t)
   
     let _ = sum2_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -509,7 +575,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> other)
+        : Jsonkit.Json.t -> other)
   
     let _ = other_of_json
   
@@ -519,7 +585,7 @@
       (fun x ->
          match x with
          | `C -> (Obj.magic [| (Obj.magic "C" : Js.Json.t) |] : Js.Json.t)
-        : other -> Js.Json.t)
+        : other -> Jsonkit.Json.t)
   
     let _ = other_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -548,9 +614,12 @@
                  if Stdlib.( <> ) len 2 then
                    Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
-                 else `B (int_of_json (Js.Array.unsafe_get array 1))
+                 else
+                   `B
+                     ((int_of_json : Jsonkit.Json.t -> int)
+                        (Js.Array.unsafe_get array 1))
                else
-                 match other_of_json x with
+                 match (other_of_json : Jsonkit.Json.t -> other) x with
                  | e -> (e :> [ `A | `B of int | other ])
                  | exception
                      Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
@@ -564,7 +633,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> poly)
+        : Jsonkit.Json.t -> poly)
   
     let _ = poly_of_json
   
@@ -575,10 +644,14 @@
          match x with
          | `A -> (Obj.magic [| (Obj.magic "A" : Js.Json.t) |] : Js.Json.t)
          | `B x_0 ->
-             (Obj.magic [| (Obj.magic "B" : Js.Json.t); int_to_json x_0 |]
+             (Obj.magic
+                [|
+                  (Obj.magic "B" : Js.Json.t);
+                  (int_to_json : int -> Jsonkit.Json.t) x_0;
+                |]
                : Js.Json.t)
-         | #other as x -> other_to_json x
-        : poly -> Js.Json.t)
+         | #other as x -> (other_to_json : other -> Jsonkit.Json.t) x
+        : poly -> Jsonkit.Json.t)
   
     let _ = poly_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -607,8 +680,10 @@
                      "expected a JSON array of length 3"
                  else
                    `P2
-                     ( int_of_json (Js.Array.unsafe_get array 1),
-                       string_of_json (Js.Array.unsafe_get array 2) )
+                     ( (int_of_json : Jsonkit.Json.t -> int)
+                         (Js.Array.unsafe_get array 1),
+                       (string_of_json : Jsonkit.Json.t -> string)
+                         (Js.Array.unsafe_get array 2) )
                else
                  Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"P2\", _, _]"
@@ -620,7 +695,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> poly2)
+        : Jsonkit.Json.t -> poly2)
   
     let _ = poly2_of_json
   
@@ -633,11 +708,11 @@
              (Obj.magic
                 [|
                   (Obj.magic "P2" : Js.Json.t);
-                  int_to_json x_0;
-                  string_to_json x_1;
+                  (int_to_json : int -> Jsonkit.Json.t) x_0;
+                  (string_to_json : string -> Jsonkit.Json.t) x_1;
                 |]
                : Js.Json.t)
-        : poly2 -> Js.Json.t)
+        : poly2 -> Jsonkit.Json.t)
   
     let _ = poly2_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -676,7 +751,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> 'a c)
+        : Jsonkit.Json.t -> 'a c)
   
     let _ = c_of_json
   
@@ -688,7 +763,7 @@
          | `C x_0 ->
              (Obj.magic [| (Obj.magic "C" : Js.Json.t); to_json__a x_0 |]
                : Js.Json.t)
-        : 'a c -> Js.Json.t)
+        : 'a c -> Jsonkit.Json.t)
   
     let _ = c_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -720,7 +795,10 @@
                  if Stdlib.( <> ) len 2 then
                    Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
-                 else Fix (recur_of_json (Js.Array.unsafe_get array 1))
+                 else
+                   Fix
+                     ((recur_of_json : Jsonkit.Json.t -> recur)
+                        (Js.Array.unsafe_get array 1))
                else
                  Jsonkit.of_json_error ~json:x
                    "expected [\"Fix\", _] or [\"A\"]"
@@ -732,7 +810,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> recur)
+        : Jsonkit.Json.t -> recur)
   
     let _ = recur_of_json
   
@@ -744,9 +822,12 @@
          | A -> (Obj.magic [| (Obj.magic "A" : Js.Json.t) |] : Js.Json.t)
          | Fix x_0 ->
              (Obj.magic
-                [| (Obj.magic "Fix" : Js.Json.t); recur_to_json x_0 |]
+                [|
+                  (Obj.magic "Fix" : Js.Json.t);
+                  (recur_to_json : recur -> Jsonkit.Json.t) x_0;
+                |]
                : Js.Json.t)
-        : recur -> Js.Json.t)
+        : recur -> Jsonkit.Json.t)
   
     let _ = recur_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -778,7 +859,10 @@
                  if Stdlib.( <> ) len 2 then
                    Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
-                 else `Fix (polyrecur_of_json (Js.Array.unsafe_get array 1))
+                 else
+                   `Fix
+                     ((polyrecur_of_json : Jsonkit.Json.t -> polyrecur)
+                        (Js.Array.unsafe_get array 1))
                else
                  Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"A\"] or [\"Fix\", _]"
@@ -790,7 +874,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> polyrecur)
+        : Jsonkit.Json.t -> polyrecur)
   
     let _ = polyrecur_of_json
   
@@ -802,9 +886,12 @@
          | `A -> (Obj.magic [| (Obj.magic "A" : Js.Json.t) |] : Js.Json.t)
          | `Fix x_0 ->
              (Obj.magic
-                [| (Obj.magic "Fix" : Js.Json.t); polyrecur_to_json x_0 |]
+                [|
+                  (Obj.magic "Fix" : Js.Json.t);
+                  (polyrecur_to_json : polyrecur -> Jsonkit.Json.t) x_0;
+                |]
                : Js.Json.t)
-        : polyrecur -> Js.Json.t)
+        : polyrecur -> Jsonkit.Json.t)
   
     let _ = polyrecur_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -849,7 +936,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> evar)
+        : Jsonkit.Json.t -> evar)
   
     let _ = evar_of_json
   
@@ -862,7 +949,7 @@
          | B ->
              (Obj.magic [| (Obj.magic "b_aliased" : Js.Json.t) |]
                : Js.Json.t)
-        : evar -> Js.Json.t)
+        : evar -> Jsonkit.Json.t)
   
     let _ = evar_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -906,7 +993,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> epoly)
+        : Jsonkit.Json.t -> epoly)
   
     let _ = epoly_of_json
   
@@ -919,7 +1006,7 @@
              (Obj.magic [| (Obj.magic "A_aliased" : Js.Json.t) |]
                : Js.Json.t)
          | `b -> (Obj.magic [| (Obj.magic "b" : Js.Json.t) |] : Js.Json.t)
-        : epoly -> Js.Json.t)
+        : epoly -> Jsonkit.Json.t)
   
     let _ = epoly_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -963,7 +1050,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> ('a, 'b) p2)
+        : Jsonkit.Json.t -> ('a, 'b) p2)
   
     let _ = p2_of_json
   
@@ -978,7 +1065,7 @@
          | B x_0 ->
              (Obj.magic [| (Obj.magic "B" : Js.Json.t); to_json__b x_0 |]
                : Js.Json.t)
-        : ('a, 'b) p2 -> Js.Json.t)
+        : ('a, 'b) p2 -> Jsonkit.Json.t)
   
     let _ = p2_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1009,12 +1096,13 @@
          {
            a =
              (match Js.Undefined.toOption fs##a with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v ->
+                 (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
                  Jsonkit.of_json_error ~json:x
                    "expected field \"a\" to be present");
          }
-        : Js.Json.t -> allow_extra_fields)
+        : Jsonkit.Json.t -> allow_extra_fields)
   
     let _ = allow_extra_fields_of_json
   
@@ -1024,8 +1112,10 @@
       (fun x ->
          match x with
          | { a = x_a } ->
-             (Obj.magic [%mel.obj { a = int_to_json x_a }] : Js.Json.t)
-        : allow_extra_fields -> Js.Json.t)
+             (Obj.magic
+                [%mel.obj { a = (int_to_json : int -> Jsonkit.Json.t) x_a }]
+               : Js.Json.t)
+        : allow_extra_fields -> Jsonkit.Json.t)
   
     let _ = allow_extra_fields_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1074,7 +1164,8 @@
                      {
                        a =
                          (match Js.Undefined.toOption fs##a with
-                         | Stdlib.Option.Some v -> int_of_json v
+                         | Stdlib.Option.Some v ->
+                             (int_of_json : Jsonkit.Json.t -> int) v
                          | Stdlib.Option.None ->
                              Jsonkit.of_json_error ~json:x
                                "expected field \"a\" to be present");
@@ -1088,7 +1179,7 @@
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> allow_extra_fields2)
+        : Jsonkit.Json.t -> allow_extra_fields2)
   
     let _ = allow_extra_fields2_of_json
   
@@ -1101,10 +1192,13 @@
              (Obj.magic
                 [|
                   (Obj.magic "A" : Js.Json.t);
-                  (Obj.magic [%mel.obj { a = int_to_json x_a }] : Js.Json.t);
+                  (Obj.magic
+                     [%mel.obj
+                       { a = (int_to_json : int -> Jsonkit.Json.t) x_a }]
+                    : Js.Json.t);
                 |]
                : Js.Json.t)
-        : allow_extra_fields2 -> Js.Json.t)
+        : allow_extra_fields2 -> Jsonkit.Json.t)
   
     let _ = allow_extra_fields2_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1143,16 +1237,20 @@
          {
            a =
              (match Js.Undefined.toOption fs##a with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v ->
+                 (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
                  Jsonkit.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b_opt =
              (match Js.Undefined.toOption fs##b_opt with
-             | Stdlib.Option.Some v -> (option_of_json int_of_json) v
+             | Stdlib.Option.Some v ->
+                 (option_of_json (int_of_json : Jsonkit.Json.t -> int)
+                   : Jsonkit.Json.t -> int option)
+                   v
              | Stdlib.Option.None -> Stdlib.Option.None);
          }
-        : Js.Json.t -> drop_default_option)
+        : Jsonkit.Json.t -> drop_default_option)
   
     let _ = drop_default_option_of_json
   
@@ -1165,16 +1263,19 @@
              (Obj.magic
                 [%mel.obj
                   {
-                    a = int_to_json x_a;
+                    a = (int_to_json : int -> Jsonkit.Json.t) x_a;
                     b_opt =
                       (match x_b_opt with
                       | Stdlib.Option.None -> Js.Undefined.empty
                       | Stdlib.Option.Some _ ->
                           Js.Undefined.return
-                            ((option_to_json int_to_json) x_b_opt));
+                            ((option_to_json
+                                (int_to_json : int -> Jsonkit.Json.t)
+                               : int option -> Jsonkit.Json.t)
+                               x_b_opt));
                   }]
                : Js.Json.t)
-        : drop_default_option -> Js.Json.t)
+        : drop_default_option -> Jsonkit.Json.t)
   
     let _ = drop_default_option_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1211,16 +1312,18 @@
          {
            a =
              (match Js.Undefined.toOption fs##a with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v ->
+                 (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
                  Jsonkit.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b =
              (match Js.Undefined.toOption fs##b with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v ->
+                 (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None -> 1);
          }
-        : Js.Json.t -> drop_default_default_eq)
+        : Jsonkit.Json.t -> drop_default_default_eq)
   
     let _ = drop_default_default_eq_of_json
   
@@ -1233,13 +1336,15 @@
              (Obj.magic
                 [%mel.obj
                   {
-                    a = int_to_json x_a;
+                    a = (int_to_json : int -> Jsonkit.Json.t) x_a;
                     b =
                       (if equal_int x_b 1 then Js.Undefined.empty
-                       else Js.Undefined.return (int_to_json x_b));
+                       else
+                         Js.Undefined.return
+                           ((int_to_json : int -> Jsonkit.Json.t) x_b));
                   }]
                : Js.Json.t)
-        : drop_default_default_eq -> Js.Json.t)
+        : drop_default_default_eq -> Jsonkit.Json.t)
   
     let _ = drop_default_default_eq_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1268,7 +1373,7 @@
              else Other x
            else Other x
          else Other x
-        : Js.Json.t -> variant_any)
+        : Jsonkit.Json.t -> variant_any)
   
     let _ = variant_any_of_json
   
@@ -1280,7 +1385,7 @@
          | Other x_0 -> x_0
          | Foo ->
              (Obj.magic [| (Obj.magic "Foo" : Js.Json.t) |] : Js.Json.t)
-        : variant_any -> Js.Json.t)
+        : variant_any -> Jsonkit.Json.t)
   
     let _ = variant_any_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1320,16 +1425,18 @@
          {
            a =
              (match Js.Undefined.toOption fs##a with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v ->
+                 (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
                  Jsonkit.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b =
              (match Js.Undefined.toOption fs##b with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v ->
+                 (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None -> 1);
          }
-        : Js.Json.t -> drop_default)
+        : Jsonkit.Json.t -> drop_default)
   
     let _ = drop_default_of_json
   
@@ -1342,17 +1449,19 @@
              (Obj.magic
                 [%mel.obj
                   {
-                    a = int_to_json x_a;
+                    a = (int_to_json : int -> Jsonkit.Json.t) x_a;
                     b =
                       (if
                          (fun a b ->
                            if compare a b = 0 then true else false)
                            x_b 1
                        then Js.Undefined.empty
-                       else Js.Undefined.return (int_to_json x_b));
+                       else
+                         Js.Undefined.return
+                           ((int_to_json : int -> Jsonkit.Json.t) x_b));
                   }]
                : Js.Json.t)
-        : drop_default -> Js.Json.t)
+        : drop_default -> Jsonkit.Json.t)
   
     let _ = drop_default_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1389,16 +1498,18 @@
          {
            a =
              (match Js.Undefined.toOption fs##a with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v ->
+                 (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
                  Jsonkit.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b =
              (match Js.Undefined.toOption fs##b with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v ->
+                 (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None -> 1);
          }
-        : Js.Json.t -> drop_default_if_json_equal)
+        : Jsonkit.Json.t -> drop_default_if_json_equal)
   
     let _ = drop_default_if_json_equal_of_json
   
@@ -1411,15 +1522,19 @@
              (Obj.magic
                 [%mel.obj
                   {
-                    a = int_to_json x_a;
+                    a = (int_to_json : int -> Jsonkit.Json.t) x_a;
                     b =
-                      (let json = int_to_json x_b in
-                       if Jsonkit.equal json (int_to_json 1) then
-                         Js.Undefined.empty
+                      (let json =
+                         (int_to_json : int -> Jsonkit.Json.t) x_b
+                       in
+                       if
+                         Jsonkit.equal json
+                           ((int_to_json : int -> Jsonkit.Json.t) 1)
+                       then Js.Undefined.empty
                        else Js.Undefined.return json);
                   }]
                : Js.Json.t)
-        : drop_default_if_json_equal -> Js.Json.t)
+        : drop_default_if_json_equal -> Jsonkit.Json.t)
   
     let _ = drop_default_if_json_equal_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1448,7 +1563,7 @@
              else Other x
            else Other x
          else Other x
-        : Js.Json.t -> variant_any)
+        : Jsonkit.Json.t -> variant_any)
   
     let _ = variant_any_of_json
   
@@ -1460,7 +1575,7 @@
          | Other x_0 -> x_0
          | Foo ->
              (Obj.magic [| (Obj.magic "Foo" : Js.Json.t) |] : Js.Json.t)
-        : variant_any -> Js.Json.t)
+        : variant_any -> Jsonkit.Json.t)
   
     let _ = variant_any_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1489,7 +1604,10 @@
                  if Stdlib.( <> ) len 2 then
                    Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
-                 else B (int_of_json (Js.Array.unsafe_get array 1))
+                 else
+                   B
+                     ((int_of_json : Jsonkit.Json.t -> int)
+                        (Js.Array.unsafe_get array 1))
                else
                  Jsonkit.of_json_error ~json:x
                    "expected [\"B\", _] or \"A\""
@@ -1504,7 +1622,7 @@
            else Jsonkit.of_json_error ~json:x "expected [\"B\", _] or \"A\""
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> compact_variant)
+        : Jsonkit.Json.t -> compact_variant)
   
     let _ = compact_variant_of_json
   
@@ -1515,9 +1633,13 @@
          match x with
          | A -> (Obj.magic "A" : Js.Json.t)
          | B x_0 ->
-             (Obj.magic [| (Obj.magic "B" : Js.Json.t); int_to_json x_0 |]
+             (Obj.magic
+                [|
+                  (Obj.magic "B" : Js.Json.t);
+                  (int_to_json : int -> Jsonkit.Json.t) x_0;
+                |]
                : Js.Json.t)
-        : compact_variant -> Js.Json.t)
+        : compact_variant -> Jsonkit.Json.t)
   
     let _ = compact_variant_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1558,7 +1680,8 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                      "expected a JSON array of length 2"
                  else
                    Catch_all_variant_of_int
-                     (int_of_json (Js.Array.unsafe_get array 1))
+                     ((int_of_json : Jsonkit.Json.t -> int)
+                        (Js.Array.unsafe_get array 1))
                else
                  Catch_all_other
                    (let payload =
@@ -1602,7 +1725,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                   : Jsonkit.unknown_variant_case))
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> catch_all_variant)
+        : Jsonkit.Json.t -> catch_all_variant)
   
     let _ = catch_all_variant_of_json
   
@@ -1616,7 +1739,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              (Obj.magic
                 [|
                   (Obj.magic "Catch_all_variant_of_int" : Js.Json.t);
-                  int_to_json x_0;
+                  (int_to_json : int -> Jsonkit.Json.t) x_0;
                 |]
                : Js.Json.t)
          | Catch_all_other x_0 -> (
@@ -1631,7 +1754,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                  (Obj.magic
                     (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
                    : Js.Json.t))
-        : catch_all_variant -> Js.Json.t)
+        : catch_all_variant -> Jsonkit.Json.t)
   
     let _ = catch_all_variant_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1673,7 +1796,8 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                      "expected a JSON array of length 2"
                  else
                    `Catch_all_polyvariant_of_int
-                     (int_of_json (Js.Array.unsafe_get array 1))
+                     ((int_of_json : Jsonkit.Json.t -> int)
+                        (Js.Array.unsafe_get array 1))
                else
                  `Catch_all_other
                    (let payload =
@@ -1717,7 +1841,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                   : Jsonkit.unknown_variant_case))
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> catch_all_polyvariant)
+        : Jsonkit.Json.t -> catch_all_polyvariant)
   
     let _ = catch_all_polyvariant_of_json
   
@@ -1732,7 +1856,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              (Obj.magic
                 [|
                   (Obj.magic "Catch_all_polyvariant_of_int" : Js.Json.t);
-                  int_to_json x_0;
+                  (int_to_json : int -> Jsonkit.Json.t) x_0;
                 |]
                : Js.Json.t)
          | `Catch_all_other x_0 -> (
@@ -1747,7 +1871,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                  (Obj.magic
                     (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
                    : Js.Json.t))
-        : catch_all_polyvariant -> Js.Json.t)
+        : catch_all_polyvariant -> Jsonkit.Json.t)
   
     let _ = catch_all_polyvariant_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1784,7 +1908,8 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                      "expected a JSON array of length 2"
                  else
                    Catch_all_noncompact_of_int
-                     (int_of_json (Js.Array.unsafe_get array 1))
+                     ((int_of_json : Jsonkit.Json.t -> int)
+                        (Js.Array.unsafe_get array 1))
                else
                  Catch_all_noncompact_other
                    (let payload =
@@ -1808,7 +1933,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> catch_all_noncompact)
+        : Jsonkit.Json.t -> catch_all_noncompact)
   
     let _ = catch_all_noncompact_of_json
   
@@ -1821,7 +1946,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              (Obj.magic
                 [|
                   (Obj.magic "Catch_all_noncompact_of_int" : Js.Json.t);
-                  int_to_json x_0;
+                  (int_to_json : int -> Jsonkit.Json.t) x_0;
                 |]
                : Js.Json.t)
          | Catch_all_noncompact_other x_0 -> (
@@ -1836,7 +1961,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                  (Obj.magic
                     (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
                    : Js.Json.t))
-        : catch_all_noncompact -> Js.Json.t)
+        : catch_all_noncompact -> Jsonkit.Json.t)
   
     let _ = catch_all_noncompact_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1877,7 +2002,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> one)
+        : Jsonkit.Json.t -> one)
   
     let _ = one_of_json
   
@@ -1887,7 +2012,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
       (fun x ->
          match x with
          | `C -> (Obj.magic [| (Obj.magic "C" : Js.Json.t) |] : Js.Json.t)
-        : one -> Js.Json.t)
+        : one -> Jsonkit.Json.t)
   
     let _ = one_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1923,7 +2048,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> other)
+        : Jsonkit.Json.t -> other)
   
     let _ = other_of_json
   
@@ -1933,7 +2058,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
       (fun x ->
          match x with
          | `C -> (Obj.magic [| (Obj.magic "C" : Js.Json.t) |] : Js.Json.t)
-        : other -> Js.Json.t)
+        : other -> Jsonkit.Json.t)
   
     let _ = other_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -1953,11 +2078,11 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
            if Stdlib.( > ) len 0 then
              let tag = Js.Array.unsafe_get array 0 in
              if Stdlib.( = ) (Js.typeof tag) "string" then
-               match one_of_json x with
+               match (one_of_json : Jsonkit.Json.t -> one) x with
                | e -> (e :> [ one | other ])
                | exception
                    Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) -> (
-                   match other_of_json x with
+                   match (other_of_json : Jsonkit.Json.t -> other) x with
                    | e -> (e :> [ one | other ])
                    | exception
                        Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _)
@@ -1972,7 +2097,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> poly)
+        : Jsonkit.Json.t -> poly)
   
     let _ = poly_of_json
   
@@ -1981,9 +2106,9 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
     let rec poly_to_json =
       (fun x ->
          match x with
-         | #one as x -> one_to_json x
-         | #other as x -> other_to_json x
-        : poly -> Js.Json.t)
+         | #one as x -> (one_to_json : one -> Jsonkit.Json.t) x
+         | #other as x -> (other_to_json : other -> Jsonkit.Json.t) x
+        : poly -> Jsonkit.Json.t)
   
     let _ = poly_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -2027,7 +2152,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> poly_known)
+        : Jsonkit.Json.t -> poly_known)
   
     let _ = poly_known_of_json
   
@@ -2040,7 +2165,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              (Obj.magic [| (Obj.magic "Alpha" : Js.Json.t) |] : Js.Json.t)
          | `Beta ->
              (Obj.magic [| (Obj.magic "Beta" : Js.Json.t) |] : Js.Json.t)
-        : poly_known -> Js.Json.t)
+        : poly_known -> Jsonkit.Json.t)
   
     let _ = poly_known_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -2065,7 +2190,9 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
            if Stdlib.( > ) len 0 then
              let tag = Js.Array.unsafe_get array 0 in
              if Stdlib.( = ) (Js.typeof tag) "string" then
-               match poly_known_of_json x with
+               match
+                 (poly_known_of_json : Jsonkit.Json.t -> poly_known) x
+               with
                | e ->
                    (e
                      :> [ poly_known
@@ -2096,7 +2223,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
          else
            Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
-        : Js.Json.t -> poly_own_catch_all)
+        : Jsonkit.Json.t -> poly_own_catch_all)
   
     let _ = poly_own_catch_all_of_json
   
@@ -2105,7 +2232,8 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
     let rec poly_own_catch_all_to_json =
       (fun x ->
          match x with
-         | #poly_known as x -> poly_known_to_json x
+         | #poly_known as x ->
+             (poly_known_to_json : poly_known -> Jsonkit.Json.t) x
          | `Other x_0 -> (
              match x_0.payload with
              | Stdlib.Option.None ->
@@ -2118,7 +2246,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                  (Obj.magic
                     (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
                    : Js.Json.t))
-        : poly_own_catch_all -> Js.Json.t)
+        : poly_own_catch_all -> Jsonkit.Json.t)
   
     let _ = poly_own_catch_all_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]

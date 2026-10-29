@@ -9,8 +9,11 @@
       | (~a:x_a, ~b:x_b) ->
           `Assoc
             (let bnds__001_ = [] in
-             let bnds__001_ = ("b", (int_to_json x_b)) :: bnds__001_ in
-             let bnds__001_ = ("a", (string_to_json x_a)) :: bnds__001_ in
+             let bnds__001_ =
+               ("b", ((int_to_json : int -> Jsonkit.Json.t) x_b)) :: bnds__001_ in
+             let bnds__001_ =
+               ("a", ((string_to_json : string -> Jsonkit.Json.t) x_a)) ::
+               bnds__001_ in
              bnds__001_)
   === ppx output:browser ===
   let _ =
@@ -18,8 +21,11 @@
       match x with
       | (~a:x_a, ~b:x_b) ->
           (Obj.magic
-             ([%mel.obj { a = (string_to_json x_a); b = (int_to_json x_b) }]) : 
-          Js.Json.t)
+             ([%mel.obj
+                {
+                  a = ((string_to_json : string -> Jsonkit.Json.t) x_a);
+                  b = ((int_to_json : int -> Jsonkit.Json.t) x_b)
+                }]) : Js.Json.t)
   === stdout:native ===
   === stdout:js ===
 
@@ -39,8 +45,14 @@
             | [] -> ()
             | (n', v)::fs ->
                 ((match n' with
-                  | "a" -> x_a := (Stdlib.Option.Some (string_of_json v))
-                  | "b" -> x_b := (Stdlib.Option.Some (int_of_json v))
+                  | "a" ->
+                      x_a :=
+                        (Stdlib.Option.Some
+                           ((string_of_json : Jsonkit.Json.t -> string) v))
+                  | "b" ->
+                      x_b :=
+                        (Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v))
                   | _ -> ());
                  iter fs) in
           (iter fs;
@@ -68,12 +80,13 @@
                                                           > 
                           Js.t) in
        (~a:(match Js.Undefined.toOption (fs ## a) with
-            | Stdlib.Option.Some v -> string_of_json v
+            | Stdlib.Option.Some v ->
+                (string_of_json : Jsonkit.Json.t -> string) v
             | Stdlib.Option.None ->
                 Jsonkit.of_json_error ~json:x
                   "expected field \"a\" to be present"),
          ~b:(match Js.Undefined.toOption (fs ## b) with
-             | Stdlib.Option.Some v -> int_of_json v
+             | Stdlib.Option.Some v -> (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
                  Jsonkit.of_json_error ~json:x
                    "expected field \"b\" to be present")))
@@ -91,8 +104,11 @@
       | (~x:x_x, x_1) ->
           `Assoc
             (let bnds__001_ = [] in
-             let bnds__001_ = ("1", (string_to_json x_1)) :: bnds__001_ in
-             let bnds__001_ = ("x", (int_to_json x_x)) :: bnds__001_ in
+             let bnds__001_ =
+               ("1", ((string_to_json : string -> Jsonkit.Json.t) x_1)) ::
+               bnds__001_ in
+             let bnds__001_ =
+               ("x", ((int_to_json : int -> Jsonkit.Json.t) x_x)) :: bnds__001_ in
              bnds__001_)
   === ppx output:browser ===
   let _ =
@@ -100,8 +116,11 @@
       match x with
       | (~x:x_x, x_1) ->
           (Obj.magic
-             ([%mel.obj { x = (int_to_json x_x); 1 = (string_to_json x_1) }]) : 
-          Js.Json.t)
+             ([%mel.obj
+                {
+                  x = ((int_to_json : int -> Jsonkit.Json.t) x_x);
+                  1 = ((string_to_json : string -> Jsonkit.Json.t) x_1)
+                }]) : Js.Json.t)
   === stdout:native ===
   === stdout:js ===
 
@@ -121,8 +140,14 @@
             | [] -> ()
             | (n', v)::fs ->
                 ((match n' with
-                  | "x" -> x_x := (Stdlib.Option.Some (int_of_json v))
-                  | "1" -> x_1 := (Stdlib.Option.Some (string_of_json v))
+                  | "x" ->
+                      x_x :=
+                        (Stdlib.Option.Some
+                           ((int_of_json : Jsonkit.Json.t -> int) v))
+                  | "1" ->
+                      x_1 :=
+                        (Stdlib.Option.Some
+                           ((string_of_json : Jsonkit.Json.t -> string) v))
                   | _ -> ());
                  iter fs) in
           (iter fs;
@@ -150,12 +175,13 @@
                                                           > 
                           Js.t) in
        (~x:(match Js.Undefined.toOption (fs ## x) with
-            | Stdlib.Option.Some v -> int_of_json v
+            | Stdlib.Option.Some v -> (int_of_json : Jsonkit.Json.t -> int) v
             | Stdlib.Option.None ->
                 Jsonkit.of_json_error ~json:x
                   "expected field \"x\" to be present"),
          (match Js.Undefined.toOption (fs ## 1) with
-          | Stdlib.Option.Some v -> string_of_json v
+          | Stdlib.Option.Some v ->
+              (string_of_json : Jsonkit.Json.t -> string) v
           | Stdlib.Option.None ->
               Jsonkit.of_json_error ~json:x
                 "expected field \"1\" to be present")))
@@ -183,8 +209,14 @@
                  | [] -> ()
                  | (n', v)::fs ->
                      ((match n' with
-                       | "x" -> x_x := (Stdlib.Option.Some (int_of_json v))
-                       | "y" -> x_y := (Stdlib.Option.Some (int_of_json v))
+                       | "x" ->
+                           x_x :=
+                             (Stdlib.Option.Some
+                                ((int_of_json : Jsonkit.Json.t -> int) v))
+                       | "y" ->
+                           x_y :=
+                             (Stdlib.Option.Some
+                                ((int_of_json : Jsonkit.Json.t -> int) v))
                        | _ -> ());
                       iter fs) in
                (iter fs;
@@ -197,7 +229,7 @@
                        | Stdlib.Option.None ->
                            Jsonkit.of_json_error ~json:x "expected field \"y\""))))
            | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object" : 
-        Yojson.Basic.t -> point)
+        Jsonkit.Json.t -> point)
       let _ = point_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec point_to_json =
@@ -206,9 +238,13 @@
            | (~x:x_x, ~y:x_y) ->
                `Assoc
                  (let bnds__001_ = [] in
-                  let bnds__001_ = ("y", (int_to_json x_y)) :: bnds__001_ in
-                  let bnds__001_ = ("x", (int_to_json x_x)) :: bnds__001_ in
-                  bnds__001_) : point -> Yojson.Basic.t)
+                  let bnds__001_ =
+                    ("y", ((int_to_json : int -> Jsonkit.Json.t) x_y)) ::
+                    bnds__001_ in
+                  let bnds__001_ =
+                    ("x", ((int_to_json : int -> Jsonkit.Json.t) x_x)) ::
+                    bnds__001_ in
+                  bnds__001_) : point -> Jsonkit.Json.t)
       let _ = point_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   === ppx output:browser ===
@@ -232,15 +268,18 @@
                                                                 Js.undefined  
                                >  Js.t) in
             (~x:(match Js.Undefined.toOption (fs ## x) with
-                 | Stdlib.Option.Some v -> int_of_json v
+                 | Stdlib.Option.Some v ->
+                     (int_of_json : Jsonkit.Json.t -> int) v
                  | Stdlib.Option.None ->
                      Jsonkit.of_json_error ~json:x
                        "expected field \"x\" to be present"),
               ~y:(match Js.Undefined.toOption (fs ## y) with
-                  | Stdlib.Option.Some v -> int_of_json v
+                  | Stdlib.Option.Some v ->
+                      (int_of_json : Jsonkit.Json.t -> int) v
                   | Stdlib.Option.None ->
                       Jsonkit.of_json_error ~json:x
-                        "expected field \"y\" to be present"))) : Js.Json.t ->
+                        "expected field \"y\" to be present"))) : Jsonkit.Json.t
+                                                                    -> 
                                                                     point)
       let _ = point_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -249,8 +288,11 @@
            match x with
            | (~x:x_x, ~y:x_y) ->
                (Obj.magic
-                  ([%mel.obj { x = (int_to_json x_x); y = (int_to_json x_y) }]) : 
-               Js.Json.t) : point -> Js.Json.t)
+                  ([%mel.obj
+                     {
+                       x = ((int_to_json : int -> Jsonkit.Json.t) x_x);
+                       y = ((int_to_json : int -> Jsonkit.Json.t) x_y)
+                     }]) : Js.Json.t) : point -> Jsonkit.Json.t)
       let _ = point_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   === stdout:native ===
@@ -277,8 +319,14 @@
                  | [] -> ()
                  | (n', v)::fs ->
                      ((match n' with
-                       | "x" -> x_x := (Stdlib.Option.Some (int_of_json v))
-                       | "1" -> x_1 := (Stdlib.Option.Some (string_of_json v))
+                       | "x" ->
+                           x_x :=
+                             (Stdlib.Option.Some
+                                ((int_of_json : Jsonkit.Json.t -> int) v))
+                       | "1" ->
+                           x_1 :=
+                             (Stdlib.Option.Some
+                                ((string_of_json : Jsonkit.Json.t -> string) v))
                        | _ -> ());
                       iter fs) in
                (iter fs;
@@ -291,7 +339,7 @@
                     | Stdlib.Option.None ->
                         Jsonkit.of_json_error ~json:x "expected field \"1\""))))
            | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object" : 
-        Yojson.Basic.t -> t)
+        Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
@@ -300,9 +348,13 @@
            | (~x:x_x, x_1) ->
                `Assoc
                  (let bnds__001_ = [] in
-                  let bnds__001_ = ("1", (string_to_json x_1)) :: bnds__001_ in
-                  let bnds__001_ = ("x", (int_to_json x_x)) :: bnds__001_ in
-                  bnds__001_) : t -> Yojson.Basic.t)
+                  let bnds__001_ =
+                    ("1", ((string_to_json : string -> Jsonkit.Json.t) x_1)) ::
+                    bnds__001_ in
+                  let bnds__001_ =
+                    ("x", ((int_to_json : int -> Jsonkit.Json.t) x_x)) ::
+                    bnds__001_ in
+                  bnds__001_) : t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   === ppx output:browser ===
@@ -326,15 +378,18 @@
                                                                 Js.undefined  
                                >  Js.t) in
             (~x:(match Js.Undefined.toOption (fs ## x) with
-                 | Stdlib.Option.Some v -> int_of_json v
+                 | Stdlib.Option.Some v ->
+                     (int_of_json : Jsonkit.Json.t -> int) v
                  | Stdlib.Option.None ->
                      Jsonkit.of_json_error ~json:x
                        "expected field \"x\" to be present"),
               (match Js.Undefined.toOption (fs ## 1) with
-               | Stdlib.Option.Some v -> string_of_json v
+               | Stdlib.Option.Some v ->
+                   (string_of_json : Jsonkit.Json.t -> string) v
                | Stdlib.Option.None ->
                    Jsonkit.of_json_error ~json:x
-                     "expected field \"1\" to be present"))) : Js.Json.t -> t)
+                     "expected field \"1\" to be present"))) : Jsonkit.Json.t
+                                                                 -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
@@ -343,8 +398,10 @@
            | (~x:x_x, x_1) ->
                (Obj.magic
                   ([%mel.obj
-                     { x = (int_to_json x_x); 1 = (string_to_json x_1) }]) : 
-               Js.Json.t) : t -> Js.Json.t)
+                     {
+                       x = ((int_to_json : int -> Jsonkit.Json.t) x_x);
+                       1 = ((string_to_json : string -> Jsonkit.Json.t) x_1)
+                     }]) : Js.Json.t) : t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   === stdout:native ===

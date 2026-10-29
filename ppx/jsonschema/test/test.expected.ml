@@ -2426,7 +2426,7 @@ include
     let rec variant_for_default_to_json =
       (fun x ->
          match x with | A -> `List [`String "A"] | B -> `List [`String "B"] : 
-      variant_for_default -> Yojson.Basic.t)
+      variant_for_default -> Jsonkit.Json.t)
     let variant_for_default_jsonschema =
       `Assoc
         [("anyOf",
@@ -2458,7 +2458,7 @@ include
                (let bnds__001_ = [] in
                 let bnds__001_ = ("to", (to_json__a x_to_)) :: bnds__001_ in
                 let bnds__001_ = ("from", (to_json__a x_from)) :: bnds__001_ in
-                bnds__001_) : 'a range -> Yojson.Basic.t)
+                bnds__001_) : 'a range -> Jsonkit.Json.t)
     let range_jsonschema jsonschema__a =
       Jsonkit_jsonschema_defs.non_recursive
         (`Assoc
@@ -2480,9 +2480,11 @@ include
              `Assoc
                (let bnds__002_ = [] in
                 let bnds__002_ =
-                  ("score", ((option_to_json int_to_json) x_score)) ::
-                  bnds__002_ in
-                bnds__002_) : record_for_default -> Yojson.Basic.t)
+                  ("score",
+                    ((option_to_json (int_to_json : int -> Jsonkit.Json.t) : 
+                       int option -> Jsonkit.Json.t) x_score))
+                  :: bnds__002_ in
+                bnds__002_) : record_for_default -> Jsonkit.Json.t)
     let record_for_default_jsonschema =
       `Assoc
         [("type", (`String "object"));
@@ -2637,7 +2639,7 @@ module Status =
           (fun x ->
              match x with
              | Active -> `List [`String "Active"]
-             | Inactive -> `List [`String "Inactive"] : t -> Yojson.Basic.t)
+             | Inactive -> `List [`String "Inactive"] : t -> Jsonkit.Json.t)
         let t_jsonschema =
           `Assoc
             [("anyOf",
@@ -2698,9 +2700,14 @@ include
                   match x_foo with
                   | Stdlib.Option.None -> bnds__003_
                   | Stdlib.Option.Some _ ->
-                      ("foo", ((option_to_json int_to_json) x_foo)) ::
-                      bnds__003_ in
-                bnds__003_) : inner_with_option_field -> Yojson.Basic.t)
+                      ("foo",
+                        ((option_to_json
+                            (int_to_json : int -> Jsonkit.Json.t) : int
+                                                                    option ->
+                                                                    Jsonkit.Json.t)
+                           x_foo))
+                      :: bnds__003_ in
+                bnds__003_) : inner_with_option_field -> Jsonkit.Json.t)
     let inner_with_option_field_jsonschema =
       `Assoc
         [("type", (`String "object"));

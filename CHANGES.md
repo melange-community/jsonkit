@@ -1,5 +1,19 @@
 ## Unreleased
 
+- Generated converters are now typed with `Jsonkit.Json.t` instead of
+  `Yojson.Basic.t` on native and `Js.Json.t` on Melange. The three are the
+  same type on their backend, so nothing a hand-written signature says has to
+  change, but the generated signatures and the ascriptions in the generated
+  code now name the type this library documents, the same on both backends.
+- **[breaking]** A handwritten converter with the wrong type is now reported
+  where it is used. Every converter reference in the generated code is
+  ascribed with the type the deriver expects (`mytype -> Jsonkit.Json.t`, and
+  the mirror of it for `of_json`), so `let mytype_to_json i = Int64.to_string
+  i` is blamed on the `mytype` of the field that uses it, instead of failing
+  unification inside the generated encoder and pointing at the whole type
+  declaration (#69). The Melange record encoder goes through `Obj.magic`, so
+  such a converter used to compile there and emit wrong JSON; it is now a
+  type error.
 - **[breaking]** JSON Schema: a derived schema now carries a single `$defs`
   at its root. Recursive types used inside other types no longer leave nested
   `$defs` with a generated `file://` `$id`; their definitions are collected
