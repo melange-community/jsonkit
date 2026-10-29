@@ -26,6 +26,18 @@
   without a signature that passed such a schema, built only from enums, where
   a `Yojson.Safe.t` is expected now needs a coercion:
   `(foo_jsonschema :> Yojson.Safe.t)`.
+- jsonschema: `[@@jsonschema.attrs { format = ... }]` on a type alias now
+  works instead of being rejected, and `[@@jsonschema.format]` / `maximum` /
+  `minimum` on a record or variant declaration is now an error instead of
+  being silently ignored.
+- jsonschema: `Jsonkit.Jsonschema.Yojson_primitives` now exports
+  `option_jsonschema` and `unit_jsonschema`, so `option` and `unit` fields
+  derive with the yojson-style primitives as documented.
+- jsonschema: `[@jsonschema.default]` on a field whose type is a type variable
+  is a clear compile-time error (it used to generate ill-typed code).
+- jsonschema: structural errors are prefixed with `[@@deriving jsonschema]:`
+  and attribute errors with the attribute name; the conjunctive polymorphic
+  variant error (`` `A of x & y``) is now worded as such.
 
 ## jsonkit.1.1.0 (2026-08-01)
 

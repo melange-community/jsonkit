@@ -28,5 +28,5 @@ together is rejected.
   File "conflict.ml", line 1, characters 0-115:
   1 | type t = { x : int } [@@deriving jsonschema] [@@jsonschema.allow_extra_fields] [@@jsonschema.disallow_extra_fields]
       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  Error: ppx_deriving_jsonschema: [@jsonschema.allow_extra_fields] and [@jsonschema.disallow_extra_fields] are mutually exclusive
+  Error: [@jsonschema.allow_extra_fields] and [@jsonschema.disallow_extra_fields] are mutually exclusive
   [1]
