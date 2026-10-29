@@ -46,13 +46,12 @@
  (files ./common/linter.ml))
 
 ; The jsonschema deriver is shared between the native and browser ppx (it is
-; platform-agnostic: it only emits references to Jsonkit.Jsonschema and to
-; unqualified <prim>_jsonschema values).
+; platform-agnostic: it only emits references to Ppx_deriving_jsonschema_runtime).
 ; Like the common modules above, the sources are copied in rather than shared via
 ; a library, so the deriver ships inside jsonkit.ppx with no extra package.
 
 (copy_files#
- (files ../jsonschema/{schema.ml,schema.mli,ppx_deriving_jsonschema.ml}))
+ (files ../jsonschema/{schema,ppx_deriving_jsonschema}.{ml,mli}))
 
 ; include_subdirs triggers a dependency cycle
 ; $ dune runtest

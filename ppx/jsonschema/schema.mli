@@ -4,11 +4,22 @@ val type_ref : loc:Warnings.loc -> string -> Ppxlib.expression
 val definitions_ref :
   loc:Warnings.loc -> string -> Ppxlib.expression -> Ppxlib.expression
 
+val type_def : loc:Warnings.loc -> string -> Ppxlib.expression
+
+val oneOf :
+  loc:Warnings.loc -> Ppxlib.expression list -> Ppxlib.expression
+
 val anyOf :
   loc:Warnings.loc -> Ppxlib.expression list -> Ppxlib.expression
 
 val tuple :
   loc:Warnings.loc -> Ppxlib.expression list -> Ppxlib.expression
+
+val enum :
+  loc:Warnings.loc ->
+  string option ->
+  Ppxlib.expression list ->
+  Ppxlib.expression
 
 val annotation :
   loc:Warnings.loc ->
@@ -31,6 +42,12 @@ val minimum :
   Ppxlib.expression ->
   Ppxlib.expression
 
+val default :
+  loc:Warnings.loc ->
+  Ppxlib.expression ->
+  Ppxlib.expression ->
+  Ppxlib.expression
+
 val description :
   loc:Warnings.loc -> string -> Ppxlib.expression -> Ppxlib.expression
 
@@ -43,21 +60,44 @@ val variants :
   Ppxlib.expression
 
 module Annotation : sig
-  type t = {
-    description : string Location.loc option;
-    format : string Location.loc option;
-    maximum : Ppxlib.expression option;
-    minimum : Ppxlib.expression option;
-    default : Ppxlib.expression option;
-    attrs : Ppxlib.expression option;
-  }
+  val add_format :
+    loc:Warnings.loc ->
+    ('a, string Location.loc) Ppxlib.Attribute.t * 'a ->
+    Ppxlib.core_type ->
+    Ppxlib.expression ->
+    Ppxlib.expression
 
-  val none : t
+  val add_maximum :
+    loc:Warnings.loc ->
+    ('a, Ppxlib.expression) Ppxlib.Attribute.t * 'a ->
+    Ppxlib.core_type ->
+    Ppxlib.expression ->
+    Ppxlib.expression
 
-  val apply :
+  val add_minimum :
+    loc:Warnings.loc ->
+    ('a, Ppxlib.expression) Ppxlib.Attribute.t * 'a ->
+    Ppxlib.core_type ->
+    Ppxlib.expression ->
+    Ppxlib.expression
+
+  val add_description :
+    loc:Warnings.loc ->
+    string Location.loc option ->
+    Ppxlib.expression ->
+    Ppxlib.expression
+
+  val add_default :
+    loc:Warnings.loc ->
+    ('a, Ppxlib.expression) Ppxlib.Attribute.t * 'a ->
+    Ppxlib.core_type ->
+    Ppxlib.expression ->
+    Ppxlib.expression
+
+  val add_annotations :
     loc:Warnings.loc ->
     ?core_type:Ppxlib.core_type ->
-    t ->
+    Ppxlib.expression option ->
     Ppxlib.expression ->
     Ppxlib.expression
 end
