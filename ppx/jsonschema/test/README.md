@@ -33,6 +33,9 @@ Cross-target support code.
 
 - `cases.ml`
   - source of truth for shared case definitions
+- `yojson_cases.ml`
+  - cases derived with `Jsonkit.Jsonschema.Yojson_primitives` opened instead of
+    `Jsonkit.Primitives`; separate so the `open` does not leak into `cases.ml`
 - `generate_schemas_cases.ml`
   - lists which schemas from `cases.ml` are included in the snapshot bundle
   - this is intentionally separate from `cases.ml`: `cases.ml` owns the type
@@ -65,6 +68,8 @@ The schema content should otherwise match.
 
 ## Updating tests
 
+The generated `$id` values embed the line number of the type expression in `shared/cases.ml` (`file://.../cases.ml:<line>`), so inserting or removing a line anywhere in `cases.ml` shifts every `$id` below it in all three snapshots. Append new cases at the end of the file, and expect a `$id`-only diff when you touch anything above an existing case.
+
 When adding a new case:
 
 1. add the type/helper to `shared/cases.ml`
@@ -72,3 +77,9 @@ When adding a new case:
 3. refresh expectations:
    - `opam exec -- dune runtest --auto-promote`
    - if needed, regenerate `test_schemas.expected.json` from `generate_schemas.exe`
+
+Promotion only updates the native snapshots (`test.expected.ml`,
+`test.melange.expected.ml`, `test_schemas.expected.json`). The Melange cram
+(`melange/tests.t`) compares against `../test_schemas.expected.json` with a shell
+`diff`, so promoting it would only rewrite the cram file itself: fix the shared
+JSON snapshot first and the Melange cram follows.

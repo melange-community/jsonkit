@@ -6,9 +6,11 @@ module Yojson : sig
   val bool_jsonschema : jsonschema
   val float_jsonschema : jsonschema
   val int_jsonschema : jsonschema
+  val int64_jsonschema : jsonschema
+  val unit_jsonschema : jsonschema
+  val option_jsonschema : jsonschema -> jsonschema
   val list_jsonschema : jsonschema -> jsonschema
   val array_jsonschema : jsonschema -> jsonschema
-  val int64_jsonschema : jsonschema
 end
 
 module Jsonkit : sig
@@ -17,10 +19,10 @@ module Jsonkit : sig
   val bool_jsonschema : jsonschema
   val float_jsonschema : jsonschema
   val int_jsonschema : jsonschema
-  val option_jsonschema : jsonschema -> jsonschema
+  val int64_jsonschema : jsonschema
   val unit_jsonschema : jsonschema
+  val option_jsonschema : jsonschema -> jsonschema
   val list_jsonschema : jsonschema -> jsonschema
   val array_jsonschema : jsonschema -> jsonschema
-  val int64_jsonschema : jsonschema
   val result_jsonschema : jsonschema -> jsonschema -> jsonschema
 end
