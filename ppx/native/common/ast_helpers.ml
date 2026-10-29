@@ -29,11 +29,6 @@ let not_supportedf ~loc fmt =
 let not_supported ~loc s = not_supportedf ~loc "%s" s
 let map_loc f a_loc = { a_loc with txt = f a_loc.txt }
 
-let lident_with_optional_open ?opn label =
-  match opn with
-  | Some { txt = lid; _ } -> Longident.Ldot (lid, label)
-  | None -> lident label
-
 let gen_bindings ~loc prefix n =
   List.split
     (List.init ~len:n ~f:(fun i ->
@@ -82,9 +77,13 @@ let gen_pat_labeled_tuple ~loc prefix fs =
 let ( --> ) pc_lhs pc_rhs = { pc_lhs; pc_rhs; pc_guard = None }
 let derive_of_label name = mangle (Suffix name)
 let derive_of_longident name = mangle_lid (Suffix name)
+let derive_of_type_param name param = name ^ "__" ^ param
 
 let ederiver name (lid : Longident.t loc) =
   pexp_ident ~loc:lid.loc (map_loc (derive_of_longident name) lid)
+
+let ederiver_of_type_param name (param : label loc) =
+  evar ~loc:param.loc (derive_of_type_param name param.txt)
 
 type deriver =
   | As_fun of (expression -> expression)

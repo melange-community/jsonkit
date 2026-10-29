@@ -124,10 +124,7 @@ class virtual deriving_fn =
       | `Ptyp_tuple ts -> As_fun (self#derive_of_tuple t ts)
       | `Ptyp_labeled_tuple ts ->
           As_fun (self#derive_of_labeled_tuple t ts)
-      | `Ptyp_var label ->
-          As_val
-            (ederiver self#name
-               (map_loc (lident_with_optional_open ?opn) label))
+      | `Ptyp_var label -> As_val (ederiver_of_type_param self#name label)
       | `Ptyp_open (_, `Ptyp_open _) -> assert false
       | `Ptyp_open (lid, ct) ->
           self#derive_of_core_type_repr ~opn:lid ~loc t ct
@@ -185,7 +182,8 @@ class virtual deriving_fn =
       let expr =
         List.fold_left rev_params ~init:expr ~f:(fun body param ->
             pexp_fun ~loc Nolabel None
-              (ppat_var ~loc (map_loc (derive_of_label self#name) param))
+              (ppat_var ~loc
+                 (map_loc (derive_of_type_param self#name) param))
               body)
       in
       [

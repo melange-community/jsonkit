@@ -1259,13 +1259,13 @@ type 'url generic_link_traffic = {
   url: 'url }[@@deriving jsonschema]
 include
   struct
-    let generic_link_traffic_jsonschema url =
+    let generic_link_traffic_jsonschema jsonschema__url =
       Jsonkit_jsonschema_defs.non_recursive
         (`Assoc
            [("type", (`String "object"));
            ("properties",
              (`Assoc
-                [("url", url);
+                [("url", jsonschema__url);
                 ("title", (option_jsonschema string_jsonschema))]));
            ("required", (`List [`String "url"; `String "title"]));
            ("additionalProperties", (`Bool true))])[@@warning "-32-39"]
@@ -1283,7 +1283,7 @@ type 'a poly_variant =
   | B of 'a [@@deriving jsonschema]
 include
   struct
-    let poly_variant_jsonschema a =
+    let poly_variant_jsonschema jsonschema__a =
       Jsonkit_jsonschema_defs.non_recursive
         (`Assoc
            [("anyOf",
@@ -1298,7 +1298,8 @@ include
                  `Assoc
                    [("type", (`String "array"));
                    ("prefixItems",
-                     (`List [`Assoc [("const", (`String "B"))]; a]));
+                     (`List
+                        [`Assoc [("const", (`String "B"))]; jsonschema__a]));
                    ("unevaluatedItems", (`Bool false));
                    ("minItems", (`Int 2));
                    ("maxItems", (`Int 2))]]))])[@@warning "-32-39"]
@@ -1309,13 +1310,15 @@ type ('a, 'b) multi_param = {
   label: string }[@@deriving jsonschema]
 include
   struct
-    let multi_param_jsonschema a b =
+    let multi_param_jsonschema jsonschema__a jsonschema__b =
       Jsonkit_jsonschema_defs.non_recursive
         (`Assoc
            [("type", (`String "object"));
            ("properties",
              (`Assoc
-                [("label", string_jsonschema); ("second", b); ("first", a)]));
+                [("label", string_jsonschema);
+                ("second", jsonschema__b);
+                ("first", jsonschema__a)]));
            ("required",
              (`List [`String "label"; `String "second"; `String "first"]));
            ("additionalProperties", (`Bool true))])[@@warning "-32-39"]
@@ -1323,16 +1326,16 @@ include
 type 'a param_list = 'a list[@@deriving jsonschema]
 include
   struct
-    let param_list_jsonschema a =
-      Jsonkit_jsonschema_defs.non_recursive (list_jsonschema a)[@@warning
-                                                                 "-32-39"]
+    let param_list_jsonschema jsonschema__a =
+      Jsonkit_jsonschema_defs.non_recursive (list_jsonschema jsonschema__a)
+      [@@warning "-32-39"]
   end[@@ocaml.doc "@inline"][@@merlin.hide ]
 type ('a, 'b) either =
   | Left of 'a 
   | Right of 'b [@@deriving jsonschema]
 include
   struct
-    let either_jsonschema a b =
+    let either_jsonschema jsonschema__a jsonschema__b =
       Jsonkit_jsonschema_defs.non_recursive
         (`Assoc
            [("anyOf",
@@ -1340,14 +1343,18 @@ include
                  [`Assoc
                     [("type", (`String "array"));
                     ("prefixItems",
-                      (`List [`Assoc [("const", (`String "Left"))]; a]));
+                      (`List
+                         [`Assoc [("const", (`String "Left"))];
+                         jsonschema__a]));
                     ("unevaluatedItems", (`Bool false));
                     ("minItems", (`Int 2));
                     ("maxItems", (`Int 2))];
                  `Assoc
                    [("type", (`String "array"));
                    ("prefixItems",
-                     (`List [`Assoc [("const", (`String "Right"))]; b]));
+                     (`List
+                        [`Assoc [("const", (`String "Right"))];
+                        jsonschema__b]));
                    ("unevaluatedItems", (`Bool false));
                    ("minItems", (`Int 2));
                    ("maxItems", (`Int 2))]]))])[@@warning "-32-39"]
@@ -1355,9 +1362,9 @@ include
 type ('a, 'b) either_alias = ('a, 'b) either[@@deriving jsonschema]
 include
   struct
-    let either_alias_jsonschema a b =
-      Jsonkit_jsonschema_defs.non_recursive (either_jsonschema a b)[@@warning
-                                                                    "-32-39"]
+    let either_alias_jsonschema jsonschema__a jsonschema__b =
+      Jsonkit_jsonschema_defs.non_recursive
+        (either_jsonschema jsonschema__a jsonschema__b)[@@warning "-32-39"]
   end[@@ocaml.doc "@inline"][@@merlin.hide ]
 type tool_params =
   {
@@ -1930,7 +1937,7 @@ type 'a grade = 'a grade' =
 include
   struct
     let grade_jsonschema =
-      let ppx_defs_grade a =
+      let ppx_defs_grade jsonschema__a =
         [("grade",
            (`Assoc
               [("anyOf",
@@ -1938,7 +1945,9 @@ include
                     [`Assoc
                        [("type", (`String "array"));
                        ("prefixItems",
-                         (`List [`Assoc [("const", (`String "A"))]; a]));
+                         (`List
+                            [`Assoc [("const", (`String "A"))];
+                            jsonschema__a]));
                        ("unevaluatedItems", (`Bool false));
                        ("minItems", (`Int 2));
                        ("maxItems", (`Int 2))];
@@ -1970,10 +1979,10 @@ include
                       ("unevaluatedItems", (`Bool false));
                       ("minItems", (`Int 1));
                       ("maxItems", (`Int 1))]]))]))] in
-      let grade_jsonschema a =
+      let grade_jsonschema jsonschema__a =
         Jsonkit_jsonschema_defs.member "grade"
           (Jsonkit_jsonschema_defs.recursive_group ~path:"Cases"
-             (ppx_defs_grade a)) in
+             (ppx_defs_grade jsonschema__a)) in
       grade_jsonschema[@@warning "-32-39"]
   end[@@ocaml.doc "@inline"][@@merlin.hide ]
 type self_ref = {
@@ -2019,7 +2028,7 @@ type ('atom, 'group_atom) filter =
 include
   struct
     let filter_jsonschema =
-      let ppx_defs_filter atom group_atom =
+      let ppx_defs_filter jsonschema__atom jsonschema__group_atom =
         [("filter",
            (`Assoc
               [("anyOf",
@@ -2027,7 +2036,9 @@ include
                     [`Assoc
                        [("type", (`String "array"));
                        ("prefixItems",
-                         (`List [`Assoc [("const", (`String "Atom"))]; atom]));
+                         (`List
+                            [`Assoc [("const", (`String "Atom"))];
+                            jsonschema__atom]));
                        ("unevaluatedItems", (`Bool false));
                        ("minItems", (`Int 2));
                        ("maxItems", (`Int 2))];
@@ -2040,14 +2051,14 @@ include
                              (`Assoc
                                 [("$ref",
                                    (`String "#/$defs/\000Cases.filter"))]);
-                           group_atom]));
+                           jsonschema__group_atom]));
                       ("unevaluatedItems", (`Bool false));
                       ("minItems", (`Int 3));
                       ("maxItems", (`Int 3))]]))]))] in
-      let filter_jsonschema atom group_atom =
+      let filter_jsonschema jsonschema__atom jsonschema__group_atom =
         Jsonkit_jsonschema_defs.member "filter"
           (Jsonkit_jsonschema_defs.recursive_group ~path:"Cases"
-             (ppx_defs_filter atom group_atom)) in
+             (ppx_defs_filter jsonschema__atom jsonschema__group_atom)) in
       filter_jsonschema[@@warning "-32-39"]
   end[@@ocaml.doc "@inline"][@@merlin.hide ]
 type ('atom, 'group_atom) bool_filter =
@@ -2057,7 +2068,7 @@ type ('atom, 'group_atom) bool_filter =
 include
   struct
     let bool_filter_jsonschema =
-      let ppx_defs_bool_filter atom group_atom =
+      let ppx_defs_bool_filter jsonschema__atom jsonschema__group_atom =
         [("bool_filter",
            (`Assoc
               [("anyOf",
@@ -2067,7 +2078,8 @@ include
                        ("prefixItems",
                          (`List
                             [`Assoc [("const", (`String "BoolAtom"))];
-                            filter_jsonschema atom group_atom]));
+                            filter_jsonschema jsonschema__atom
+                              jsonschema__group_atom]));
                        ("unevaluatedItems", (`Bool false));
                        ("minItems", (`Int 2));
                        ("maxItems", (`Int 2))];
@@ -2083,10 +2095,10 @@ include
                       ("unevaluatedItems", (`Bool false));
                       ("minItems", (`Int 2));
                       ("maxItems", (`Int 2))]]))]))] in
-      let bool_filter_jsonschema atom group_atom =
+      let bool_filter_jsonschema jsonschema__atom jsonschema__group_atom =
         Jsonkit_jsonschema_defs.member "bool_filter"
           (Jsonkit_jsonschema_defs.recursive_group ~path:"Cases"
-             (ppx_defs_bool_filter atom group_atom)) in
+             (ppx_defs_bool_filter jsonschema__atom jsonschema__group_atom)) in
       bool_filter_jsonschema[@@warning "-32-39"]
   end[@@ocaml.doc "@inline"][@@merlin.hide ]
 type 'a rec_wrapper =
@@ -2095,7 +2107,7 @@ type 'a rec_wrapper =
 include
   struct
     let rec_wrapper_jsonschema =
-      let ppx_defs_rec_wrapper a =
+      let ppx_defs_rec_wrapper jsonschema__a =
         [("rec_wrapper",
            (`Assoc
               [("anyOf",
@@ -2103,7 +2115,9 @@ include
                     [`Assoc
                        [("type", (`String "array"));
                        ("prefixItems",
-                         (`List [`Assoc [("const", (`String "RWrap"))]; a]));
+                         (`List
+                            [`Assoc [("const", (`String "RWrap"))];
+                            jsonschema__a]));
                        ("unevaluatedItems", (`Bool false));
                        ("minItems", (`Int 2));
                        ("maxItems", (`Int 2))];
@@ -2118,10 +2132,10 @@ include
                       ("unevaluatedItems", (`Bool false));
                       ("minItems", (`Int 2));
                       ("maxItems", (`Int 2))]]))]))] in
-      let rec_wrapper_jsonschema a =
+      let rec_wrapper_jsonschema jsonschema__a =
         Jsonkit_jsonschema_defs.member "rec_wrapper"
           (Jsonkit_jsonschema_defs.recursive_group ~path:"Cases"
-             (ppx_defs_rec_wrapper a)) in
+             (ppx_defs_rec_wrapper jsonschema__a)) in
       rec_wrapper_jsonschema[@@warning "-32-39"]
   end[@@ocaml.doc "@inline"][@@merlin.hide ]
 type outer_rec =
@@ -2438,7 +2452,7 @@ type 'a range = {
 include
   struct
     [@@@ocaml.warning "-39-11-27"]
-    let rec range_to_json a_to_json =
+    let rec range_to_json to_json__a =
       (fun x ->
          match x with
          | { from = x_from; to_ = x_to_ } ->
@@ -2452,14 +2466,15 @@ include
                      [@@mel.internal.ffi
                        "\132\149\166\190\000\000\000\018\000\000\000\t\000\000\000\023\000\000\000\022\145\160\160A\144$from\160\160A\144\"to@"]
                    end in
-                   J.unsafe_expr ~from:(a_to_json x_from)
-                     ~\#to:(a_to_json x_to_)) : Js.Json.t) : 'a range ->
-                                                               Js.Json.t)
-    let range_jsonschema a =
+                   J.unsafe_expr ~from:(to_json__a x_from)
+                     ~\#to:(to_json__a x_to_)) : Js.Json.t) : 'a range ->
+                                                                Js.Json.t)
+    let range_jsonschema jsonschema__a =
       Jsonkit_jsonschema_defs.non_recursive
         (`Assoc
            [("type", (`String "object"));
-           ("properties", (`Assoc [("to", a); ("from", a)]));
+           ("properties",
+             (`Assoc [("to", jsonschema__a); ("from", jsonschema__a)]));
            ("required", (`List [`String "to"; `String "from"]));
            ("additionalProperties", (`Bool true))])[@@warning "-32-39"]
   end[@@ocaml.doc "@inline"][@@merlin.hide ]
@@ -2821,7 +2836,7 @@ module Generated_code_must_qualify_stdlib =
     include
       struct
         let wrapper_with_shadowed_stdlib_jsonschema =
-          let ppx_defs_wrapper_with_shadowed_stdlib a =
+          let ppx_defs_wrapper_with_shadowed_stdlib jsonschema__a =
             [("wrapper_with_shadowed_stdlib",
                (`Assoc
                   [("anyOf",
@@ -2829,7 +2844,9 @@ module Generated_code_must_qualify_stdlib =
                         [`Assoc
                            [("type", (`String "array"));
                            ("prefixItems",
-                             (`List [`Assoc [("const", (`String "Wrap"))]; a]));
+                             (`List
+                                [`Assoc [("const", (`String "Wrap"))];
+                                jsonschema__a]));
                            ("unevaluatedItems", (`Bool false));
                            ("minItems", (`Int 2));
                            ("maxItems", (`Int 2))];
@@ -2845,11 +2862,11 @@ module Generated_code_must_qualify_stdlib =
                           ("unevaluatedItems", (`Bool false));
                           ("minItems", (`Int 2));
                           ("maxItems", (`Int 2))]]))]))] in
-          let wrapper_with_shadowed_stdlib_jsonschema a =
+          let wrapper_with_shadowed_stdlib_jsonschema jsonschema__a =
             Jsonkit_jsonschema_defs.member "wrapper_with_shadowed_stdlib"
               (Jsonkit_jsonschema_defs.recursive_group
                  ~path:"Cases.Generated_code_must_qualify_stdlib"
-                 (ppx_defs_wrapper_with_shadowed_stdlib a)) in
+                 (ppx_defs_wrapper_with_shadowed_stdlib jsonschema__a)) in
           wrapper_with_shadowed_stdlib_jsonschema[@@warning "-32-39"]
       end[@@ocaml.doc "@inline"][@@merlin.hide ]
     type rec_using_wrapper_with_shadowed_stdlib =
@@ -3054,7 +3071,7 @@ module Recursive_shapes =
     include
       struct
         let lst_jsonschema =
-          let ppx_defs_lst a =
+          let ppx_defs_lst jsonschema__a =
             [("lst",
                (`Assoc
                   [("anyOf",
@@ -3071,7 +3088,7 @@ module Recursive_shapes =
                           ("prefixItems",
                             (`List
                                [`Assoc [("const", (`String "Cons"))];
-                               a;
+                               jsonschema__a;
                                `Assoc
                                  [("$ref",
                                     (`String
@@ -3079,10 +3096,10 @@ module Recursive_shapes =
                           ("unevaluatedItems", (`Bool false));
                           ("minItems", (`Int 3));
                           ("maxItems", (`Int 3))]]))]))] in
-          let lst_jsonschema a =
+          let lst_jsonschema jsonschema__a =
             Jsonkit_jsonschema_defs.member "lst"
               (Jsonkit_jsonschema_defs.recursive_group
-                 ~path:"Cases.Recursive_shapes" (ppx_defs_lst a)) in
+                 ~path:"Cases.Recursive_shapes" (ppx_defs_lst jsonschema__a)) in
           lst_jsonschema[@@warning "-32-39"]
       end[@@ocaml.doc "@inline"][@@merlin.hide ]
     type 'a tree =
@@ -3094,7 +3111,7 @@ module Recursive_shapes =
     include
       struct
         let (tree_jsonschema, forest_jsonschema) =
-          let ppx_defs_tree a =
+          let ppx_defs_tree jsonschema__a =
             [("tree",
                (`Assoc
                   [("anyOf",
@@ -3102,7 +3119,9 @@ module Recursive_shapes =
                         [`Assoc
                            [("type", (`String "array"));
                            ("prefixItems",
-                             (`List [`Assoc [("const", (`String "Leaf"))]; a]));
+                             (`List
+                                [`Assoc [("const", (`String "Leaf"))];
+                                jsonschema__a]));
                            ("unevaluatedItems", (`Bool false));
                            ("minItems", (`Int 2));
                            ("maxItems", (`Int 2))];
@@ -3111,7 +3130,7 @@ module Recursive_shapes =
                           ("prefixItems",
                             (`List
                                [`Assoc [("const", (`String "Node"))];
-                               a;
+                               jsonschema__a;
                                `Assoc
                                  [("$ref",
                                     (`String
@@ -3146,14 +3165,14 @@ module Recursive_shapes =
                          ("unevaluatedItems", (`Bool false));
                          ("minItems", (`Int 3));
                          ("maxItems", (`Int 3))]]))]))] in
-          let tree_jsonschema a =
+          let tree_jsonschema jsonschema__a =
             Jsonkit_jsonschema_defs.member "tree"
               (Jsonkit_jsonschema_defs.recursive_group
-                 ~path:"Cases.Recursive_shapes" (ppx_defs_tree a)) in
-          let forest_jsonschema a =
+                 ~path:"Cases.Recursive_shapes" (ppx_defs_tree jsonschema__a)) in
+          let forest_jsonschema jsonschema__a =
             Jsonkit_jsonschema_defs.member "forest"
               (Jsonkit_jsonschema_defs.recursive_group
-                 ~path:"Cases.Recursive_shapes" (ppx_defs_tree a)) in
+                 ~path:"Cases.Recursive_shapes" (ppx_defs_tree jsonschema__a)) in
           (tree_jsonschema, forest_jsonschema)[@@warning "-32-39"]
       end[@@ocaml.doc "@inline"][@@merlin.hide ]
   end
@@ -3378,7 +3397,7 @@ type 'a wrap =
 include
   struct
     let wrap_jsonschema =
-      let ppx_defs_wrap a =
+      let ppx_defs_wrap jsonschema__a =
         [("wrap",
            (`Assoc
               [("anyOf",
@@ -3398,14 +3417,16 @@ include
                     `Assoc
                       [("type", (`String "array"));
                       ("prefixItems",
-                        (`List [`Assoc [("const", (`String "Value"))]; a]));
+                        (`List
+                           [`Assoc [("const", (`String "Value"))];
+                           jsonschema__a]));
                       ("unevaluatedItems", (`Bool false));
                       ("minItems", (`Int 2));
                       ("maxItems", (`Int 2))]]))]))] in
-      let wrap_jsonschema a =
+      let wrap_jsonschema jsonschema__a =
         Jsonkit_jsonschema_defs.member "wrap"
           (Jsonkit_jsonschema_defs.recursive_group ~path:"Cases"
-             (ppx_defs_wrap a)) in
+             (ppx_defs_wrap jsonschema__a)) in
       wrap_jsonschema[@@warning "-32-39"]
   end[@@ocaml.doc "@inline"][@@merlin.hide ]
 type 'a described_box = {
@@ -3414,12 +3435,12 @@ and described_tag = string[@@jsonschema.description "Tag"][@@deriving
                                                             jsonschema]
 include
   struct
-    let described_box_jsonschema a =
+    let described_box_jsonschema jsonschema__a =
       Jsonkit_jsonschema_defs.non_recursive
         (`Assoc
            [("description", (`String "Box"));
            ("type", (`String "object"));
-           ("properties", (`Assoc [("item", a)]));
+           ("properties", (`Assoc [("item", jsonschema__a)]));
            ("required", (`List [`String "item"]));
            ("additionalProperties", (`Bool true))])[@@warning "-32-39"]
     let described_tag_jsonschema =

@@ -18,12 +18,12 @@
     and b_to_json = (fun x -> int_to_json x : b -> Yojson.Basic.t)
     let rec of_json =
     let rec to_json =
-    let rec lst_of_json a_of_json =
-    let rec lst_to_json a_to_json =
-    let rec tree_of_json a_of_json =
-    and forest_of_json a_of_json =
-    let rec tree_to_json a_to_json =
-    and forest_to_json a_to_json =
+    let rec lst_of_json of_json__a =
+    let rec lst_to_json to_json__a =
+    let rec tree_of_json of_json__a =
+    and forest_of_json of_json__a =
+    let rec tree_to_json to_json__a =
+    and forest_to_json to_json__a =
 
   $ cat <<"EOF" | bindings ../browser/ppx_deriving_json_js_test.exe
   > type a = A of b
@@ -43,9 +43,9 @@
     and b_to_json = (fun x -> int_to_json x : b -> Js.Json.t)
     let rec of_json =
     let rec to_json =
-    let rec lst_of_json a_of_json =
-    let rec lst_to_json a_to_json =
-    let rec tree_of_json a_of_json =
-    and forest_of_json a_of_json =
-    let rec tree_to_json a_to_json =
-    and forest_to_json a_to_json =
+    let rec lst_of_json of_json__a =
+    let rec lst_to_json to_json__a =
+    let rec tree_of_json of_json__a =
+    and forest_of_json of_json__a =
+    let rec tree_to_json to_json__a =
+    and forest_to_json to_json__a =

@@ -52,15 +52,15 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec param_of_json a_of_json =
-      (fun x -> a_of_json x : Js.Json.t -> 'a param)
+    let rec param_of_json of_json__a =
+      (fun x -> of_json__a x : Js.Json.t -> 'a param)
   
     let _ = param_of_json
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec param_to_json a_to_json =
-      (fun x -> a_to_json x : 'a param -> Js.Json.t)
+    let rec param_to_json to_json__a =
+      (fun x -> to_json__a x : 'a param -> Js.Json.t)
   
     let _ = param_to_json
   end [@@ocaml.doc "@inline"] [@@merlin.hide]
@@ -652,7 +652,7 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec c_of_json a_of_json =
+    let rec c_of_json of_json__a =
       (fun x ->
          if Js.Array.isArray x then
            let array = (Obj.magic x : Js.Json.t array) in
@@ -664,7 +664,7 @@
                  if Stdlib.( <> ) len 2 then
                    Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
-                 else `C (a_of_json (Js.Array.unsafe_get array 1))
+                 else `C (of_json__a (Js.Array.unsafe_get array 1))
                else
                  Jsonkit.of_json_unexpected_variant ~json:x
                    "expected [\"C\", _]"
@@ -682,11 +682,11 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec c_to_json a_to_json =
+    let rec c_to_json to_json__a =
       (fun x ->
          match x with
          | `C x_0 ->
-             (Obj.magic [| (Obj.magic "C" : Js.Json.t); a_to_json x_0 |]
+             (Obj.magic [| (Obj.magic "C" : Js.Json.t); to_json__a x_0 |]
                : Js.Json.t)
         : 'a c -> Js.Json.t)
   
@@ -934,7 +934,7 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec p2_of_json a_of_json b_of_json =
+    let rec p2_of_json of_json__a of_json__b =
       (fun x ->
          if Js.Array.isArray x then
            let array = (Obj.magic x : Js.Json.t array) in
@@ -946,12 +946,12 @@
                  if Stdlib.( <> ) len 2 then
                    Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
-                 else A (a_of_json (Js.Array.unsafe_get array 1))
+                 else A (of_json__a (Js.Array.unsafe_get array 1))
                else if Stdlib.( = ) (Obj.magic tag : string) "B" then
                  if Stdlib.( <> ) len 2 then
                    Jsonkit.of_json_error ~json:x
                      "expected a JSON array of length 2"
-                 else B (b_of_json (Js.Array.unsafe_get array 1))
+                 else B (of_json__b (Js.Array.unsafe_get array 1))
                else
                  Jsonkit.of_json_error ~json:x
                    "expected [\"B\", _] or [\"A\", _]"
@@ -969,14 +969,14 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
-    let rec p2_to_json a_to_json b_to_json =
+    let rec p2_to_json to_json__a to_json__b =
       (fun x ->
          match x with
          | A x_0 ->
-             (Obj.magic [| (Obj.magic "A" : Js.Json.t); a_to_json x_0 |]
+             (Obj.magic [| (Obj.magic "A" : Js.Json.t); to_json__a x_0 |]
                : Js.Json.t)
          | B x_0 ->
-             (Obj.magic [| (Obj.magic "B" : Js.Json.t); b_to_json x_0 |]
+             (Obj.magic [| (Obj.magic "B" : Js.Json.t); to_json__b x_0 |]
                : Js.Json.t)
         : ('a, 'b) p2 -> Js.Json.t)
   
