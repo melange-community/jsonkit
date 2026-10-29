@@ -36,6 +36,11 @@
   always `<type>_to_json`, so an argument in this shape can never collide
   with one, whatever the types in scope are called. Generated signatures are
   positional, so they are unchanged.
+- Docs: the README now opens on the two backends, `jsonkit` on Yojson and
+  `jsonkit-melange` on `Js.Json.t`, with a section on what each PPX generates,
+  why a Melange project cannot use a Yojson deriver and why the Melange code
+  is full of `Obj.magic`. The deriver attributes are documented once for both
+  backends, and the decoder combinators are marked as Melange-only (#70, #54).
 
 ## jsonkit.1.1.0 (2026-08-01)
 

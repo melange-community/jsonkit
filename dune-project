@@ -23,9 +23,10 @@
 (package
  (name jsonkit-melange)
  (authors "glennsl" "Andrey Popp" "Pedro Lisboa")
- (synopsis "Compositional JSON encode/decode library and PPX for Melange")
+ (synopsis
+  "Compositional JSON encode/decode library and deriving PPX for Melange")
  (description
-  "Provides tools for converting JSON to typed OCaml values in Melange. It includes custom encoders, decoders, and a PPX for automating these conversions.")
+  "The Melange backend of jsonkit: converts JSON to typed OCaml values, where a JSON value is the Js.Json.t that JSON.parse returns, so no intermediate representation is built and the runtime stays small. It includes composable encoders and decoders and a deriving PPX that generates the conversions. The native backend is the jsonkit package: it exposes the same Jsonkit module, takes the same attributes and produces the same JSON, on top of Yojson.")
  (depends
   ocaml
   (melange
@@ -51,9 +52,10 @@
 (package
  (name jsonkit)
  (authors "Andrey Popp" "Pedro Lisboa")
- (synopsis "Compositional JSON encode/decode PPX for OCaml")
+ (synopsis
+  "Compositional JSON encode/decode library and deriving PPX for OCaml")
  (description
-  "A PPX for OCaml that automates encoding and decoding JSON into typed values. It supports custom encoders and decoders, and integrates with Yojson")
+  "The native backend of jsonkit: converts JSON to typed OCaml values on top of Yojson, where a JSON value is a Yojson.Basic.t. It includes encoders, decoders and a deriving PPX that generates the conversions. The Melange backend is the jsonkit-melange package: it exposes the same Jsonkit module, takes the same attributes and produces the same JSON, on top of Js.Json.t.")
  (depends
   (ocaml
    (>= "4.12"))
