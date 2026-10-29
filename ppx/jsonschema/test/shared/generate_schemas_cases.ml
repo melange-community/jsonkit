@@ -139,6 +139,12 @@ let schemas =
     Hoist.nested_scope;
     Hoist.mixed_collision;
     Hoist.user_resource;
+    Jsonkit.Jsonschema.make (annotated_pair_jsonschema int_jsonschema);
+    Jsonkit.Jsonschema.make annotated_unit_jsonschema;
+    Jsonkit.Jsonschema.make ann_a_jsonschema;
+    Jsonkit.Jsonschema.make ann_b_jsonschema;
+    Jsonkit.Jsonschema.make manifest_attrs_jsonschema;
+    Jsonkit.Jsonschema.make Yojson_cases.yojson_record_jsonschema;
   ]
 
 let snapshot =

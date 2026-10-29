@@ -49,4 +49,4 @@
 ; into jsonkit-melange.ppx so [@@deriving jsonschema] works on the Melange ppx too.
 
 (copy_files#
- (files ../jsonschema/{schema,ppx_deriving_jsonschema}.{ml,mli}))
+ (files ../jsonschema/{schema.ml,schema.mli,ppx_deriving_jsonschema.ml}))

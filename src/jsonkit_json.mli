@@ -128,8 +128,8 @@ val unknown_variant_case_jsonschema :
           list ])
      list ]
 (** JSON-schema literal for [unknown_variant_case]. The polyvariant type
-    is compatible with [Ppx_deriving_jsonschema_runtime.t]: use as the
-    value of [type X = ... [@@deriving jsonschema]] when the type is
+    is compatible with [Jsonkit.Jsonschema.t]: use as the value of
+    [type X = ... [@@deriving jsonschema]] when the type is
     [Jsonkit.unknown_variant_case]. *)
 
 val to_string : json -> string

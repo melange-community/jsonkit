@@ -620,3 +620,18 @@ module Hoist = struct
                ] );
          ])
 end
+
+type 'a annotated_pair = { l : 'a } [@@jsonschema.description "a pair"]
+
+and annotated_unit = { u : unit }
+[@@jsonschema.description "a unit holder"] [@@deriving jsonschema]
+
+type ann_a = AA of ann_b
+
+and ann_b = int
+[@@jsonschema.description "b"]
+[@@jsonschema.minimum 0]
+[@@deriving jsonschema]
+
+type manifest_attrs = string
+[@@jsonschema.attrs { format = "date-time" }] [@@deriving jsonschema]
