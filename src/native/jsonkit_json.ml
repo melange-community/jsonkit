@@ -68,6 +68,10 @@ type 'a of_json = json -> 'a
 
 let of_json : 'a of_json = fun x -> x
 
+let[@tail_mod_cons] rec tail_recursive_map f = function
+  | [] -> []
+  | x :: tl -> f x :: tail_recursive_map f tl
+
 module Of_json = struct
   let typeof = function
     | `Assoc _ -> "object"
@@ -111,7 +115,7 @@ module Of_json = struct
     | json -> Some (v_of_json json)
 
   let list v_of_json = function
-    | `List l -> List.map v_of_json l
+    | `List l -> tail_recursive_map v_of_json l
     | json -> of_json_error_type_mismatch json "array"
 
   let array v_of_json = function
@@ -134,7 +138,7 @@ module To_json = struct
   let int64 v = `String (Int64.to_string v)
   let float v = `Float v
   let unit () = `Null
-  let list v_to_json vs = `List (List.map v_to_json vs)
+  let list v_to_json vs = `List (tail_recursive_map v_to_json vs)
   let array v_to_json vs = `List (Array.to_list (Array.map v_to_json vs))
   let option v_to_json = function None -> `Null | Some v -> v_to_json v
 

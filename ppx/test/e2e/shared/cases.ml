@@ -64,6 +64,8 @@ type outer_default_record_with_option = {
   inner: inner_with_option_field; [@json.default empty_inner_with_option_field]
 } [@@deriving json]
 type array_list = { a: int array; b: int list} [@@deriving json]
+type big = int list [@@deriving json]
+type big_array = int array [@@deriving json]
 type json = Jsonkit.t
 type of_json = C : string * (json -> 'a) * ('a -> json) * 'a -> of_json
 type color = Red | Green | Blue [@@deriving json]
@@ -232,7 +234,33 @@ let run_error_case' (C (data, of_json, _to_json, _v)) =
   | Jsonkit.Of_json_error (Unexpected_variant msg) ->
     print_endline (Printf.sprintf "Got expected unexpected variant: %s" msg)
 
+let run_big_list_case () =
+  let rec last_elem list =
+  match list with
+  | [] -> raise (Failure "Empty list has no last element")
+  | [item] -> item
+  | _ :: tl -> last_elem tl in
+  let big_list = List.init 1_000_000 (fun i -> i) in
+  let encoded = big_to_json big_list in (* should not break *)
+  let decoded = big_of_json encoded in (* should not break *)
+  print_endline
+    (Printf.sprintf "BIG LIST: length %d, first %d, last %d"
+       (List.length decoded)
+       (List.hd decoded)
+       (last_elem decoded));
+  let big_array = Array.init 1_000_000 (fun i -> i) in
+  let encoded_array = big_array_to_json big_array in (* should not break *)
+  let decoded_array = big_array_of_json encoded_array in (* should not break *)
+  print_endline
+    (Printf.sprintf "BIG ARRAY: length %d, first %d, last %d"
+       (Array.length decoded_array)
+       decoded_array.(0)
+       decoded_array.(Array.length decoded_array - 1))
+
 let test () =
+  print_endline "\nTesting a big list:";
+  run_big_list_case ();
+  print_endline "\nTesting of_json cases:";
   List.iter run' of_json_cases;
   print_endline "\nTesting error cases:";
-  List.iter run_error_case' error_cases
+  List.iter run_error_case' error_cases;

@@ -1,4 +1,10 @@
 *** json deriver tests ***
+
+Testing a big list:
+BIG LIST: length 1000000, first 0, last 999999
+BIG ARRAY: length 1000000, first 0, last 999999
+
+Testing of_json cases:
 JSON    DATA: "Compact_variant"
 JSON REPRINT: "Compact_variant"
 JSON    DATA: ["Compact_variant"]
