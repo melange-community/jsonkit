@@ -56,7 +56,7 @@
   "A PPX for OCaml that automates encoding and decoding JSON into typed values. It supports custom encoders and decoders, and integrates with Yojson")
  (depends
   (ocaml
-   (>= "4.12"))
+   (>= "4.14"))
   (ppxlib
    (>= "0.38.0"))
   (yojson

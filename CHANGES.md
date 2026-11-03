@@ -1,5 +1,14 @@
 ## Unreleased
 
+- **[breaking]** The native package now requires OCaml 4.14, up from 4.12.
+  4.12 and 4.13 were already untested: the CI matrix starts at 4.14. The new
+  bound is what makes the stack fix below free on OCaml 5.x.
+- Fix: on native, decoding or encoding a large JSON array no longer overflows
+  the stack. `Of_json.list` and `To_json.list` went through `Stdlib.List.map`,
+  which is not tail recursive before OCaml 5.1, so every derived `_ list`
+  crashed past a few hundred thousand elements. Both now go through a
+  `[@tail_mod_cons]` map, which walks the list once and allocates one cell
+  per element, the same as the OCaml 5.1 `List.map` it replaces.
 - **[breaking]** JSON Schema: a derived schema now carries a single `$defs`
   at its root. Recursive types used inside other types no longer leave nested
   `$defs` with a generated `file://` `$id`; their definitions are collected
