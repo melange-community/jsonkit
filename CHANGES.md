@@ -1,5 +1,12 @@
 ## Unreleased
 
+- **[breaking]** A handwritten converter with the wrong type is now an error
+  on the field that uses it, instead of one pointing at the whole type
+  declaration (#69). On Melange such a converter used to compile and emit
+  wrong JSON; it is now a type error.
+- Generated converters are typed with `Jsonkit.Json.t` instead of
+  `Yojson.Basic.t` on native and `Js.Json.t` on Melange. It is the same type
+  on each backend, so no hand-written signature has to change.
 - **[breaking]** The native package now requires OCaml 4.14, up from 4.12.
   4.12 and 4.13 were already untested: the CI matrix starts at 4.14. The new
   bound is what makes the stack fix below free on OCaml 5.x.

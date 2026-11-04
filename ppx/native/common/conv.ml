@@ -110,7 +110,11 @@ class virtual deriving_fn =
             let a = as_fun ~loc (self#derive_of_core_type' a) in
             (Nolabel, a) :: args)
       in
-      As_val (pexp_apply ~loc f args)
+      let converter = pexp_apply ~loc f args in
+      let converter_type =
+        self#t ~loc (map_loc Lid.last n) (ptyp_constr ~loc n ts)
+      in
+      As_val (pexp_constraint ~loc converter converter_type)
 
     method derive_type_ref ~loc name n ts x =
       as_val ~loc (self#derive_type_ref' ~loc name n ts) x

@@ -8,11 +8,11 @@
         sig
           [@@@ocaml.warning "-32"]
           val either_of_json :
-            (Yojson.Basic.t -> 'a) ->
-              (Yojson.Basic.t -> 'b) -> Yojson.Basic.t -> ('a, 'b) either
+            (Jsonkit.Json.t -> 'a) ->
+              (Jsonkit.Json.t -> 'b) -> Jsonkit.Json.t -> ('a, 'b) either
           val either_to_json :
-            ('a -> Yojson.Basic.t) ->
-              ('b -> Yojson.Basic.t) -> ('a, 'b) either -> Yojson.Basic.t
+            ('a -> Jsonkit.Json.t) ->
+              ('b -> Jsonkit.Json.t) -> ('a, 'b) either -> Jsonkit.Json.t
         end[@@ocaml.doc "@inline"][@@merlin.hide ]
     end
   === ppx output:browser ===
@@ -23,11 +23,11 @@
         sig
           [@@@ocaml.warning "-32"]
           val either_of_json :
-            (Js.Json.t -> 'a) ->
-              (Js.Json.t -> 'b) -> Js.Json.t -> ('a, 'b) either
+            (Jsonkit.Json.t -> 'a) ->
+              (Jsonkit.Json.t -> 'b) -> Jsonkit.Json.t -> ('a, 'b) either
           val either_to_json :
-            ('a -> Js.Json.t) ->
-              ('b -> Js.Json.t) -> ('a, 'b) either -> Js.Json.t
+            ('a -> Jsonkit.Json.t) ->
+              ('b -> Jsonkit.Json.t) -> ('a, 'b) either -> Jsonkit.Json.t
         end[@@ocaml.doc "@inline"][@@merlin.hide ]
     end
   === stdout:native ===

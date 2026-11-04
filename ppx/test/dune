@@ -21,3 +21,8 @@
  (applies_to labeled_tuples)
  (enabled_if
   (>= %{ocaml_version} 5.4.0)))
+
+(cram
+ (applies_to converter_type_errors)
+ (enabled_if
+  (>= %{ocaml_version} 5.4.0)))

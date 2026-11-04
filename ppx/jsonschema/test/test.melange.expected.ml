@@ -2428,7 +2428,7 @@ include
          match x with
          | A -> (Obj.magic [|(Obj.magic "A" : Js.Json.t)|] : Js.Json.t)
          | B -> (Obj.magic [|(Obj.magic "B" : Js.Json.t)|] : Js.Json.t) : 
-      variant_for_default -> Js.Json.t)
+      variant_for_default -> Jsonkit.Json.t)
     let variant_for_default_jsonschema =
       `Assoc
         [("anyOf",
@@ -2468,7 +2468,7 @@ include
                    end in
                    J.unsafe_expr ~from:(to_json__a x_from)
                      ~\#to:(to_json__a x_to_)) : Js.Json.t) : 'a range ->
-                                                                Js.Json.t)
+                                                                Jsonkit.Json.t)
     let range_jsonschema jsonschema__a =
       Jsonkit_jsonschema_defs.non_recursive
         (`Assoc
@@ -2497,8 +2497,10 @@ include
                        "\132\149\166\190\000\000\000\012\000\000\000\005\000\000\000\r\000\000\000\012\145\160\160A\144%score@"]
                    end in
                    J.unsafe_expr
-                     ~score:((option_to_json int_to_json) x_score)) : 
-             Js.Json.t) : record_for_default -> Js.Json.t)
+                     ~score:((option_to_json
+                                (int_to_json : int -> Jsonkit.Json.t) : 
+                               int option -> Jsonkit.Json.t) x_score)) : 
+             Js.Json.t) : record_for_default -> Jsonkit.Json.t)
     let record_for_default_jsonschema =
       `Assoc
         [("type", (`String "object"));
@@ -2656,7 +2658,7 @@ module Status =
                  (Obj.magic [|(Obj.magic "Active" : Js.Json.t)|] : Js.Json.t)
              | Inactive ->
                  (Obj.magic [|(Obj.magic "Inactive" : Js.Json.t)|] : 
-                 Js.Json.t) : t -> Js.Json.t)
+                 Js.Json.t) : t -> Jsonkit.Json.t)
         let t_jsonschema =
           `Assoc
             [("anyOf",
@@ -2725,8 +2727,10 @@ include
                            | Stdlib.Option.None -> Js.Undefined.empty
                            | Stdlib.Option.Some _ ->
                                Js.Undefined.return
-                                 ((option_to_json int_to_json) x_foo))) : 
-             Js.Json.t) : inner_with_option_field -> Js.Json.t)
+                                 ((option_to_json
+                                     (int_to_json : int -> Jsonkit.Json.t) : 
+                                    int option -> Jsonkit.Json.t) x_foo))) : 
+             Js.Json.t) : inner_with_option_field -> Jsonkit.Json.t)
     let inner_with_option_field_jsonschema =
       `Assoc
         [("type", (`String "object"));
