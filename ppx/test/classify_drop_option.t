@@ -59,18 +59,14 @@ We can classify the JSON produced by `to_json` for a record with a dropped optio
         (fun x ->
            match x with
            | { a = x_a } ->
-               (Obj.magic
-                  ([%mel.obj
-                     {
-                       a =
-                         (match x_a with
-                          | Stdlib.Option.None -> Js.Undefined.empty
-                          | Stdlib.Option.Some _ ->
-                              Js.Undefined.return
-                                ((option_to_json
-                                    (int_to_json : int -> Jsonkit.Json.t) : 
-                                   int option -> Jsonkit.Json.t) x_a))
-                     }]) : Js.Json.t) : t -> Jsonkit.Json.t)
+               let dict__001_ : Jsonkit.Json.t Js.Dict.t = Js.Dict.empty () in
+               ((match x_a with
+                 | Stdlib.Option.None -> ()
+                 | Stdlib.Option.Some _ ->
+                     Js.Dict.set dict__001_ "a"
+                       ((option_to_json (int_to_json : int -> Jsonkit.Json.t) : 
+                          int option -> Jsonkit.Json.t) x_a));
+                (Obj.magic dict__001_ : Jsonkit.Json.t)) : t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =

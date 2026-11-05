@@ -2713,24 +2713,15 @@ include
       (fun x ->
          match x with
          | { foo = x_foo } ->
-             (Obj.magic
-                (let module J =
-                   struct
-                     external unsafe_expr :
-                       foo:'a0 -> < foo: 'a0   >  Js.t = "" ""[@@ocaml.warning
-                                                                "-unboxable-type-in-prim-decl"]
-                     [@@mel.internal.ffi
-                       "\132\149\166\190\000\000\000\n\000\000\000\005\000\000\000\012\000\000\000\012\145\160\160A\144#foo@"]
-                   end in
-                   J.unsafe_expr
-                     ~foo:(match x_foo with
-                           | Stdlib.Option.None -> Js.Undefined.empty
-                           | Stdlib.Option.Some _ ->
-                               Js.Undefined.return
-                                 ((option_to_json
-                                     (int_to_json : int -> Jsonkit.Json.t) : 
-                                    int option -> Jsonkit.Json.t) x_foo))) : 
-             Js.Json.t) : inner_with_option_field -> Jsonkit.Json.t)
+             let dict__001_ : Jsonkit.Json.t Js.Dict.t = Js.Dict.empty () in
+             ((match x_foo with
+               | Stdlib.Option.None -> ()
+               | Stdlib.Option.Some _ ->
+                   Js.Dict.set dict__001_ "foo"
+                     ((option_to_json (int_to_json : int -> Jsonkit.Json.t) : 
+                        int option -> Jsonkit.Json.t) x_foo));
+              (Obj.magic dict__001_ : Jsonkit.Json.t)) : inner_with_option_field
+                                                           -> Jsonkit.Json.t)
     let inner_with_option_field_jsonschema =
       `Assoc
         [("type", (`String "object"));

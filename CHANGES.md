@@ -64,6 +64,14 @@
 - jsonschema: structural errors are prefixed with `[@@deriving jsonschema]:`
   and attribute errors with the attribute name; the conjunctive polymorphic
   variant error (`` `A of x & y``) is now worded as such.
+- Fix: on Melange, a field dropped by `[@json.drop_default]` or
+  `[@json.drop_default_if_json_equal]` is now left out of the emitted JS
+  object instead of being present with the value `undefined` (#50). The
+  serialized JSON was already correct, since `JSON.stringify` skips
+  `undefined`, but `Object.keys`, object spread and anything else that
+  inspects the object saw a spurious key the native backend never produced.
+  Records whose fields are all mandatory keep the `[%mel.obj]` encoding and
+  are unchanged.
 
 ## jsonkit.1.1.0 (2026-08-01)
 

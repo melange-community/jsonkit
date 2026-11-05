@@ -446,33 +446,58 @@ module To_json = struct
              (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
             : Js.Json.t)]
 
-  let derive_of_record ~loc derive fields es =
+  let gen_exp_pat ~loc prefix =
+    let n = gen_symbol ~prefix () in
+    evar ~loc n, pvar ~loc n
+
+  let is_droppable (f : Record.to_field) =
+    match f.drop with `No -> false | _ -> true
+
+  let derive_of_record_as_object ~loc derive fields es =
     let fs =
       List.map2 fields es ~f:(fun (f : Record.to_field) x ->
-          let v =
-            let v = derive f.type_ x in
-            match f.drop with
-            | `No -> v
-            | `Drop_option ->
-                [%expr
-                  match [%e x] with
-                  | Stdlib.Option.None -> Js.Undefined.empty
-                  | Stdlib.Option.Some _ -> Js.Undefined.return [%e v]]
-            | `Drop_default (cmp, def) ->
-                [%expr
-                  if [%e cmp] [%e x] [%e def] then Js.Undefined.empty
-                  else Js.Undefined.return [%e v]]
-            | `Drop_default_if_json_equal def ->
-                [%expr
-                  let json = [%e v] in
-                  if Jsonkit.equal json [%e derive f.type_ def] then
-                    Js.Undefined.empty
-                  else Js.Undefined.return json]
-          in
-          map_loc lident f.key, v)
+          map_loc lident f.key, derive f.type_ x)
     in
-    let record = pexp_record ~loc fs None in
-    as_json ~loc [%expr [%mel.obj [%e record]]]
+    as_json ~loc [%expr [%mel.obj [%e pexp_record ~loc fs None]]]
+
+  let derive_of_record_as_dict ~loc derive fields es =
+    let edict, pdict = gen_exp_pat ~loc "dict" in
+    let set_field (f : Record.to_field) x =
+      let k = estring ~loc:f.key.loc f.key.txt in
+      let v = derive f.type_ x in
+      let set v = [%expr Js.Dict.set [%e edict] [%e k] [%e v]] in
+      match f.drop with
+      | `No -> set v
+      | `Drop_option ->
+          [%expr
+            match [%e x] with
+            | Stdlib.Option.None -> ()
+            | Stdlib.Option.Some _ -> [%e set v]]
+      | `Drop_default (cmp, def) ->
+          [%expr if [%e cmp] [%e x] [%e def] then () else [%e set v]]
+      | `Drop_default_if_json_equal def ->
+          let ejson, pjson = gen_exp_pat ~loc "json" in
+          [%expr
+            let [%p pjson] = [%e v] in
+            if Jsonkit.equal [%e ejson] [%e derive f.type_ def] then ()
+            else [%e set ejson]]
+    in
+    let body =
+      List.fold_right2 fields es
+        ~init:[%expr (Obj.magic [%e edict] : Jsonkit.Json.t)]
+        ~f:(fun f x next ->
+          [%expr
+            [%e set_field f x];
+            [%e next]])
+    in
+    [%expr
+      let [%p pdict] : Jsonkit.Json.t Js.Dict.t = Js.Dict.empty () in
+      [%e body]]
+
+  let derive_of_record ~loc derive fields es =
+    if List.exists fields ~f:is_droppable then
+      derive_of_record_as_dict ~loc derive fields es
+    else derive_of_record_as_object ~loc derive fields es
 
   let deriving : Conv.deriving =
     deriving_to () ~name:"to_json"

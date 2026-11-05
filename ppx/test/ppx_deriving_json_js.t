@@ -1260,21 +1260,17 @@
       (fun x ->
          match x with
          | { a = x_a; b_opt = x_b_opt } ->
-             (Obj.magic
-                [%mel.obj
-                  {
-                    a = (int_to_json : int -> Jsonkit.Json.t) x_a;
-                    b_opt =
-                      (match x_b_opt with
-                      | Stdlib.Option.None -> Js.Undefined.empty
-                      | Stdlib.Option.Some _ ->
-                          Js.Undefined.return
-                            ((option_to_json
-                                (int_to_json : int -> Jsonkit.Json.t)
-                               : int option -> Jsonkit.Json.t)
-                               x_b_opt));
-                  }]
-               : Js.Json.t)
+             let dict__001_ : Jsonkit.Json.t Js.Dict.t = Js.Dict.empty () in
+             Js.Dict.set dict__001_ "a"
+               ((int_to_json : int -> Jsonkit.Json.t) x_a);
+             (match x_b_opt with
+             | Stdlib.Option.None -> ()
+             | Stdlib.Option.Some _ ->
+                 Js.Dict.set dict__001_ "b_opt"
+                   ((option_to_json (int_to_json : int -> Jsonkit.Json.t)
+                      : int option -> Jsonkit.Json.t)
+                      x_b_opt));
+             (Obj.magic dict__001_ : Jsonkit.Json.t)
         : drop_default_option -> Jsonkit.Json.t)
   
     let _ = drop_default_option_to_json
@@ -1333,17 +1329,14 @@
       (fun x ->
          match x with
          | { a = x_a; b = x_b } ->
-             (Obj.magic
-                [%mel.obj
-                  {
-                    a = (int_to_json : int -> Jsonkit.Json.t) x_a;
-                    b =
-                      (if equal_int x_b 1 then Js.Undefined.empty
-                       else
-                         Js.Undefined.return
-                           ((int_to_json : int -> Jsonkit.Json.t) x_b));
-                  }]
-               : Js.Json.t)
+             let dict__001_ : Jsonkit.Json.t Js.Dict.t = Js.Dict.empty () in
+             Js.Dict.set dict__001_ "a"
+               ((int_to_json : int -> Jsonkit.Json.t) x_a);
+             if equal_int x_b 1 then ()
+             else
+               Js.Dict.set dict__001_ "b"
+                 ((int_to_json : int -> Jsonkit.Json.t) x_b);
+             (Obj.magic dict__001_ : Jsonkit.Json.t)
         : drop_default_default_eq -> Jsonkit.Json.t)
   
     let _ = drop_default_default_eq_to_json
@@ -1446,21 +1439,15 @@
       (fun x ->
          match x with
          | { a = x_a; b = x_b } ->
-             (Obj.magic
-                [%mel.obj
-                  {
-                    a = (int_to_json : int -> Jsonkit.Json.t) x_a;
-                    b =
-                      (if
-                         (fun a b ->
-                           if compare a b = 0 then true else false)
-                           x_b 1
-                       then Js.Undefined.empty
-                       else
-                         Js.Undefined.return
-                           ((int_to_json : int -> Jsonkit.Json.t) x_b));
-                  }]
-               : Js.Json.t)
+             let dict__001_ : Jsonkit.Json.t Js.Dict.t = Js.Dict.empty () in
+             Js.Dict.set dict__001_ "a"
+               ((int_to_json : int -> Jsonkit.Json.t) x_a);
+             if (fun a b -> if compare a b = 0 then true else false) x_b 1
+             then ()
+             else
+               Js.Dict.set dict__001_ "b"
+                 ((int_to_json : int -> Jsonkit.Json.t) x_b);
+             (Obj.magic dict__001_ : Jsonkit.Json.t)
         : drop_default -> Jsonkit.Json.t)
   
     let _ = drop_default_to_json
@@ -1519,21 +1506,16 @@
       (fun x ->
          match x with
          | { a = x_a; b = x_b } ->
-             (Obj.magic
-                [%mel.obj
-                  {
-                    a = (int_to_json : int -> Jsonkit.Json.t) x_a;
-                    b =
-                      (let json =
-                         (int_to_json : int -> Jsonkit.Json.t) x_b
-                       in
-                       if
-                         Jsonkit.equal json
-                           ((int_to_json : int -> Jsonkit.Json.t) 1)
-                       then Js.Undefined.empty
-                       else Js.Undefined.return json);
-                  }]
-               : Js.Json.t)
+             let dict__001_ : Jsonkit.Json.t Js.Dict.t = Js.Dict.empty () in
+             Js.Dict.set dict__001_ "a"
+               ((int_to_json : int -> Jsonkit.Json.t) x_a);
+             (let json__002_ = (int_to_json : int -> Jsonkit.Json.t) x_b in
+              if
+                Jsonkit.equal json__002_
+                  ((int_to_json : int -> Jsonkit.Json.t) 1)
+              then ()
+              else Js.Dict.set dict__001_ "b" json__002_);
+             (Obj.magic dict__001_ : Jsonkit.Json.t)
         : drop_default_if_json_equal -> Jsonkit.Json.t)
   
     let _ = drop_default_if_json_equal_to_json

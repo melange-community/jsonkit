@@ -315,6 +315,10 @@ When a field has either `[@json.option]` or `[@json.default]` attributes, you ca
 attribute to make the generated `to_json` function drop the field
 from the JSON output when its value matches the default.
 
+A dropped field is absent from the object on both backends: on Melange the key is left out of
+the emitted JS object rather than set to `undefined`, so `Object.keys` and anything else that
+inspects the object agrees with the native output.
+
 In its flag form (no argument), `[@json.drop_default]` checks for `None` when used with
 `[@json.option]`, and requires an `equal_<type>` function in scope when used with
 `[@json.default]`:
