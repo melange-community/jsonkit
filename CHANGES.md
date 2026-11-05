@@ -1,5 +1,20 @@
 ## Unreleased
 
+- **[breaking]** Native: `Jsonkit.Json.t` is `Yojson.Safe.t` instead of
+  `Yojson.Basic.t`, and `yojson` is now bounded to `>= 2.0.0 & < 3.0.0` (#73).
+  An integer literal too large for a native `int` no longer fails the whole
+  parse: it reaches the decoders as `` `Intlit ``, where `int` reports it by
+  name and `float` accepts it. `Yojson.Safe` also parses yojson's own tuple and
+  variant syntax, which is not JSON and which `Yojson.Basic` rejected;
+  `Jsonkit.of_string` keeps rejecting it, so the integer literal is the only
+  thing this changes. The upper bound is there because yojson 3 drops those two
+  constructors.
+- **[breaking]** `Jsonkit.classify` and `Jsonkit.declassify` gained an
+  `` `Intlit of string `` case, on both backends, so a classified value keeps
+  the literal exactly as written instead of being approximated. Melange never
+  produces it — it parses through `JSON.parse` — but the case is in the type
+  there too, so code matching a classified value stays portable. Any such
+  match now needs the extra case.
 - **[breaking]** A handwritten converter with the wrong type is now an error
   on the field that uses it, instead of one pointing at the whole type
   declaration (#69). On Melange such a converter used to compile and emit

@@ -42,7 +42,6 @@
     (>= "4.1.0")
     :with-dev-setup
     (< :opam-version "2.6")))
-  (ocaml-lsp-server :with-dev-setup)
   (ocamlformat
    (and
     (= "0.28.1")
@@ -60,4 +59,6 @@
   (ppxlib
    (>= "0.38.0"))
   (yojson
-   (>= "1.6.0"))))
+   (and
+    (>= "2.0.0")
+    (< "3.0.0")))))

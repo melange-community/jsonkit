@@ -1,6 +1,6 @@
 let () =
   print_endline
-    (Yojson.Basic.pretty_to_string
+    (Yojson.Safe.pretty_to_string
        (Generate_schemas_cases.snapshot
          : Jsonkit.Jsonschema.t
-         :> Yojson.Basic.t))
+         :> Yojson.Safe.t))

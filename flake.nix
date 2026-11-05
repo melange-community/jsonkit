@@ -37,7 +37,7 @@
             nativeBuildInputs = with pkgs.ocamlPackages; [ melange ];
             propagatedBuildInputs = with pkgs.ocamlPackages; [
               melange
-              yojson
+              yojson_2
               ppxlib
             ];
           };

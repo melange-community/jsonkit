@@ -1,8 +1,8 @@
 (* Shared schema snapshots are built as [Jsonkit.Jsonschema.t] so the
    same OCaml code can be reused by native tests and Melange tests.
 
-   Native tests can coerce that type to [Yojson.Basic.t] at the printing boundary,
-   but Melange has no [Yojson.Basic]. We therefore keep a tiny target-neutral JSON
+   Native tests can coerce that type to [Yojson.Safe.t] at the printing boundary,
+   but Melange has no [Yojson.Safe]. We therefore keep a tiny target-neutral JSON
    serializer here so both targets can print the exact same shared snapshot value. *)
 
 let float_to_json_string f =

@@ -25,7 +25,7 @@ let show_json_type json =
   | `Assoc _ -> "object"
   | `Bool _ -> "bool"
   | `Float _ -> "float"
-  | `Int _ -> "int"
+  | `Int _ | `Intlit _ -> "int"
   | `List _ -> "array"
   | `Null -> "null"
   | `String _ -> "string"
@@ -58,6 +58,7 @@ let show_json_error ?depth ?width json =
             | `Bool bool -> emit (if bool then "true" else "false")
             | `Float float -> emit (string_of_float float)
             | `Int int -> emit (string_of_int int)
+            | `Intlit literal -> emit literal
             | `List li ->
                 emit "[";
                 iteri_last

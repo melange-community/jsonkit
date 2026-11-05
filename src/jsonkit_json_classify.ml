@@ -20,6 +20,7 @@ let classify :
     | `String of string
     | `Float of float
     | `Int of int
+    | `Intlit of string
     | `Bool of bool
     | `List of t list
     | `Assoc of (string * t) list ] =
@@ -49,6 +50,7 @@ let declassify :
     | `String of string
     | `Float of float
     | `Int of int
+    | `Intlit of string
     | `Bool of bool
     | `List of t list
     | `Assoc of (string * t) list ] ->
@@ -57,6 +59,7 @@ let declassify :
   | `String str -> J.string str
   | `Float f -> J.number f
   | `Int i -> J.number (Js.Int.toFloat i)
+  | `Intlit s -> J.number (float_of_string s)
   | `Bool b -> J.boolean b
   | `List li -> J.array (Array.of_list li)
   | `Assoc assoc -> J.object_ (Js.Dict.fromList assoc)

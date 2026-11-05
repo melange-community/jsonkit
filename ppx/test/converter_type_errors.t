@@ -4,6 +4,10 @@ generated code now ascribes every converter reference with the converter type
 the deriver expects, so the error names the converter and points at the field
 whose type it converts.
 
+Only OCaml 5.4 is checked here: earlier compilers word the same error
+differently (and 4.14 trails a space on some lines), so a single expectation
+cannot cover the matrix. See the `enabled_if` in ../test/dune.
+
   $ cat > dune-project <<"EOF"
   > (lang dune 3.11)
   > (implicit_transitive_deps false)
@@ -50,16 +54,19 @@ The program from issue #69: [mytype_to_json] returns a string instead of JSON.
   6 | type my_record = { a : string; my_value : mytype; b : string }
                                                 ^^^^^^
   Error: The value mytype_to_json has type mytype -> string
-         but an expression was expected of type mytype -> Yojson.Basic.t
+         but an expression was expected of type mytype -> Yojson.Safe.t
          Type string is not compatible with type
-           Yojson.Basic.t =
-             [ `Assoc of (string * Yojson.Basic.t) list
+           Yojson.Safe.t =
+             [ `Assoc of (string * Yojson.Safe.t) list
              | `Bool of bool
              | `Float of float
              | `Int of int
-             | `List of Yojson.Basic.t list
+             | `Intlit of string
+             | `List of Yojson.Safe.t list
              | `Null
-             | `String of string ]
+             | `String of string
+             | `Tuple of Yojson.Safe.t list
+             | `Variant of string * Yojson.Safe.t option ]
   File "main_js.ml", line 6, characters 42-48:
   6 | type my_record = { a : string; my_value : mytype; b : string }
                                                 ^^^^^^
@@ -84,16 +91,19 @@ The same mistake under a type constructor still points at the field's own type.
   6 | type my_record = { my_values : mytype list } [@@deriving json]
                                      ^^^^^^
   Error: The value mytype_to_json has type mytype -> string
-         but an expression was expected of type mytype -> Yojson.Basic.t
+         but an expression was expected of type mytype -> Yojson.Safe.t
          Type string is not compatible with type
-           Yojson.Basic.t =
-             [ `Assoc of (string * Yojson.Basic.t) list
+           Yojson.Safe.t =
+             [ `Assoc of (string * Yojson.Safe.t) list
              | `Bool of bool
              | `Float of float
              | `Int of int
-             | `List of Yojson.Basic.t list
+             | `Intlit of string
+             | `List of Yojson.Safe.t list
              | `Null
-             | `String of string ]
+             | `String of string
+             | `Tuple of Yojson.Safe.t list
+             | `Variant of string * Yojson.Safe.t option ]
   File "main_js.ml", line 6, characters 31-37:
   6 | type my_record = { my_values : mytype list } [@@deriving json]
                                      ^^^^^^
@@ -118,16 +128,19 @@ A handwritten [of_json] taking the wrong argument type.
   6 | type my_record = { my_value : mytype } [@@deriving json]
                                     ^^^^^^
   Error: The value mytype_of_json has type string -> mytype
-         but an expression was expected of type Yojson.Basic.t -> mytype
+         but an expression was expected of type Yojson.Safe.t -> mytype
          Type string is not compatible with type
-           Yojson.Basic.t =
-             [ `Assoc of (string * Yojson.Basic.t) list
+           Yojson.Safe.t =
+             [ `Assoc of (string * Yojson.Safe.t) list
              | `Bool of bool
              | `Float of float
              | `Int of int
-             | `List of Yojson.Basic.t list
+             | `Intlit of string
+             | `List of Yojson.Safe.t list
              | `Null
-             | `String of string ]
+             | `String of string
+             | `Tuple of Yojson.Safe.t list
+             | `Variant of string * Yojson.Safe.t option ]
   File "main_js.ml", line 6, characters 30-36:
   6 | type my_record = { my_value : mytype } [@@deriving json]
                                     ^^^^^^

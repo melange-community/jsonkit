@@ -11,7 +11,7 @@
 
 open Jsonkit.Primitives
 
-type json = Yojson.Basic.t
+type json = Yojson.Safe.t
 
 let schema_of ?definitions (s : Jsonkit.Jsonschema.t) : json =
   (Jsonkit.Jsonschema.make ?definitions s :> json)
@@ -477,19 +477,19 @@ let () =
   let failures = ref 0 in
   List.iter
     (fun { name; schema; instances } ->
-      write_file schema_file (Yojson.Basic.to_string schema);
+      write_file schema_file (Yojson.Safe.to_string schema);
       let total = List.length instances in
       let ok = ref 0 in
       List.iteri
         (fun i instance ->
-          write_file instance_file (Yojson.Basic.to_string instance);
+          write_file instance_file (Yojson.Safe.to_string instance);
           match validate ~schema_file ~instance_file with
           | Ok () -> incr ok
           | Error msg ->
               incr failures;
               Printf.printf "%s: %s.[%d] is INVALID\nValue: %s\n%s\n" name
                 name i
-                (Yojson.Basic.to_string instance)
+                (Yojson.Safe.to_string instance)
                 msg)
         instances;
       if !ok = total then Printf.printf "%s: %d/%d valid\n" name !ok total)
