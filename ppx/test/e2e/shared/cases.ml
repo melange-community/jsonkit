@@ -8,6 +8,7 @@ type tuple = int * string [@@deriving json]
 type record = { name : string; age : int } [@@deriving json]
 type record_aliased = { name : string; [@json.key "my_name"] age : int; [@json.key "my_age"] [@json.default 100] } [@@deriving json]
 type record_opt = { k : int option; [@json.option] } [@@deriving json]
+type meta_record = { id : int; name : string [@json.key "full_name"] } [@@deriving json, json_meta]
 type sum = A | B of int | C of { name : string } [@@deriving json]
 type sum2 = S2 of int * string [@@deriving json]
 type other = [ `C ] [@@deriving json]
@@ -235,4 +236,5 @@ let run_error_case' (C (data, of_json, _to_json, _v)) =
 let test () =
   List.iter run' of_json_cases;
   print_endline "\nTesting error cases:";
-  List.iter run_error_case' error_cases
+  List.iter run_error_case' error_cases;
+  print_endline ("\nJSON KEYS: " ^ String.concat "," meta_record_json_keys)

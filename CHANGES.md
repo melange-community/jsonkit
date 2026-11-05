@@ -1,5 +1,9 @@
 ## Unreleased
 
+- Add `[@@deriving json_meta]`, which generates `<type>_json_keys : string
+  list` for a record: its JSON keys in declaration order, with `[@json.key]`
+  applied (#18). It derives on its own or next to `json`, on both backends,
+  and covers signatures.
 - **[breaking]** JSON Schema: a derived schema now carries a single `$defs`
   at its root. Recursive types used inside other types no longer leave nested
   `$defs` with a generated `file://` `$id`; their definitions are collected

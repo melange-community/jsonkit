@@ -490,4 +490,5 @@ let () =
   let (_ : Deriving.t) = To_json_string.register ~to_json () in
   let (_ : Deriving.t) = Json_string.register ~json () in
   let (_ : Deriving.t) = Ppx_deriving_jsonschema.register () in
+  let (_ : Deriving.t) = Json_meta_deriver.register () in
   Linter.register ()

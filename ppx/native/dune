@@ -61,3 +61,6 @@
 ; -> alias .jsonkit-melange-files
 ; -> required by alias ppx/test/runtest
 ; (include_subdirs (unqualified))
+
+(copy_files#
+ (files ./common/json_meta_deriver.ml))
