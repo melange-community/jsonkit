@@ -42,7 +42,7 @@ Cross-target support code.
     definitions, while this file owns the snapshot selection/order
 - `schema_snapshot.ml`
   - tiny JSON serializer for `Jsonkit.Jsonschema.t`
-  - needed because Melange does not have `Yojson.Basic`
+  - needed because Melange does not have `Yojson.Safe`
 
 ## `test/melange/`
 
@@ -61,7 +61,7 @@ Melange uses `test/melange/dune` and reuses the same cases from `shared/cases.ml
 
 The important distinction is:
 
-- native pretty-prints through `Yojson.Basic`
+- native pretty-prints through `Yojson.Safe`
 - Melange prints through `test/shared/schema_snapshot.ml`
 
 The schema content should otherwise match.

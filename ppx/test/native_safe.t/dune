@@ -1,0 +1,6 @@
+(executable
+  (name main)
+  (libraries yojson)
+  (flags (:standard -open Jsonkit.Primitives -w -33))
+  (preprocess
+   (pps jsonkit.ppx)))

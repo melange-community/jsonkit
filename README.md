@@ -525,6 +525,23 @@ of_json_string]` to generate the converters separately.
 A similar PPX is exposed in the `jsonkit` package, which works with
 the `yojson` JSON representation instead of `Js.Json.t`.
 
+`Jsonkit.Json.t` is `Yojson.Safe.t` there. An integer literal too large for a
+native `int` parses as `` `Intlit `` instead of failing the whole document, so
+a payload stays readable even when a field nobody decodes carries one. Reading
+such a field as an `int` is an error naming the literal; as a `float` it
+decodes.
+
+`Jsonkit.classify` has an `` `Intlit of string `` case on both backends, which
+keeps the literal exactly as it was written. Melange parses through
+`JSON.parse` and so can never produce it, but the case is in the type on both
+so that code matching a classified value compiles unchanged against either.
+
+`Yojson.Safe` also reads yojson's own tuple (`("a","b")`) and variant
+(`<"Foo">`) syntax, which is not JSON and which `Yojson.Basic` rejected.
+`Jsonkit.of_string` keeps rejecting it, so the integer literal above is the only
+behaviour this representation changes. The cap on `yojson` below 3.0.0 is there
+because version 3 removed those two constructors.
+
 ### Installation
 
 The PPX is included in `jsonkit` package, so that package will have
@@ -556,8 +573,8 @@ type t = {
 This will generate the following pair of functions:
 
 ```ocaml
-val of_json : Yojson.Basic.json -> t
-val to_json : t -> Yojson.Basic.json
+val of_json : Jsonkit.Json.t -> t
+val to_json : t -> Jsonkit.Json.t
 ```
 
 Refer to the [PPX for Melange](#ppx-for-melange) section for more details on

@@ -1,5 +1,5 @@
 type variant =
-[ `Other of Yojson.Basic.t [@allow_any]
+[ `Other of Yojson.Safe.t [@allow_any]
 | `Foo
 ]
 [@@deriving json]
@@ -11,12 +11,12 @@ type j = {
 
 let () =
   Sys.argv.(1)
-  |> Yojson.Basic.from_string
+  |> Yojson.Safe.from_string
   |> j_of_json
   |> (fun j ->
         (match j with {a=`Other _} -> print_endline "got Other" | {a=`Foo} -> print_endline "got Foo");
         j
      )
   |> j_to_json
-  |> Yojson.Basic.pretty_to_string
+  |> Yojson.Safe.pretty_to_string
   |> print_endline

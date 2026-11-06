@@ -1,6 +1,6 @@
 open Printf
 
-type t = Yojson.Basic.t
+type t = Yojson.Safe.t
 (** The type of a JSON data structure *)
 
 type json = t
@@ -41,13 +41,36 @@ let unknown_variant_case_jsonschema =
 
 let classify = Jsonkit_json_classify.classify
 let declassify = Jsonkit_json_classify.declassify
-let to_string t = Yojson.Basic.to_string t
+let to_string t = Yojson.Safe.to_string t
 
 include Jsonkit_json_errors
 
+let rec contains_unsupport_yojson_extension = function
+  | `Tuple _ | `Variant _ -> true
+  | `List elements ->
+      List.exists contains_unsupport_yojson_extension elements
+  | `Assoc fields -> fields_contain_yojson_extension fields
+  | `Null | `String _ | `Float _ | `Int _ | `Intlit _ | `Bool _ -> false
+
+(* Written out rather than [List.exists] over the pairs, whose closure would be
+   the only thing this search allocates. *)
+and fields_contain_yojson_extension = function
+  | [] -> false
+  | (_, value) :: rest ->
+      contains_unsupport_yojson_extension value
+      || fields_contain_yojson_extension rest
+
 let of_string s =
-  try Yojson.Basic.from_string s
-  with Yojson.Json_error msg -> raise (Of_string_error msg)
+  let json =
+    try Yojson.Safe.from_string s
+    with Yojson.Json_error msg -> raise (Of_string_error msg)
+  in
+  if contains_unsupport_yojson_extension json then
+    raise
+      (Of_string_error
+         "yojson's tuple and variant syntax is not JSON and is not \
+          supported")
+  else json
 
 type 'a to_json = 'a -> json
 (** Describe how to encode a value into JSON. *)
@@ -77,10 +100,11 @@ module Of_json = struct
     | `Assoc _ -> "object"
     | `Bool _ -> "bool"
     | `Float _ -> "float"
-    | `Int _ -> "int"
-    | `List _ -> "array"
+    | `Int _ | `Intlit _ -> "int"
+    | `List _ | `Tuple _ -> "array"
     | `Null -> "null"
     | `String _ -> "string"
+    | `Variant _ -> "variant"
 
   let string = function
     | `String s -> s
@@ -92,6 +116,12 @@ module Of_json = struct
 
   let int = function
     | `Int i -> i
+    | `Intlit s ->
+        of_json_msg_error
+          (Printf.sprintf
+             "expected int, but the integer literal %s does not fit a \
+              native int"
+             s)
     | json -> of_json_error_type_mismatch json "int"
 
   let int64 = function
@@ -104,6 +134,7 @@ module Of_json = struct
   let float = function
     | `Float f -> f
     | `Int i -> float_of_int i
+    | `Intlit s -> float_of_string s
     | json -> of_json_error_type_mismatch json "float"
 
   let unit = function
@@ -171,4 +202,4 @@ module Primitives = struct
   let array_to_json = To_json.array
 end
 
-let equal = Yojson.Basic.equal
+let equal = Yojson.Safe.equal

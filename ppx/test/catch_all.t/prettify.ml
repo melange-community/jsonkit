@@ -21,7 +21,7 @@ type poly_enum =
 let pp_unknown { Jsonkit.tag; payload } =
   match payload with
   | None -> Printf.sprintf "Other(%s,bare)" tag
-  | Some xs -> Printf.sprintf "Other(%s,[%s])" tag (String.concat ";" (List.map Yojson.Basic.to_string xs))
+  | Some xs -> Printf.sprintf "Other(%s,[%s])" tag (String.concat ";" (List.map Yojson.Safe.to_string xs))
 
 let pp = function
   | Alpha -> "Alpha"
@@ -35,16 +35,16 @@ let pp_poly (v : poly_enum) =
   | `Other u -> pp_unknown u
 
 let () =
-  let json = Yojson.Basic.from_string Sys.argv.(1) in
+  let json = Yojson.Safe.from_string Sys.argv.(1) in
   let kind = Sys.argv.(2) in
-  let in_s = Yojson.Basic.to_string json in
+  let in_s = Yojson.Safe.to_string json in
   match kind with
   | "sum" ->
     let v = sum_enum_of_json json in
     Printf.printf "got %s\n" (pp v);
-    Printf.printf "round-trip %s -> %s\n" in_s (Yojson.Basic.to_string (sum_enum_to_json v))
+    Printf.printf "round-trip %s -> %s\n" in_s (Yojson.Safe.to_string (sum_enum_to_json v))
   | "poly" ->
     let v = poly_enum_of_json json in
     Printf.printf "got %s\n" (pp_poly v);
-    Printf.printf "round-trip %s -> %s\n" in_s (Yojson.Basic.to_string (poly_enum_to_json v))
+    Printf.printf "round-trip %s -> %s\n" in_s (Yojson.Safe.to_string (poly_enum_to_json v))
   | _ -> failwith "kind must be sum or poly"

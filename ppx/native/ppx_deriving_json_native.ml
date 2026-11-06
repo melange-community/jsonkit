@@ -206,7 +206,7 @@ module Of_json = struct
         derive_of_variant_case ~is_compact_variants:compact derive case
         :: next)
 
-  (* of_json for native: JSON is [Yojson.Basic.t], a matchable ADT, so the
+  (* of_json for native: JSON is [Yojson.Safe.t], a matchable ADT, so the
      variant decoder is a single [match] expression. This object plugs the
      module-local leaf builders into the shared [Conv.deriving_fn] traversal;
      [cmp_sort_cases] orders the cases so the widest catch-alls come first. *)

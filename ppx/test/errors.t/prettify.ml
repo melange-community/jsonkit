@@ -22,8 +22,8 @@ let () =
   In_channel.with_open_bin Sys.argv.(1) (fun file ->
       file
       |> In_channel.input_all
-      |> Yojson.Basic.from_string
+      |> Yojson.Safe.from_string
       |> j_of_json
       |> j_to_json
-      |> Yojson.Basic.pretty_to_string
+      |> Yojson.Safe.pretty_to_string
       |> print_endline)

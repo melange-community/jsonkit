@@ -451,6 +451,7 @@ val classify :
   | `Bool of bool
   | `Float of float
   | `Int of int
+  | `Intlit of string
   | `List of json list
   | `Null
   | `String of string ]
@@ -461,6 +462,7 @@ val declassify :
   | `Bool of bool
   | `Float of float
   | `Int of int
+  | `Intlit of string
   | `List of json list
   | `Null
   | `String of string ] ->
