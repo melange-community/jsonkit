@@ -1,5 +1,7 @@
 (copy_files ../shared/cases.ml)
 
+(copy_files ../shared/yojson_cases.ml)
+
 (copy_files ../shared/schema_snapshot.ml)
 
 (copy_files ../shared/generate_schemas_cases.ml)

@@ -1,10 +1,6 @@
 # `[@@deriving jsonschema]`
 
-`[@@deriving jsonschema]` generates a [JSON Schema](https://json-schema.org/)
-(draft 2020-12) from an OCaml type. It is the
-[`ppx_deriving_jsonschema`](https://github.com/ahrefs/ppx_deriving_jsonschema)
-deriver, integrated into jsonkit and registered through the same PPX as
-`[@@deriving json]`.
+`[@@deriving jsonschema]` generates a [JSON Schema](https://json-schema.org/) (draft 2020-12) from an OCaml type. It started as the standalone [`ppx_deriving_jsonschema`](https://github.com/ahrefs/ppx_deriving_jsonschema) deriver and now lives in this repository, registered through the same PPX as `[@@deriving json]` (sources in `ppx/jsonschema/`, runtime in `Jsonkit.Jsonschema`).
 
 The generated schema is compatible with the wire format produced by the other
 json derivers:
@@ -666,6 +662,8 @@ type t = {
 [@@deriving jsonschema]
 ```
 
+`[@key]`, `[@option]`, `[@default]`, `[@name]` and `[@@compact_variants]` are shared with `[@@deriving json]`: write them unqualified (or as `[@jsonschema.key]`, ...) and both derivers read the same attribute, so the schema describes exactly the wire shape the encoder emits. On a type that derives both `json` and `jsonschema`, the namespaced `[@json.key]`, `[@json.name]`, `[@json.default]`, `[@json.option]` forms are rejected by a linter, because they would apply to one deriver only.
+
 #### Inline Records in Variants
 
 Inline records in variants also allow additional fields by default. Use the `[@jsonschema.disallow_extra_fields]` attribute on a constructor with an inline record to reject unknown keys for that record:
@@ -721,7 +719,7 @@ This will generate a schema that rejects additional fields for the `User` varian
 
 #### References
 
-Rather than inlining the definition of a type it is possible to use a [json schema `$ref`](https://json-schema.org/understanding-json-schema/structuring#dollarref) using the `[@ref "name"]` attribute. In such a case, the type definition must be passed to `Jsonkit.Jsonschema.make` as a parameter.
+Rather than inlining the definition of a type it is possible to use a [json schema `$ref`](https://json-schema.org/understanding-json-schema/structuring#dollarref) using the `[@ref "name"]` attribute. In such a case, the type definition must be passed to `Jsonkit.Jsonschema.make` as a parameter. The `~definitions` are merged into the document's `$defs` together with the ones a recursive type already carries, so `[@ref]` and recursive types can be combined freely.
 
 ```ocaml
 type address = {

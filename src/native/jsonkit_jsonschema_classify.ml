@@ -9,6 +9,6 @@ type t =
 
 (* On native the schema value type [t] is already the JSON representation, so
    classify/declassify are the identity. (On Melange they convert to/from
-   [Js.Json.t] — see ../../jsonschema/Ppx_deriving_jsonschema_runtime_classify.ml.) *)
+   [Js.Json.t] — see ../jsonkit_jsonschema_classify.ml.) *)
 let classify value = value
 let declassify value = value
