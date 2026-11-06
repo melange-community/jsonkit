@@ -14,12 +14,18 @@
   
       [@@@ocaml.warning "-39-11-27"]
   
-      let foo_of_json = (fun x -> foo_of_json x : Yojson.Basic.t -> foo)
+      let foo_of_json =
+        (fun x -> (foo_of_json : Jsonkit.Json.t -> foo) x
+          : Jsonkit.Json.t -> foo)
+  
       let _ = foo_of_json
   
       [@@@ocaml.warning "-39-11-27"]
   
-      let foo_to_json = (fun x -> foo_to_json x : foo -> Yojson.Basic.t)
+      let foo_to_json =
+        (fun x -> (foo_to_json : foo -> Jsonkit.Json.t) x
+          : foo -> Jsonkit.Json.t)
+  
       let _ = foo_to_json
     end [@@ocaml.doc "@inline"] [@@merlin.hide]
   end
@@ -40,12 +46,18 @@
   
       [@@@ocaml.warning "-39-11-27"]
   
-      let foo_of_json = (fun x -> foo_of_json x : Js.Json.t -> foo)
+      let foo_of_json =
+        (fun x -> (foo_of_json : Jsonkit.Json.t -> foo) x
+          : Jsonkit.Json.t -> foo)
+  
       let _ = foo_of_json
   
       [@@@ocaml.warning "-39-11-27"]
   
-      let foo_to_json = (fun x -> foo_to_json x : foo -> Js.Json.t)
+      let foo_to_json =
+        (fun x -> (foo_to_json : foo -> Jsonkit.Json.t) x
+          : foo -> Jsonkit.Json.t)
+  
       let _ = foo_to_json
     end [@@ocaml.doc "@inline"] [@@merlin.hide]
   end

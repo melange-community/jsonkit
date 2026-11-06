@@ -214,7 +214,7 @@ module Of_json = struct
     (object (self)
        inherit deriving_fn
        method name = "of_json"
-       method t ~loc _name t = [%type: Yojson.Basic.t -> [%t t]]
+       method t ~loc _name t = [%type: Jsonkit.Json.t -> [%t t]]
 
        method! derive_of_tuple t ts x =
          derive_of_tuple ~loc:t.ptyp_loc self#derive_of_core_type ts x
@@ -351,7 +351,7 @@ module To_json = struct
 
   let deriving : Conv.deriving =
     deriving_to () ~name:"to_json"
-      ~t_to:(fun ~loc -> [%type: Yojson.Basic.t])
+      ~t_to:(fun ~loc -> [%type: Jsonkit.Json.t])
       ~json_array ~json_string ~catch_all_encode ~derive_of_record
 end
 
