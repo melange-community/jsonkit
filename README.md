@@ -520,6 +520,27 @@ let A = of_json_string "\"A\""
 Similarly, there's `[@@deriving to_json_string]` and `[@@deriving
 of_json_string]` to generate the converters separately.
 
+#### `[@@deriving json_meta]`: a record's JSON keys
+
+`[@@deriving json_meta]` generates `<type>_json_keys : string list`, the JSON
+keys of a record in declaration order, with `[@json.key]` applied. Use it to
+drive validation, column selection or query building without repeating the
+keys by hand:
+
+```ocaml
+type user = {
+  id : int;
+  name : string [@json.key "full_name"];
+} [@@deriving json, json_meta]
+
+let [ "id"; "full_name" ] = user_json_keys
+```
+
+A type named `t` produces `json_keys`, like the converters do. The value takes
+no arguments, even for a parameterised record, since type parameters have no
+keys of their own. It derives on its own or next to `json`, on both backends,
+and a type that is not a record is an error.
+
 ## PPX for OCaml native
 
 A similar PPX is exposed in the `jsonkit` package, which works with

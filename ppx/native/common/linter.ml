@@ -11,6 +11,7 @@ let json_derivers =
     "json_string";
     "of_json_string";
     "to_json_string";
+    "json_meta";
   ]
 
 let rec deriver_names e =

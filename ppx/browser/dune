@@ -50,3 +50,6 @@
 
 (copy_files#
  (files ../jsonschema/{schema.ml,schema.mli,ppx_deriving_jsonschema.ml}))
+
+(copy_files#
+ (files ../native/common/json_meta_deriver.ml))
