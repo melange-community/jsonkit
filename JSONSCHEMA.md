@@ -22,8 +22,8 @@ a small runtime that the PPX wires in automatically as a `ppx_runtime_library`:
 | Native     | `jsonkit.ppx`         | `jsonkit`         |
 
 Both runtimes expose the schema support at the same path, `Jsonkit.Jsonschema`,
-so sources shared between a native and a Melange build need no per-backend
-conditionals.
+so sources shared between a native and a Melange build need no conditionals
+either way.
 A native `dune` stanza looks like:
 
 ```dune
