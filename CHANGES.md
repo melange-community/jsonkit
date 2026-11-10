@@ -1,5 +1,11 @@
 ## Unreleased
 
+- Melange: new `[@@deriving json_reader]` and `Jsonkit.Reader`. A derived
+  reader decodes a JSON string straight into the OCaml value, guided by the
+  type, without building the `Js.Json.t` first. On input it cannot read
+  directly, `Jsonkit.Reader.of_string` falls back to `Jsonkit.of_string` and
+  the given `of_json`, so results and errors are unchanged. It is opt-in and
+  nothing else changes.
 - **[breaking]** A handwritten converter with the wrong type is now an error
   on the field that uses it, instead of one pointing at the whole type
   declaration (#69). On Melange such a converter used to compile and emit

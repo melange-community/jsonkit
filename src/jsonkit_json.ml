@@ -280,6 +280,17 @@ module Of_json = struct
   let map f decode json = f (decode json)
 end
 
+module Reader = struct
+  let json_of_string = of_string
+
+  include Jsonkit_reader
+
+  let of_string ?detach_strings ~of_json reader source =
+    Jsonkit_reader.of_string ?detach_strings
+      ~fallback:(fun source -> of_json (json_of_string source))
+      reader source
+end
+
 module To_json = struct
   external string : string -> t = "%identity"
   external bool : bool -> t = "%identity"
@@ -360,6 +371,16 @@ module Primitives = struct
   let result_to_json = To_json.result
   let list_to_json = To_json.list
   let array_to_json = To_json.array
+  let string_json_reader = Reader.string
+  let bool_json_reader = Reader.bool
+  let float_json_reader = Reader.float
+  let int_json_reader = Reader.int
+  let int64_json_reader = Reader.int64
+  let option_json_reader = Reader.option
+  let unit_json_reader = Reader.unit
+  let result_json_reader = Reader.result
+  let list_json_reader = Reader.list
+  let array_json_reader = Reader.array
 end
 
 module Decode = struct

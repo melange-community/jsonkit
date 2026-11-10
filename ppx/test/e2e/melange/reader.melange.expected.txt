@@ -1,0 +1,164 @@
+*** json_reader deriver tests ***
+** Scalars **
+0 -> direct, agrees: true
+-1 -> direct, agrees: true
+42 -> direct, agrees: true
+2147483647 -> direct, agrees: true
+-2147483648 -> direct, agrees: true
+123456789012 -> direct, agrees: true
+-0 -> fallback, agrees: true
+01 -> fallback, agrees: true
+1.0 -> fallback, agrees: true
+1e2 -> fallback, agrees: true
+1.5 -> fallback, agrees: true
+9007199254740993 -> fallback, agrees: true
++1 -> fallback, agrees: true
+ -> fallback, agrees: true
+0 -> direct, agrees: true
+-0 -> direct, agrees: true
+1.5 -> direct, agrees: true
+-9.1393 -> direct, agrees: true
+0.1 -> direct, agrees: true
+123456789.123456 -> direct, agrees: true
+1e3 -> direct, agrees: true
+1E-3 -> direct, agrees: true
+1.7976931348623157e308 -> direct, agrees: true
+0.30000000000000004 -> direct, agrees: true
+1. -> fallback, agrees: true
+.5 -> fallback, agrees: true
+1e -> fallback, agrees: true
+01.5 -> fallback, agrees: true
+- -> fallback, agrees: true
+NaN -> fallback, agrees: true
+Infinity -> fallback, agrees: true
+-0 keeps its sign: true
+0.1 + 0.2 as written: true
+"" -> direct, agrees: true
+"plain" -> direct, agrees: true
+"a longer string that gets detached" -> direct, agrees: true
+"quote \" and backslash \\" -> direct, agrees: true
+"\u00e9\n" -> direct, agrees: true
+"ends with a backslash \\" -> direct, agrees: true
+"bad escape \x" -> fallback, agrees: true
+"unterminated -> fallback, agrees: true
+"raw<09>tab" -> fallback, agrees: true
+"raw<0a>newline" -> fallback, agrees: true
+true -> direct, agrees: true
+false -> direct, agrees: true
+truee -> fallback, agrees: true
+tru -> fallback, agrees: true
+1 -> fallback, agrees: true
+null -> direct, agrees: true
+nul -> fallback, agrees: true
+0 -> fallback, agrees: true
+"9223372036854775807" -> direct, agrees: true
+"-5" -> direct, agrees: true
+"x" -> fallback, agrees: true
+5 -> fallback, agrees: true
+** Containers **
+[] -> direct, agrees: true
+[1] -> direct, agrees: true
+[1,2,3] -> direct, agrees: true
+[1, 2] -> fallback, agrees: true
+[1,] -> fallback, agrees: true
+[,1] -> fallback, agrees: true
+[1 ,2] -> fallback, agrees: true
+[1,2 -> fallback, agrees: true
+[1,2]] -> fallback, agrees: true
+{} -> fallback, agrees: true
+null -> fallback, agrees: true
+[] -> direct, agrees: true
+[1.5,2,-3e2] -> direct, agrees: true
+[1.5,null] -> fallback, agrees: true
+[null,"a",null] -> direct, agrees: true
+[null] -> direct, agrees: true
+[1] -> fallback, agrees: true
+["Ok",1] -> direct, agrees: true
+["Error","no"] -> direct, agrees: true
+["Ok"] -> fallback, agrees: true
+["Other",1] -> fallback, agrees: true
+[1,"a"] -> direct, agrees: true
+[1,"a",2] -> fallback, agrees: true
+[1] -> fallback, agrees: true
+["a",1] -> fallback, agrees: true
+[1, "a"] -> fallback, agrees: true
+[[1,[1.5,2.5]],[2,[]]] -> direct, agrees: true
+[[1,[1.5,2.5]],[2]] -> fallback, agrees: true
+[["a",true],["b",false]] -> direct, agrees: true
+** Records **
+{"x":1,"y":2} -> direct, agrees: true
+{"y":2,"x":1} -> direct, agrees: true
+{"x":1,"y":2,"z":3} -> direct, agrees: true
+{"z":{"a":[1,{"b":null}],"c":"}"},"x":1,"y":2} -> direct, agrees: true
+{"x":1,"x":5,"y":2} -> direct, agrees: true
+{"x":1,"y":2,"x":5} -> direct, agrees: true
+{"x":"bad","x":5,"y":2} -> fallback, agrees: true
+{"\u0078":1,"y":2} -> fallback, agrees: true
+{"x":1,"y":2,"\u0078":7} -> fallback, agrees: true
+{"x": 1, "y": 2} -> fallback, agrees: true
+{"x":1} -> fallback, agrees: true
+{"x":1,"y":null} -> fallback, agrees: true
+{"x":1,"y":2,} -> fallback, agrees: true
+{"x":1,"y":2,"z":01} -> fallback, agrees: true
+{"x":1,"y":2,"z":"bad \x escape"} -> fallback, agrees: true
+{"x":1,"y":2,"z":[1,]} -> fallback, agrees: true
+{"x":1,"y":2}trailing -> fallback, agrees: true
+{"x":1,"y":2,"z":"raw<09>tab"} -> fallback, agrees: true
+{"x":1,<0a>"y":2} -> fallback, agrees: true
+{} -> fallback, agrees: true
+[] -> fallback, agrees: true
+{"firstName":"a","age":3,"tags":["t"],"origin":{"x":1,"y":2}} -> direct, agrees: true
+{"firstName":"a","origin":{"x":1,"y":2}} -> direct, agrees: true
+{"firstName":"a","age":null,"origin":{"x":1,"y":2}} -> direct, agrees: true
+{"origin":{"y":2,"x":1},"firstName":"a"} -> direct, agrees: true
+{"first_name":"a","origin":{"x":1,"y":2}} -> fallback, agrees: true
+{"firstName":"a","tags":null,"origin":{"x":1,"y":2}} -> fallback, agrees: true
+{"only":1} -> direct, agrees: true
+{"only":1,"more":2} -> fallback, agrees: true
+{} -> direct, agrees: true
+{"nothing":null} -> direct, agrees: true
+{"other":1} -> direct, agrees: true
+point: 319 mutations of the encoded value, 0 disagreements
+renamed: 1379 mutations of the encoded value, 0 disagreements
+** Variants **
+["Dot"] -> direct, agrees: true
+["Circle",1.5] -> direct, agrees: true
+["Rect",1,2] -> direct, agrees: true
+["Label",{"text":"t","size":3}] -> direct, agrees: true
+["Label",{"text":"t"}] -> direct, agrees: true
+["Label",{"size":3,"text":"t"}] -> direct, agrees: true
+["other-name"] -> direct, agrees: true
+["Renamed"] -> fallback, agrees: true
+"Dot" -> fallback, agrees: true
+["Dot",1] -> fallback, agrees: true
+["Circle"] -> fallback, agrees: true
+["Rect",1] -> fallback, agrees: true
+["Rect",1,2,3] -> fallback, agrees: true
+["D\u006ft"] -> fallback, agrees: true
+[ "Dot" ] -> fallback, agrees: true
+[] -> fallback, agrees: true
+"Up" -> direct, agrees: true
+"Down" -> direct, agrees: true
+["Sideways",3] -> direct, agrees: true
+["Up"] -> fallback, agrees: true
+"Left" -> fallback, agrees: true
+["A"] -> direct, agrees: true
+["B",1] -> direct, agrees: true
+["C","s",true] -> direct, agrees: true
+["D"] -> fallback, agrees: true
+["A"] -> direct, agrees: true
+["D"] -> direct, agrees: true
+["E"] -> fallback, agrees: true
+["Known",1] -> direct, agrees: true
+["Later",1,"x"] -> direct, agrees: true
+"Bare" -> fallback, agrees: true
+["Exactly",1] -> direct, agrees: true
+{"free":["form"]} -> direct, agrees: true
+["Leaf"] -> direct, agrees: true
+["Node",["Leaf"],1,["Node",["Leaf"],2,["Leaf"]]] -> direct, agrees: true
+["Node",["Leaf"],"x",["Leaf"]] -> fallback, agrees: true
+shape list: 1139 mutations of the encoded value, 0 disagreements
+compact: 299 mutations of the encoded value, 0 disagreements
+** Handwritten **
+{"place":"lab","temperature":300.15} -> direct, agrees: true
+{"place":"lab","temperature":"hot"} -> fallback, agrees: true

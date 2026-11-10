@@ -6,7 +6,7 @@
 
 (melange.emit
  (target output)
- (modules cases json_string_cases run)
+ (modules cases json_string_cases run reader_cases reader_run)
  (libraries jsonkit-melange)
  (compile_flags :standard -w -20-37-69 -open Jsonkit.Primitives)
  (preprocess
@@ -30,3 +30,20 @@
   (= %{profile} dev))
  (action
   (diff e2e.melange.expected.txt e2e.melange.actual.txt)))
+
+(rule
+ (targets reader.melange.actual.txt)
+ (deps
+  (alias melange)
+  ./output/ppx/test/e2e/melange/reader_run.js)
+ (action
+  (with-stdout-to
+   %{targets}
+   (run %{bin:node} ./output/ppx/test/e2e/melange/reader_run.js))))
+
+(rule
+ (alias runtest)
+ (enabled_if
+  (= %{profile} dev))
+ (action
+  (diff reader.melange.expected.txt reader.melange.actual.txt)))

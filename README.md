@@ -520,6 +520,50 @@ let A = of_json_string "\"A\""
 Similarly, there's `[@@deriving to_json_string]` and `[@@deriving
 of_json_string]` to generate the converters separately.
 
+#### `[@@deriving json_reader]`: decoding a JSON string without `JSON.parse`
+
+`of_json_string` first builds the whole `Js.Json.t` with `JSON.parse` and then
+converts it. `[@@deriving json_reader]` generates a reader that goes from the
+string to the OCaml value in one pass, guided by the type: keys and variant
+tags are compared with the input in place, and no intermediate object, array
+or tag string is allocated.
+
+```ocaml
+type user = { name : string; age : int } [@@deriving json, json_reader]
+
+let user_of_json_string =
+  Jsonkit.Reader.of_string ~of_json:user_of_json user_json_reader
+```
+
+The reader only takes the direct path for compact JSON, the form
+`Jsonkit.to_string`, `Yojson.Basic.to_string` and `JSON.stringify` emit. On
+anything else (whitespace between tokens, a number that is not written as the
+type expects, a shape the type does not accept, invalid JSON) it gives up and
+`Jsonkit.Reader.of_string` decodes the string again with `Jsonkit.of_string`
+and `~of_json`. The result and the errors are therefore the ones
+`of_json_string` gives; only the time differs.
+
+It is fastest when the fields come in the order the record declares them,
+which is what a backend using jsonkit emits. Fields in another order and
+unknown fields are still read directly, only slower.
+
+Things to know:
+
+- Every type a derived reader refers to needs a reader too:
+  `[@@deriving json_reader]` on it, or `let t_json_reader =
+  Jsonkit.Reader.of_json t_of_json` for a type with a handwritten `of_json`.
+- `string`, `bool`, `int`, `float`, `int64`, `unit`, `option`, `list` and
+  `array` are read by `Jsonkit.Reader` itself, whatever `Primitives` in scope
+  says.
+- A string read directly is a slice of the input, so keeping one small string
+  alive keeps the whole input alive. Pass `~detach_strings:true` to copy them
+  instead, at some cost in speed.
+- Variants with `[@json.allow_any]` or `[@json.catch_all]`, polymorphic
+  variants that include another type, and keys or tags that need escaping in
+  JSON are decoded through `of_json`, so they need `[@@deriving of_json]` and
+  cannot have type parameters.
+- It is only available on Melange.
+
 ## PPX for OCaml native
 
 A similar PPX is exposed in the `jsonkit` package, which works with

@@ -271,7 +271,7 @@ module Of_json = struct
      decoder is a nested if-else chain (see [derive_of_variant]) rather than a
      [match]. This object plugs the module-local leaf builders into the shared
      [Conv.deriving_fn] traversal. *)
-  let deriving : Conv.deriving =
+  let deriving_fn : Conv.deriving_fn =
     (object (self)
        inherit deriving_fn
        method name = "of_json"
@@ -423,6 +423,360 @@ module Of_json = struct
          dispatch_on_tag ~loc ~is_compact_variants:compact
            ~allow_any_constr body x
      end
+      :> Conv.deriving_fn)
+
+  let deriving = (deriving_fn :> Conv.deriving)
+end
+
+module Json_reader = struct
+  let is_plain_json_literal text =
+    String.for_all text ~f:(fun c ->
+        Char.code c >= 0x20
+        && Char.code c <= 0x7e
+        && c <> '"'
+        && c <> '\\')
+
+  let object_prototype_properties =
+    [
+      "__proto__";
+      "__defineGetter__";
+      "__defineSetter__";
+      "__lookupGetter__";
+      "__lookupSetter__";
+      "constructor";
+      "hasOwnProperty";
+      "isPrototypeOf";
+      "propertyIsEnumerable";
+      "toLocaleString";
+      "toString";
+      "valueOf";
+    ]
+
+  let reads_record_directly (record : Record.t) =
+    List.for_all record.fields ~f:(fun (f : Record.field) ->
+        is_plain_json_literal f.key.txt
+        && not (List.mem f.key.txt ~set:object_prototype_properties))
+
+  let reads_case_directly = function
+    | Vcs_tuple { attr; tag; _ } ->
+        (not attr.allow_any)
+        && (not attr.catch_all)
+        && is_plain_json_literal tag.txt
+    | Vcs_record { attr; tag; record; _ } ->
+        (not attr.allow_any)
+        && (not attr.catch_all)
+        && is_plain_json_literal tag.txt
+        && reads_record_directly record
+
+  let mentions_type_variable =
+    object
+      inherit [bool] Ast_traverse.fold as super
+
+      method! core_type t found =
+        match t.ptyp_desc with
+        | Ptyp_var _ -> true
+        | _ -> super#core_type t found
+    end
+
+  let through_of_json ~loc ~polymorphic of_json r =
+    if polymorphic then
+      not_supported ~loc
+        "type parameters on a type that json_reader decodes through \
+         of_json";
+    [%expr
+      Jsonkit_reader.of_json (fun x -> [%e of_json [%expr x]]) [%e r]]
+
+  let has_type_parameters (td : type_declaration) =
+    match td.ptype_params with [] -> false | _ :: _ -> true
+
+  let lit ~loc r literal =
+    [%expr Jsonkit_reader.lit [%e r] [%e estring ~loc literal]]
+
+  let cell_name (f : Record.field) = "json_reader_field_" ^ f.name.txt
+  let cell ~loc f = evar ~loc (cell_name f)
+
+  let build_record ~loc derive (record : Record.t) make r =
+    let fields = record.fields in
+    let read (f : Record.field) =
+      [%expr Stdlib.( := ) [%e cell ~loc f] [%e derive f.type_ r]]
+    in
+    let rec in_declared_order = function
+      | [] -> lit ~loc r "}"
+      | (f : Record.field) :: rest -> (
+          let key = lit ~loc r (sprintf {|,"%s":|} f.key.txt) in
+          let rest = in_declared_order rest in
+          match f.default with
+          | None ->
+              [%expr
+                Stdlib.( && ) [%e key]
+                  ([%e read f];
+                   [%e rest])]
+          | Some _ ->
+              [%expr
+                if [%e key] then [%e read f];
+                [%e rest]])
+    in
+    let in_declared_order =
+      match fields with
+      | [] -> lit ~loc r "{}"
+      | first :: rest ->
+          [%expr
+            Stdlib.( && )
+              [%e lit ~loc r (sprintf {|{"%s":|} first.key.txt)]
+              ([%e read first];
+               [%e in_declared_order rest])]
+    in
+    let unknown_member =
+      if record.allow_extra_fields then
+        [%expr Jsonkit_reader.skip_member [%e r]]
+      else [%expr Jsonkit_reader.fallback ()]
+    in
+    let member =
+      List.fold_right fields ~init:unknown_member
+        ~f:(fun (f : Record.field) next ->
+          let literal = sprintf {|%s":|} f.key.txt in
+          [%expr
+            if
+              Stdlib.( && )
+                (Stdlib.( = ) json_reader_key
+                   [%e eint ~loc (Char.code literal.[0])])
+                [%e lit ~loc r literal]
+            then [%e read f]
+            else [%e next]])
+    in
+    let in_any_order =
+      [%expr
+        if Jsonkit_reader.object_start [%e r] then begin
+          let json_reader_more = Stdlib.ref true in
+          while Stdlib.( ! ) json_reader_more do
+            let json_reader_key = Jsonkit_reader.member_start [%e r] in
+            [%e member];
+            Stdlib.( := ) json_reader_more
+              (Jsonkit_reader.more_members [%e r])
+          done
+        end]
+    in
+    let value (f : Record.field) =
+      ( f.name,
+        let absent =
+          match f.default with
+          | None -> [%expr Jsonkit_reader.fallback ()]
+          | Some default -> default
+        in
+        [%expr
+          if
+            Stdlib.( == )
+              (Stdlib.Obj.repr (Stdlib.( ! ) [%e cell ~loc f]))
+              Jsonkit_reader.absent
+          then [%e absent]
+          else Stdlib.( ! ) [%e cell ~loc f]] )
+    in
+    let body =
+      [%expr
+        if
+          Stdlib.not
+            (Stdlib.( && )
+               (Jsonkit_reader.speculating [%e r])
+               [%e in_declared_order])
+        then begin
+          Jsonkit_reader.stop_speculating [%e r] json_reader_start;
+          [%e in_any_order]
+        end;
+        [%e make ~loc (List.map fields ~f:value)]]
+    in
+    let body =
+      List.fold_right fields ~init:body ~f:(fun f body ->
+          [%expr
+            let [%p pvar ~loc (cell_name f)] =
+              Stdlib.ref (Stdlib.Obj.obj Jsonkit_reader.absent)
+            in
+            [%e body]])
+    in
+    [%expr
+      let json_reader_start = Jsonkit_reader.position [%e r] in
+      [%e body]]
+
+  let read_items ~loc derive types r finish =
+    let names =
+      List.mapi types ~f:(fun i _ -> sprintf "json_reader_item_%i" i)
+    in
+    let closed =
+      [%expr
+        Jsonkit_reader.char [%e r] 93;
+        [%e finish (List.map names ~f:(evar ~loc))]]
+    in
+    List.fold_right
+      (List.mapi (List.combine names types) ~f:(fun i item -> i, item))
+      ~init:closed
+      ~f:(fun (i, (name, t)) rest ->
+        let bound =
+          [%expr
+            let [%p pvar ~loc name] = [%e derive t r] in
+            [%e rest]]
+        in
+        if i = 0 then bound
+        else
+          [%expr
+            Jsonkit_reader.char [%e r] 44;
+            [%e bound]])
+
+  let read_cases ~loc ~compact derive cases r =
+    List.fold_right cases ~init:[%expr Jsonkit_reader.fallback ()]
+      ~f:(fun case next ->
+        match case with
+        | Vcs_tuple { tag; types = []; _ } ->
+            let literal =
+              if compact then sprintf {|"%s"|} tag.txt
+              else sprintf {|["%s"]|} tag.txt
+            in
+            [%expr
+              if [%e lit ~loc r literal] then
+                [%e case_construct case None]
+              else [%e next]]
+        | Vcs_tuple { tag; types; _ } ->
+            [%expr
+              if [%e lit ~loc r (sprintf {|["%s",|} tag.txt)] then
+                [%e
+                  read_items ~loc derive types r (fun items ->
+                      case_construct case (Some (pexp_tuple ~loc items)))]
+              else [%e next]]
+        | Vcs_record { tag; record; _ } ->
+            let make ~loc fs =
+              let fs =
+                List.map fs ~f:(fun (n, v) -> map_loc lident n, v)
+              in
+              [%expr
+                Jsonkit_reader.char [%e r] 93;
+                [%e case_construct case (Some (pexp_record ~loc fs None))]]
+            in
+            [%expr
+              if [%e lit ~loc r (sprintf {|["%s",|} tag.txt)] then
+                [%e build_record ~loc derive record make r]
+              else [%e next]])
+
+  let deriving : Conv.deriving =
+    (object (self)
+       inherit deriving_fn as super
+       method name = "json_reader"
+       method t ~loc _name t = [%type: Jsonkit_reader.t -> [%t t]]
+
+       method! private derive_type_ref' ~loc name n ts =
+         match n.txt, ts with
+         | ( Lident
+               (("string" | "bool" | "int" | "float" | "int64" | "unit")
+                as builtin),
+             [] ) ->
+             As_val
+               (pexp_ident ~loc
+                  { loc; txt = Ldot (Lident "Jsonkit_reader", builtin) })
+         | Lident "option", [ t ] ->
+             As_fun
+               (fun r ->
+                 [%expr
+                   if Jsonkit_reader.null [%e r] then Stdlib.Option.None
+                   else
+                     Stdlib.Option.Some [%e self#derive_of_core_type t r]])
+         | Lident "list", [ t ] ->
+             As_fun
+               (fun r ->
+                 [%expr
+                   if Jsonkit_reader.array_start [%e r] then
+                     let[@tail_mod_cons] rec json_reader_items () =
+                       let json_reader_item =
+                         [%e self#derive_of_core_type t r]
+                       in
+                       if Jsonkit_reader.more_items [%e r] then
+                         json_reader_item :: json_reader_items ()
+                       else [ json_reader_item ]
+                     in
+                     json_reader_items ()
+                   else []])
+         | Lident "array", [ t ] ->
+             As_fun
+               (fun r ->
+                 [%expr
+                   let json_reader_items = [||] in
+                   if Jsonkit_reader.array_start [%e r] then begin
+                     let json_reader_more = Stdlib.ref true in
+                     while Stdlib.( ! ) json_reader_more do
+                       Jsonkit_reader.push json_reader_items
+                         [%e self#derive_of_core_type t r];
+                       Stdlib.( := ) json_reader_more
+                         (Jsonkit_reader.more_items [%e r])
+                     done
+                   end;
+                   json_reader_items])
+         | _ -> super#derive_type_ref' ~loc name n ts
+
+       method! derive_of_tuple t ts r =
+         let loc = t.ptyp_loc in
+         [%expr
+           Jsonkit_reader.char [%e r] 91;
+           [%e
+             read_items ~loc self#derive_of_core_type ts r
+               (pexp_tuple ~loc)]]
+
+       method! derive_of_labeled_tuple t ts r =
+         let loc = t.ptyp_loc in
+         let record = Record.of_labeled_tuple ts in
+         if reads_record_directly record then
+           let make ~loc fs =
+             pexp_labeled_tuple ~loc
+               (List.map fs ~f:(fun (n, v) ->
+                    labeled_tuple_arg_label n, v))
+           in
+           build_record ~loc self#derive_of_core_type record make r
+         else
+           through_of_json ~loc
+             ~polymorphic:(mentions_type_variable#core_type t false)
+             (Of_json.deriving_fn#derive_of_labeled_tuple t ts)
+             r
+
+       method! derive_of_record td fs r =
+         let loc = td.ptype_loc in
+         let record = Record.of_type_declaration td fs in
+         if reads_record_directly record then
+           let make ~loc fs =
+             pexp_record ~loc
+               (List.map fs ~f:(fun (n, v) -> map_loc lident n, v))
+               None
+           in
+           build_record ~loc self#derive_of_core_type record make r
+         else
+           through_of_json ~loc ~polymorphic:(has_type_parameters td)
+             (Of_json.deriving_fn#derive_of_record td fs)
+             r
+
+       method! derive_of_variant td cs r =
+         let loc = td.ptype_loc in
+         let { compact; cases; _ } = resolve_variant td cs in
+         if List.for_all cases ~f:reads_case_directly then
+           read_cases ~loc ~compact self#derive_of_core_type cases r
+         else
+           through_of_json ~loc ~polymorphic:(has_type_parameters td)
+             (Of_json.deriving_fn#derive_of_variant td cs)
+             r
+
+       method! derive_of_polyvariant ?td t cs r =
+         let loc = t.ptyp_loc in
+         let { compact; pvcs; _ } = resolve_polyvariant ?td cs in
+         let cases =
+           List.filter_map pvcs ~f:(function
+             | Pvc_tag case -> Some (Vcs_tuple case)
+             | Pvc_inherit _ -> None)
+         in
+         if
+           List.length cases = List.length pvcs
+           && List.for_all cases ~f:reads_case_directly
+         then read_cases ~loc ~compact self#derive_of_core_type cases r
+         else
+           through_of_json ~loc
+             ~polymorphic:
+               (Option.fold td ~none:false ~some:has_type_parameters
+               || mentions_type_variable#core_type t false)
+             (Of_json.deriving_fn#derive_of_polyvariant ?td t cs)
+             r
+     end
       :> Conv.deriving)
 end
 
@@ -483,6 +837,7 @@ end
 let () =
   let of_json = Conv.register Of_json.deriving in
   let to_json = Conv.register To_json.deriving in
+  let (_ : Deriving.t) = Conv.register Json_reader.deriving in
   let json =
     Conv.register_combined "json" [ To_json.deriving; Of_json.deriving ]
   in

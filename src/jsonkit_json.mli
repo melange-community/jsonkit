@@ -264,6 +264,19 @@ module To_json : sig
   external bool_array : bool array -> json = "%identity"
 end
 
+module Reader : sig
+  include module type of struct
+    include Jsonkit_reader
+  end
+
+  val of_string :
+    ?detach_strings:bool ->
+    of_json:(json -> 'a) ->
+    'a reader ->
+    string ->
+    'a
+end
+
 module Primitives : sig
   val string_of_json : json -> string
   val bool_of_json : json -> bool
@@ -291,6 +304,19 @@ module Primitives : sig
 
   val list_to_json : ('a -> json) -> 'a list -> json
   val array_to_json : ('a -> json) -> 'a array -> json
+  val string_json_reader : string Reader.reader
+  val bool_json_reader : bool Reader.reader
+  val float_json_reader : float Reader.reader
+  val int_json_reader : int Reader.reader
+  val int64_json_reader : int64 Reader.reader
+  val option_json_reader : 'a Reader.reader -> 'a option Reader.reader
+  val unit_json_reader : unit Reader.reader
+
+  val result_json_reader :
+    'a Reader.reader -> 'b Reader.reader -> ('a, 'b) result Reader.reader
+
+  val list_json_reader : 'a Reader.reader -> 'a list Reader.reader
+  val array_json_reader : 'a Reader.reader -> 'a array Reader.reader
 end
 
 module Decode : sig
