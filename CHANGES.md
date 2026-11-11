@@ -64,6 +64,13 @@
 - jsonschema: structural errors are prefixed with `[@@deriving jsonschema]:`
   and attribute errors with the attribute name; the conjunctive polymorphic
   variant error (`` `A of x & y``) is now worded as such.
+- Melange: derived converters are faster. `Jsonkit.Primitives` is now an alias
+  of a top-level module, so Melange calls `string_of_json` and the other
+  primitives directly instead of going through `Curry`, and `Of_json.list`
+  builds the list without an intermediate array. Decoding a 535 KB payload
+  with `of_json` went from 122 ms to 39 ms per 200 runs on Chrome 148, and
+  encoding it with `to_json` from 115 ms to 31 ms. Generated code, values and
+  error messages are unchanged.
 
 ## jsonkit.1.1.0 (2026-08-01)
 

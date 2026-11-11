@@ -94,27 +94,44 @@ module Of_json = struct
     if (Obj.magic json : 'a Js.null) == Js.null then ()
     else of_json_error ~json "expected unit as null"
 
+  let in_array_at_index err index =
+    of_json_msg_error
+      (of_json_error_to_string err
+      ^ "\n\tin array at index "
+      ^ string_of_int index)
+
   let array v_of_json (json : t) =
     if Js.Array.isArray json then (
       let source = (Obj.magic (json : Js.Json.t) : Js.Json.t array) in
       let length = Js.Array.length source in
       let target = _unsafeCreateUninitializedArray length in
-      for i = 0 to length - 1 do
-        let value =
-          try v_of_json (Array.unsafe_get source i)
-          with Of_json_error err ->
-            of_json_msg_error
-              (of_json_error_to_string err
-              ^ "\n\tin array at index "
-              ^ string_of_int i)
-        in
-        Array.unsafe_set target i value
-      done;
+      let index = ref 0 in
+      (try
+         while !index < length do
+           Array.unsafe_set target !index
+             (v_of_json (Array.unsafe_get source !index));
+           incr index
+         done
+       with Of_json_error err -> in_array_at_index err !index);
       target)
     else of_json_error ~json "expected an array"
 
   let list v_of_json (json : t) : _ list =
-    array v_of_json json |> Array.to_list
+    if Js.Array.isArray json then (
+      let source = (Obj.magic (json : Js.Json.t) : Js.Json.t array) in
+      let decoded = ref [] in
+      let index = ref (Js.Array.length source - 1) in
+      (try
+         while !index >= 0 do
+           decoded :=
+             v_of_json (Array.unsafe_get source !index) :: !decoded;
+           decr index
+         done
+       with Of_json_error err ->
+         ignore (array v_of_json json);
+         in_array_at_index err !index);
+      !decoded)
+    else of_json_error ~json "expected an array"
 
   let option v_of_json (json : t) : _ option =
     if (Obj.magic json : 'a Js.null) == Js.null then None

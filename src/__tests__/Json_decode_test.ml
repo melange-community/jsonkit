@@ -219,6 +219,15 @@ let () =
               fail "should throw")
           |> toEqual "expected a boolean but got 1\n\tin array at index 0");
 
+      test "reports the first failing index of an array" (fun () ->
+          expect
+          @@ wrap_exn (fun () ->
+              let (_ : bool array) =
+                (array bool) (parseOrRaise {| [true, 1, false, 2] |})
+              in
+              fail "should throw")
+          |> toEqual "expected a boolean but got 1\n\tin array at index 1");
+
       test "non-Of_json_error exceptions in decoder should pass through"
         (fun () ->
           try
@@ -263,6 +272,15 @@ let () =
               in
               fail "should throw")
           |> toEqual "expected a boolean but got 1\n\tin array at index 0");
+
+      test "reports the first failing index of a list" (fun () ->
+          expect
+          @@ wrap_exn (fun () ->
+              let (_ : bool list) =
+                (list bool) (parseOrRaise {| [true, 1, false, 2] |})
+              in
+              fail "should throw")
+          |> toEqual "expected a boolean but got 1\n\tin array at index 1");
 
       test "non-Of_json_error exceptions in decoder should pass through"
         (fun () ->
