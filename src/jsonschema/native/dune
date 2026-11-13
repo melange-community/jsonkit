@@ -1,0 +1,27 @@
+(library
+ (name jsonkit_jsonschema)
+ (public_name jsonkit.jsonschema)
+ (wrapped false)
+ (libraries jsonkit.json))
+
+; Platform-neutral sources shared with the Melange library in ../ ; only the
+; classify layer is backend-specific, and the deprecated shims differ in their
+; .mli alone, to name the right opam package in the deprecation alert.
+
+(copy_files
+ (files ../jsonkit_jsonschema.ml))
+
+(copy_files
+ (files ../jsonkit_jsonschema_defs.{ml,mli}))
+
+(copy_files
+ (files ../jsonkit_jsonschema_primitives.{ml,mli}))
+
+(copy_files
+ (files ../ppx_deriving_jsonschema_runtime.ml))
+
+(copy_files
+ (files ../ppx_deriving_jsonschema_runtime_classify.ml))
+
+(copy_files
+ (files ../ppx_deriving_jsonschema_runtime_primitives.ml))

@@ -6,7 +6,7 @@
 
 (melange.emit
  (target output)
- (libraries jsonkit-melange)
+ (libraries jsonkit-melange jsonkit-melange.jsonschema)
  (preprocess
   (pps jsonkit-melange.ppx melange.ppx))
  (module_systems

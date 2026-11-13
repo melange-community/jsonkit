@@ -80,6 +80,16 @@ Add `jsonkit-melange` to the `libraries` field in your `dune` file:
 ; ...
 ```
 
+One opam package installs three libraries, and the one you name decides what is linked:
+
+| Library | What it gives you |
+| --- | --- |
+| `jsonkit-melange` | both of the below |
+| `jsonkit-melange.json` | the JSON runtime: `Jsonkit`, and `[@@deriving json]` |
+| `jsonkit-melange.jsonschema` | the JSON Schema runtime: `Jsonkit_jsonschema`, and `[@@deriving jsonschema]` |
+
+Naming the narrower one is worth it on Melange: a bundle that derives no schema and names `jsonkit-melange.json` leaves out about half of the JavaScript jsonkit emits. The `Jsonkit` module is the same in both, so one library in your project can name `jsonkit-melange` and another `jsonkit-melange.json` without anything being linked twice.
+
 ## Documentation
 
 ### API
@@ -539,8 +549,11 @@ To use it, add the `dune` configuration to your project:
 ```dune
 (executable
  ...
+ (libraries jsonkit)
  (preprocess (pps jsonkit.ppx)))
 ```
+
+The same three libraries as on Melange, without the suffix: `jsonkit` for both runtimes, `jsonkit.json` for JSON alone, `jsonkit.jsonschema` for JSON Schema alone. On native the choice only trims what is linked into the binary, so `jsonkit` is a fine default here.
 
 ### Usage
 
@@ -569,15 +582,17 @@ The PPX can generate a [JSON Schema](https://json-schema.org/) from a type with
 `[@@deriving jsonschema]`. The schema matches the output produced by the
 json derivers.
 
+The schema runtime is the `jsonkit.jsonschema` library (`jsonkit-melange.jsonschema` on Melange), which plain `jsonkit` already pulls in. Name it directly in the `libraries` of the code that derives schemas, and the rest of your project can stay on `jsonkit.json` and keep the schema runtime out of its bundle.
+
 ```ocaml
-open Jsonkit.Primitives
+open Jsonkit_jsonschema.Primitives
 
 type t = {
   name: string;
   age: int;
 } [@@deriving jsonschema]
 
-let schema = Jsonkit.Jsonschema.make t_jsonschema
+let schema = Jsonkit_jsonschema.make t_jsonschema
 ```
 
 See **[JSONSCHEMA.md](./JSONSCHEMA.md)** for the full documentation: setup,

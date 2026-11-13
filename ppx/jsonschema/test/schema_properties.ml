@@ -11,7 +11,7 @@
 
 let defs_prefix = "#/$defs/"
 
-let field name : Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t option =
+let field name : Jsonkit_jsonschema.t -> Jsonkit_jsonschema.t option =
   function
   | `Assoc fields -> List.assoc_opt name fields
   | _ -> None
@@ -21,7 +21,7 @@ let root_defs schema =
 
 (* Folds [f] over every value below [schema], skipping resources with an
    [$id] other than the root. *)
-let rec fold f acc ~root (schema : Jsonkit.Jsonschema.t) =
+let rec fold f acc ~root (schema : Jsonkit_jsonschema.t) =
   match schema with
   | `Assoc fields when (not root) && List.mem_assoc "$id" fields -> acc
   | `Assoc fields ->
@@ -65,7 +65,7 @@ let base name =
       String.sub name 0 i
   | _ -> name
 
-let without_schema_keys : Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t =
+let without_schema_keys : Jsonkit_jsonschema.t -> Jsonkit_jsonschema.t =
   function
   | `Assoc fields ->
       `Assoc (List.filter (fun (key, _) -> key <> "$schema") fields)
@@ -74,8 +74,8 @@ let without_schema_keys : Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t =
 (* [schema] with each [#/$defs/...] ref replaced by what it points at,
    [depth] levels deep. [scopes] are the [$defs] around [schema], innermost
    first; a definition is unfolded in the scopes around it. *)
-let rec unfold depth scopes (schema : Jsonkit.Jsonschema.t) :
-    Jsonkit.Jsonschema.t =
+let rec unfold depth scopes (schema : Jsonkit_jsonschema.t) :
+    Jsonkit_jsonschema.t =
   match schema with
   (* A resource with an [$id] is its own root: its refs resolve in its own
      [$defs] only. Ids are left out: what is compared is meaning. *)
@@ -156,7 +156,7 @@ let () =
       then fail index "normal";
       if
         Option.is_none (field "$id" schema)
-        && without_schema_keys (Jsonkit.Jsonschema.make schema)
+        && without_schema_keys (Jsonkit_jsonschema.make schema)
            <> without_schema_keys schema
       then fail index "idempotent")
     Generate_schemas_cases.schemas;
@@ -165,7 +165,7 @@ let () =
       if
         unfold 3 [] derived
         <> unfold 3 []
-             (without_schema_keys (Jsonkit.Jsonschema.make derived))
+             (without_schema_keys (Jsonkit_jsonschema.make derived))
       then fail index "faithful to the derived schema")
     (Cases.
        [
@@ -182,14 +182,14 @@ let () =
        ]
     @
     (* One scope nested under two scopes that define [x] differently. *)
-    let nested : Jsonkit.Jsonschema.t =
+    let nested : Jsonkit_jsonschema.t =
       `Assoc
         [
           "$defs", `Assoc [ "y", `Assoc [ "$ref", `String "#/$defs/x" ] ];
           "$ref", `String "#/$defs/y";
         ]
     in
-    let around x : Jsonkit.Jsonschema.t =
+    let around x : Jsonkit_jsonschema.t =
       `Assoc
         [
           "$defs", `Assoc [ "x", `Assoc [ "const", `String x ] ];
@@ -202,7 +202,7 @@ let () =
     (fun index left ->
       Array.iteri
         (fun other right ->
-          let composed : Jsonkit.Jsonschema.t =
+          let composed : Jsonkit_jsonschema.t =
             `Assoc
               [ "properties", `Assoc [ "left", left; "right", right ] ]
           in
@@ -211,7 +211,7 @@ let () =
             && unfold 3 [] composed
                <> unfold 3 []
                     (without_schema_keys
-                       (Jsonkit.Jsonschema.make composed))
+                       (Jsonkit_jsonschema.make composed))
           then fail index (Printf.sprintf "faithful with schema %d" other))
         schemas)
     schemas;

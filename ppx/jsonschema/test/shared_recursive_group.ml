@@ -1,4 +1,4 @@
-open Jsonkit.Primitives
+open Jsonkit_jsonschema.Primitives
 
 [@@@warning "-37-69"]
 
@@ -33,7 +33,7 @@ let () =
   if !probe_calls <> 1 then
     failwith "recursive schema body was evaluated more than once"
 
-let field name : Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t option =
+let field name : Jsonkit_jsonschema.t -> Jsonkit_jsonschema.t option =
   function
   | `Assoc fields -> List.assoc_opt name fields
   | _ -> None
@@ -66,7 +66,7 @@ type described_pair = { x : described_a; y : described_b }
 [@@deriving jsonschema]
 
 let () =
-  let schema = Jsonkit.Jsonschema.make described_pair_jsonschema in
+  let schema = Jsonkit_jsonschema.make described_pair_jsonschema in
   if
     List.sort compare (def_names schema)
     <> [ "described_a"; "described_b" ]
@@ -95,7 +95,7 @@ type same_ref = { a : Same_ref_a.t; b : Same_ref_b.t }
 [@@deriving jsonschema]
 
 let () =
-  let schema = Jsonkit.Jsonschema.make same_ref_jsonschema in
+  let schema = Jsonkit_jsonschema.make same_ref_jsonschema in
   let ref_of name =
     match
       Option.bind (field "properties" schema) (fun properties ->
@@ -167,7 +167,7 @@ module Capture = struct
 end
 
 let () =
-  let schema = Jsonkit.Jsonschema.make Capture.u_jsonschema in
+  let schema = Jsonkit_jsonschema.make Capture.u_jsonschema in
   let defs =
     match field "$defs" schema with
     | Some defs -> defs
@@ -180,7 +180,7 @@ let () =
   let root = target (field "$ref" schema) in
   (* The variant's [Node] payload is the holder object; its [x] must point
      back at the variant itself. *)
-  let rec find_x : Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t option =
+  let rec find_x : Jsonkit_jsonschema.t -> Jsonkit_jsonschema.t option =
     function
     | `Assoc fields -> (
         match List.assoc_opt "properties" fields with

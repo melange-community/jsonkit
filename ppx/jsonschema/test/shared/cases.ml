@@ -1,4 +1,4 @@
-open Jsonkit.Primitives
+open Jsonkit_jsonschema.Primitives
 
 module Mod1 = struct
   type m_1 = A | B [@@deriving jsonschema]
@@ -448,7 +448,7 @@ type default_with_module_type = {
 (* Regression: a record value used as [@default] for a non-primitive field, where the record has
    an [@option] [@drop_default] field set to None. In Melange, the generated [_to_json] emits the
    field as [Js.Undefined.empty], so the JS object is [{ foo: undefined }]. Then
-   [Jsonkit.Jsonschema.classify] mis-classifies [undefined] as a JSON object and
+   [Jsonkit_jsonschema.classify] mis-classifies [undefined] as a JSON object and
    crashes with "Cannot convert undefined or null to object" while enumerating its entries. *)
 type inner_with_option_field = {
   foo : int option; [@option] [@drop_default]
@@ -573,13 +573,13 @@ type wrapped_a = Wrapped_a of wrapped_b | Wrapped_stop
 and wrapped_b = Wrapped_b of wrapped_a wrap [@@deriving jsonschema]
 
 module Hoist = struct
-  let assoc fields : Jsonkit.Jsonschema.t = `Assoc fields
-  let string value : Jsonkit.Jsonschema.t = `String value
+  let assoc fields : Jsonkit_jsonschema.t = `Assoc fields
+  let string value : Jsonkit_jsonschema.t = `String value
   let ref_ name = assoc [ "$ref", string ("#/$defs/" ^ name) ]
   let const value = assoc [ "const", string value ]
 
   let nested_scope =
-    Jsonkit.Jsonschema.make
+    Jsonkit_jsonschema.make
       (assoc
          [
            ( "$defs",
@@ -597,7 +597,7 @@ module Hoist = struct
          ])
 
   let mixed_collision =
-    Jsonkit.Jsonschema.make
+    Jsonkit_jsonschema.make
       ~definitions:[ "same", const "same"; "different", const "existing" ]
       (assoc
          [
@@ -608,7 +608,7 @@ module Hoist = struct
          ])
 
   let user_resource =
-    Jsonkit.Jsonschema.make
+    Jsonkit_jsonschema.make
       (assoc
          [
            ( "resource",

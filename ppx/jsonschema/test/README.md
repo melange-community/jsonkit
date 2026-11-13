@@ -38,7 +38,7 @@ Cross-target support code.
   - this is intentionally separate from `cases.ml`: `cases.ml` owns the type
     definitions, while this file owns the snapshot selection/order
 - `schema_snapshot.ml`
-  - tiny JSON serializer for `Jsonkit.Jsonschema.t`
+  - tiny JSON serializer for `Jsonkit_jsonschema.t`
   - needed because Melange does not have `Yojson.Basic`
 
 ## `test/melange/`

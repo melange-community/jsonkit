@@ -1,4 +1,4 @@
-open Jsonkit.Primitives
+open Jsonkit_jsonschema.Primitives
 module Mod1 =
   struct
     type m_1 =
@@ -2504,10 +2504,10 @@ include
                      | `Assoc ppx_fields ->
                          `Assoc
                            (("default",
-                              (Jsonkit.Jsonschema.classify
+                              (Jsonkit_jsonschema.classify
                                  ((range_to_json
                                      (fun ppx_x ->
-                                        Jsonkit.Jsonschema.declassify
+                                        Jsonkit_jsonschema.declassify
                                           (`Int ppx_x)))
                                     { from = 0; to_ = 100 })))
                            :: ppx_fields)
@@ -2532,7 +2532,7 @@ include
                     | `Assoc ppx_fields ->
                         `Assoc
                           (("default",
-                             (Jsonkit.Jsonschema.classify
+                             (Jsonkit_jsonschema.classify
                                 (record_for_default_to_json { score = None })))
                           :: ppx_fields)
                     | ppx_other -> ppx_other)));
@@ -2541,7 +2541,7 @@ include
                     | `Assoc ppx_fields ->
                         `Assoc
                           (("default",
-                             (Jsonkit.Jsonschema.classify
+                             (Jsonkit_jsonschema.classify
                                 (variant_for_default_to_json A)))
                           :: ppx_fields)
                     | ppx_other -> ppx_other)));
@@ -2660,7 +2660,7 @@ include
                      | `Assoc ppx_fields ->
                          `Assoc
                            (("default",
-                              (Jsonkit.Jsonschema.classify
+                              (Jsonkit_jsonschema.classify
                                  (Status.to_json Status.Active)))
                            :: ppx_fields)
                      | ppx_other -> ppx_other)))]));
@@ -2712,7 +2712,7 @@ include
                      | `Assoc ppx_fields ->
                          `Assoc
                            (("default",
-                              (Jsonkit.Jsonschema.classify
+                              (Jsonkit_jsonschema.classify
                                  (inner_with_option_field_to_json
                                     empty_inner_with_option_field)))
                            :: ppx_fields)
@@ -3460,12 +3460,12 @@ include
   end[@@ocaml.doc "@inline"][@@merlin.hide ]
 module Hoist =
   struct
-    let assoc fields : Jsonkit.Jsonschema.t= `Assoc fields
-    let string value : Jsonkit.Jsonschema.t= `String value
+    let assoc fields : Jsonkit_jsonschema.t= `Assoc fields
+    let string value : Jsonkit_jsonschema.t= `String value
     let ref_ name = assoc [("$ref", (string ("#/$defs/" ^ name)))]
     let const value = assoc [("const", (string value))]
     let nested_scope =
-      Jsonkit.Jsonschema.make
+      Jsonkit_jsonschema.make
         (assoc
            [("$defs",
               (assoc
@@ -3476,7 +3476,7 @@ module Hoist =
                  ("t", (const "outer"))]));
            ("$ref", (string "#/$defs/t"))])
     let mixed_collision =
-      Jsonkit.Jsonschema.make
+      Jsonkit_jsonschema.make
         ~definitions:[("same", (const "same"));
                      ("different", (const "existing"))]
         (assoc
@@ -3485,7 +3485,7 @@ module Hoist =
            ("same", (ref_ "same"));
            ("different", (ref_ "different"))])
     let user_resource =
-      Jsonkit.Jsonschema.make
+      Jsonkit_jsonschema.make
         (assoc
            [("resource",
               (assoc

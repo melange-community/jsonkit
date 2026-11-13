@@ -1,5 +1,5 @@
 (** Composes derived schemas with a single root [$defs]: the runtime of
-    [[@@deriving jsonschema]] and [Jsonkit.Jsonschema.make]. *)
+    [[@@deriving jsonschema]] and [Jsonkit_jsonschema.make]. *)
 
 val non_recursive :
   Jsonkit_jsonschema_classify.t -> Jsonkit_jsonschema_classify.t

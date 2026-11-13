@@ -15,24 +15,23 @@ json derivers:
 
 ## Setup
 
-The deriver ships inside the jsonkit PPX, so there is nothing extra to
-install — enabling `jsonkit-melange.ppx` (Melange) or `jsonkit.ppx`
-(native) makes `[@@deriving jsonschema]` available. The generated code relies on
-a small runtime that the PPX wires in automatically as a `ppx_runtime_library`:
+The deriver ships inside the jsonkit PPX, so there is nothing extra to install: enabling `jsonkit-melange.ppx` (Melange) or `jsonkit.ppx` (native) makes `[@@deriving jsonschema]` available. The generated code relies on a runtime that lives in a library of its own, which you add to `libraries`:
 
-| Build      | PPX                   | Runtime           |
-| ---------- | --------------------- | ----------------- |
-| Melange/JS | `jsonkit-melange.ppx` | `jsonkit-melange` |
-| Native     | `jsonkit.ppx`         | `jsonkit`         |
+| Build      | PPX                   | Runtime                      |
+| ---------- | --------------------- | ---------------------------- |
+| Melange/JS | `jsonkit-melange.ppx` | `jsonkit-melange.jsonschema` |
+| Native     | `jsonkit.ppx`         | `jsonkit.jsonschema`         |
 
-Both runtimes expose the schema support at the same path, `Jsonkit.Jsonschema`,
-so sources shared between a native and a Melange build need no per-backend
-conditionals.
+Naming plain `jsonkit` or `jsonkit-melange` works too: they pull in both runtimes. The narrower names are there so that code deriving no schema can name `jsonkit.json` or `jsonkit-melange.json` and leave this runtime out, which on Melange is about half of the JavaScript jsonkit emits. All of them come from the one opam package, so nothing extra is installed either way.
+
+Both builds expose the schema support at the same path, `Jsonkit_jsonschema`, so sources shared between a native and a Melange build need no per-backend conditionals. Its `Primitives` module also re-exports the JSON primitives, so a module deriving both `json` and `jsonschema` opens one module, not two.
+
 A native `dune` stanza looks like:
 
 ```dune
 (library
  (name my_types)
+ (libraries jsonkit.jsonschema)
  (preprocess
   (pps jsonkit.ppx)))
 ```
@@ -43,6 +42,7 @@ and a Melange one:
 (library
  (name my_types)
  (modes melange)
+ (libraries jsonkit-melange.jsonschema)
  (preprocess
   (pps jsonkit-melange.ppx)))
 ```
@@ -63,7 +63,7 @@ type t = {
   address: address;
 } [@@deriving jsonschema]
 
-let schema = Jsonkit.Jsonschema.make t_jsonschema
+let schema = Jsonkit_jsonschema.make t_jsonschema
 ```
 
 Such a type will be turned into a JSON schema like this:
@@ -95,8 +95,8 @@ Such a type will be turned into a JSON schema like this:
 ## Usage
 
 For each type with `[@@deriving jsonschema]`, the deriver generates a
-`<type>_jsonschema` value of type `Jsonkit.Jsonschema.t`.
-Wrap it with `Jsonkit.Jsonschema.make` to get a complete,
+`<type>_jsonschema` value of type `Jsonkit_jsonschema.t`.
+Wrap it with `Jsonkit_jsonschema.make` to get a complete,
 self-contained schema document (it adds the `$schema` header and any
 `$defs`/metadata).
 
@@ -104,7 +104,7 @@ The deriver emits primitive helpers (e.g. `int_jsonschema`, `string_jsonschema`)
 unqualified, so bring a primitives module into scope:
 
 ```ocaml
-open Jsonkit.Primitives
+open Jsonkit_jsonschema.Primitives
 
 type t = {
   a: int;
@@ -112,11 +112,11 @@ type t = {
 } [@@deriving jsonschema]
 ```
 
-`Jsonkit.Primitives` describes the encoding jsonkit's own
+`Jsonkit_jsonschema.Primitives` describes the encoding jsonkit’s own
 `[@@deriving json]` produces — notably `int64` as a string, and `result` as a
 tagged array. If the values you are describing are encoded by yojson-style
 derivers instead, where `int64` is a plain JSON number, open
-`Jsonkit.Jsonschema.Yojson_primitives`.
+`Jsonkit_jsonschema.Yojson_primitives`.
 
 ### Conversion rules
 
@@ -721,7 +721,7 @@ This will generate a schema that rejects additional fields for the `User` varian
 
 #### References
 
-Rather than inlining the definition of a type it is possible to use a [json schema `$ref`](https://json-schema.org/understanding-json-schema/structuring#dollarref) using the `[@ref "name"]` attribute. In such a case, the type definition must be passed to `Jsonkit.Jsonschema.make` as a parameter.
+Rather than inlining the definition of a type it is possible to use a [json schema `$ref`](https://json-schema.org/understanding-json-schema/structuring#dollarref) using the `[@ref "name"]` attribute. In such a case, the type definition must be passed to `Jsonkit_jsonschema.make` as a parameter.
 
 ```ocaml
 type address = {
@@ -742,7 +742,7 @@ type t = {
 [@@deriving jsonschema]
 
 let schema =
-  Jsonkit.Jsonschema.make
+  Jsonkit_jsonschema.make
     ~definitions:[("shared_address", address_jsonschema)]
     t_jsonschema
 ```

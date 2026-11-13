@@ -9,12 +9,12 @@
    the result against [_jsonschema] with an external Draft 2020-12 validator
    ([check-jsonschema]). *)
 
-open Jsonkit.Primitives
+open Jsonkit_jsonschema.Primitives
 
 type json = Yojson.Basic.t
 
-let schema_of ?definitions (s : Jsonkit.Jsonschema.t) : json =
-  (Jsonkit.Jsonschema.make ?definitions s :> json)
+let schema_of ?definitions (s : Jsonkit_jsonschema.t) : json =
+  (Jsonkit_jsonschema.make ?definitions s :> json)
 
 type case = { name : string; schema : json; instances : json list }
 

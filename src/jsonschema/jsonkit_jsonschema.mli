@@ -15,9 +15,12 @@ val make :
 
 module Classify : module type of Jsonkit_jsonschema_classify
 
-module Primitives : module type of Jsonkit_jsonschema_primitives.Jsonkit
 (** Primitive schemas matching jsonkit's own [to_json]/[of_json] encoding.
 *)
+module Primitives : sig
+  include module type of Jsonkit_jsonschema_primitives.Jsonkit
+  include module type of Jsonkit.Primitives
+end
 
 module Yojson_primitives :
     module type of Jsonkit_jsonschema_primitives.Yojson

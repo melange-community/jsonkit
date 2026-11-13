@@ -1,0 +1,13 @@
+; [wrapped false] mirrors the native library in ./native: the internal name has
+; to differ from the native library's public name ([jsonkit.jsonschema]), but
+; the exposed modules must stay the same so sources shared between the two
+; builds need no conditionals.
+
+(library
+ (name jsonkit_melange_jsonschema)
+ (public_name jsonkit-melange.jsonschema)
+ (modes melange)
+ (libraries jsonkit-melange.json)
+ (wrapped false)
+ (preprocess
+  (pps melange.ppx)))

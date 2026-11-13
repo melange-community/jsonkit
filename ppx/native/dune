@@ -3,7 +3,7 @@
  (name ppx_deriving_json_native)
  (modules :standard \ ppx_deriving_json_native_test)
  (libraries ppxlib)
- (ppx_runtime_libraries jsonkit yojson)
+ (ppx_runtime_libraries jsonkit.json yojson)
  (preprocess
   (pps ppxlib.metaquot))
  (kind ppx_deriver))

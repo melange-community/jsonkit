@@ -1,0 +1,6 @@
+(library
+ (name jsonkit_umbrella)
+ (public_name jsonkit)
+ (libraries
+  (re_export jsonkit.json)
+  (re_export jsonkit.jsonschema)))

@@ -28,5 +28,9 @@ let make ?id ?title ?description ?(definitions = []) types =
 module Classify = Jsonkit_jsonschema_classify
 
 (* Defines the main jsonschema primitives for Jsonkit *)
-module Primitives = Jsonkit_jsonschema_primitives.Jsonkit
+module Primitives = struct
+  include Jsonkit_jsonschema_primitives.Jsonkit
+  include Jsonkit.Primitives
+end
+
 module Yojson_primitives = Jsonkit_jsonschema_primitives.Yojson

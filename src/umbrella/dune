@@ -1,0 +1,11 @@
+; [jsonkit-melange] is the whole package: no modules of its own, it pulls in the
+; JSON runtime and the JSON Schema one. [jsonkit-melange.json] is the JSON
+; runtime alone, for a build that should not carry the schema code.
+
+(library
+ (name jsonkit_melange_umbrella)
+ (public_name jsonkit-melange)
+ (modes melange)
+ (libraries
+  (re_export jsonkit-melange.json)
+  (re_export jsonkit-melange.jsonschema)))

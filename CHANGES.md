@@ -15,12 +15,12 @@
 - Fix: in a recursive group, every member now gets its own
   `[@@jsonschema.description]` and format/minimum/maximum annotations, and
   `[@@jsonschema.attrs]` is applied in groups too.
-- **[breaking]** `Jsonkit.Jsonschema.make` flattens nested `$defs` of
+- **[breaking]** `Jsonkit_jsonschema.make` flattens nested `$defs` of
   hand-composed schemas into the root one, with the same renaming. A nested
   object with an `$id` is left untouched. `make ~definitions:[]` no longer
   emits an empty `"$defs": {}`.
 - **[breaking]** A derived `foo_jsonschema` that embeds another type's schema
-  or a type argument now has the type `Jsonkit.Jsonschema.t`, the one the deriver
+  or a type argument now has the type `Jsonkit_jsonschema.t`, the one the deriver
   already declares in signatures, instead of an inferred polymorphic variant.
   Schemas that embed nothing (enums, literals) keep their inferred type. Code
   without a signature that passed such a schema, built only from enums, where
@@ -39,21 +39,32 @@
 - Fix: use the `len` value as expression on the variant case function to avoid
   expected "named" value to be declared on the function.
 - Fix: remove the duplicated runtime deps from the ppx libraries.
-- Move the JSON Schema runtime into the main packages, at `Jsonkit.Jsonschema`.
-  It is the same API under a new path, on both backends, so sources shared
-  between a native and a Melange build need no per-backend conditionals. The
-  JSON runtime is unchanged and stays where it is: everything previously at
-  `Jsonkit.*` is still at `Jsonkit.*`, and is now also reachable as
-  `Jsonkit.Json.*`.
- - Deprecate the `jsonkit.jsonschema` and
-  `jsonkit-melange.jsonschema` libraries, along with the
-  `Ppx_deriving_jsonschema_runtime`, `Ppx_deriving_jsonschema_runtime_classify`
-  and `Ppx_deriving_jsonschema_runtime_primitives` modules. They still exist and
-  still work, as aliases for `Jsonkit.Jsonschema`, `Jsonkit.Jsonschema.Classify`
-  and the primitives modules. The deprecated modules keep their old shape:
-  `Primitives` still has its `Yojson` and `Jsonkit` submodules, and
-  `json_schema` is still there under that name, so existing code compiles
-  unchanged.
+- Give the JSON runtime a library of its own, `jsonkit.json` on native and
+  `jsonkit-melange.json` on Melange, next to the JSON Schema one. `jsonkit` and
+  `jsonkit-melange` keep their meaning — the whole package — so a `libraries`
+  field that names them needs no change; a build that derives no schema names
+  the narrower library instead and leaves the schema runtime out. On Melange
+  that is half of the emitted JavaScript: 69 KB down to 33 KB, 11 KB down to
+  5.5 KB gzipped, for the end-to-end test app.
+- `jsonkit` and `jsonkit-melange` hold no modules of their own; they re-export
+  the two runtimes. The same `Jsonkit` is therefore linked once however the
+  libraries of one executable spell their dependency.
+- Rename the JSON Schema runtime to `Jsonkit_jsonschema`, on both backends, so
+  sources shared between a native and a Melange build need no per-backend
+  conditionals. The JSON runtime is unchanged: everything at `Jsonkit.*` is
+  still there, and is now also reachable as `Jsonkit.Json.*`.
+- `Jsonkit_jsonschema.Primitives` re-exports the JSON primitives alongside the
+  schema ones, so a module deriving both `json` and `jsonschema` needs a single
+  `open Jsonkit_jsonschema.Primitives`. `Jsonkit.Primitives` now has the JSON
+  primitives only.
+- Deprecate the `Ppx_deriving_jsonschema_runtime`,
+  `Ppx_deriving_jsonschema_runtime_classify` and
+  `Ppx_deriving_jsonschema_runtime_primitives` modules. They still exist and
+  still work, as aliases for `Jsonkit_jsonschema`, `Jsonkit_jsonschema.Classify`
+  and the primitives modules, in the same libraries as before. The deprecated
+  modules keep their old shape: `Primitives` still has its `Yojson` and
+  `Jsonkit` submodules, and `json_schema` is still there under that name, so
+  existing code compiles unchanged.
 
 ## jsonkit.1.0.0 (2026-07-30)
 

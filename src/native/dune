@@ -1,6 +1,6 @@
 (library
- (name jsonkit)
- (public_name jsonkit)
+ (name jsonkit_json_runtime)
+ (public_name jsonkit.json)
  (wrapped false)
  (libraries
   (re_export yojson)))
@@ -13,12 +13,3 @@
 
 (copy_files
  (files ../jsonkit_json_errors.ml))
-
-(copy_files
- (files ../jsonkit_jsonschema.ml))
-
-(copy_files
- (files ../jsonkit_jsonschema_defs.{ml,mli}))
-
-(copy_files
- (files ../jsonkit_jsonschema_primitives.{ml,mli}))

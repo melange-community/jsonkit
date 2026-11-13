@@ -539,7 +539,7 @@ let sig_type_decl ~ctxt ast _flag_polymorphic_variant_tuple
     _flag_ocaml_doc =
   let jsonschema_t ~loc =
     ptyp_constr ~loc
-      { txt = Ldot (Ldot (Lident "Jsonkit", "Jsonschema"), "t"); loc }
+      { txt = Ldot (Lident "Jsonkit_jsonschema", "t"); loc }
       []
   in
   let loc = Expansion_context.Deriver.derived_item_loc ctxt in

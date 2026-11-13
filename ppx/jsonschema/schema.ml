@@ -183,7 +183,7 @@ module Annotation = struct
             (fun arg ->
               [%expr
                 fun ppx_x ->
-                  Jsonkit.Jsonschema.declassify
+                  Jsonkit_jsonschema.declassify
                     [%e serialize_expr ~loc arg [%expr ppx_x]]])
             args
         in
@@ -194,7 +194,7 @@ module Annotation = struct
             arg_serializers
         in
         [%expr
-          Jsonkit.Jsonschema.classify
+          Jsonkit_jsonschema.classify
             ([%e to_json_expr] [%e default_value_expr])]
     | _ ->
         Location.raise_errorf ~loc:ct.ptyp_loc

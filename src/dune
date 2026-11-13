@@ -5,8 +5,8 @@
 ; module must stay [Jsonkit] so the same sources build against either backend.
 
 (library
- (name jsonkit_melange)
- (public_name jsonkit-melange)
+ (name jsonkit_melange_json_runtime)
+ (public_name jsonkit-melange.json)
  (modes melange)
  (wrapped false)
  (preprocess
