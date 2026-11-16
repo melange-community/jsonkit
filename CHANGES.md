@@ -6,7 +6,7 @@
   wrong JSON; it is now a type error.
 - Generated converters are typed with `Jsonkit.Json.t` instead of
   `Yojson.Basic.t` on native and `Js.Json.t` on Melange. It is the same type
-  on each backend, so no hand-written signature has to change.
+  on both, so no hand-written signature has to change.
 - **[breaking]** The native package now requires OCaml 4.14, up from 4.12.
   4.12 and 4.13 were already untested: the CI matrix starts at 4.14. The new
   bound is what makes the stack fix below free on OCaml 5.x.
@@ -64,6 +64,11 @@
 - jsonschema: structural errors are prefixed with `[@@deriving jsonschema]:`
   and attribute errors with the attribute name; the conjunctive polymorphic
   variant error (`` `A of x & y``) is now worded as such.
+- Docs: the README now opens on the two packages, `jsonkit` on Yojson and
+  `jsonkit-melange` on `Js.Json.t`, and documents the deriver attributes once
+  for both. `Jsonkit.classify` is written up as the way to look inside a JSON
+  value from code that compiles on native and on Melange, and the decoder
+  combinators are marked as living in `jsonkit-melange` only (#70, #54).
 
 ## jsonkit.1.1.0 (2026-08-01)
 
