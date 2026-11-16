@@ -28,23 +28,23 @@
   type event = {
     name: string ;
     count: int }[@@deriving jsonschema]
-  include sig val event_jsonschema : Jsonkit.Jsonschema.t end[@@ocaml.doc
+  include sig val event_jsonschema : Jsonkit_jsonschema.t end[@@ocaml.doc
                                                                "@inline"]
   [@@merlin.hide ]
   type kind =
     | Success 
     | Error [@@deriving jsonschema]
-  include sig val kind_jsonschema : Jsonkit.Jsonschema.t end[@@ocaml.doc
+  include sig val kind_jsonschema : Jsonkit_jsonschema.t end[@@ocaml.doc
                                                               "@inline"]
   [@@merlin.hide ]
   type alias = event[@@deriving jsonschema]
-  include sig val alias_jsonschema : Jsonkit.Jsonschema.t end[@@ocaml.doc
+  include sig val alias_jsonschema : Jsonkit_jsonschema.t end[@@ocaml.doc
                                                                "@inline"]
   [@@merlin.hide ]
   type 'a wrapper = {
     value: 'a }[@@deriving jsonschema]
   include
-    sig val wrapper_jsonschema : Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t
+    sig val wrapper_jsonschema : Jsonkit_jsonschema.t -> Jsonkit_jsonschema.t
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type ('a, 'b) pair = {
     first: 'a ;
@@ -52,7 +52,7 @@
   include
     sig
       val pair_jsonschema :
-        Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t
+        Jsonkit_jsonschema.t -> Jsonkit_jsonschema.t -> Jsonkit_jsonschema.t
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type foo = {
     bar: bar option }
@@ -60,6 +60,6 @@
     foo: foo option }[@@deriving jsonschema]
   include
     sig
-      val foo_jsonschema : Jsonkit.Jsonschema.t
-      val bar_jsonschema : Jsonkit.Jsonschema.t
+      val foo_jsonschema : Jsonkit_jsonschema.t
+      val bar_jsonschema : Jsonkit_jsonschema.t
     end[@@ocaml.doc "@inline"][@@merlin.hide ]

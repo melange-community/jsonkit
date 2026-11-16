@@ -40,7 +40,7 @@ module Of_json = struct
                 | Some default -> default
                 | None ->
                     [%expr
-                      Jsonkit.of_json_error ~json:x
+                      Jsonkit_json.of_json_error ~json:x
                         [%e
                           estring ~loc
                             (sprintf "expected field %S to be present"
@@ -77,7 +77,7 @@ module Of_json = struct
             if [%e is_known_field [%expr name]] then
               iter (Stdlib.( + ) i 1)
             else
-              Jsonkit.of_json_error ~json:x
+              Jsonkit_json.of_json_error ~json:x
                 (Stdlib.Printf.sprintf {|did not expect field "%s"|} name)
         in
         iter 0;
@@ -95,7 +95,7 @@ module Of_json = struct
   let ensure_json_object ~loc x =
     [%expr
       if Stdlib.not [%e eis_json_object ~loc x] then
-        Jsonkit.of_json_error ~json:[%e x]
+        Jsonkit_json.of_json_error ~json:[%e x]
           [%e estring ~loc (sprintf "expected a JSON object")]]
 
   let ensure_json_array_len ~loc ~allow_any_constr ~else_ n len x =
@@ -104,7 +104,7 @@ module Of_json = struct
       | Some allow_any_constr -> allow_any_constr x
       | None ->
           [%expr
-            Jsonkit.of_json_error ~json:[%e x]
+            Jsonkit_json.of_json_error ~json:[%e x]
               [%e
                 estring ~loc
                   (sprintf "expected a JSON array of length %i" n)]]
@@ -138,7 +138,7 @@ module Of_json = struct
       | Some allow_any_constr -> allow_any_constr x
       | None ->
           [%expr
-            Jsonkit.of_json_error ~json:[%e x]
+            Jsonkit_json.of_json_error ~json:[%e x]
               "expected a non empty JSON array"]
     in
     let string_branch =
@@ -173,7 +173,7 @@ module Of_json = struct
               | Some allow_any_constr -> allow_any_constr x
               | None ->
                   [%expr
-                    Jsonkit.of_json_error ~json:[%e x]
+                    Jsonkit_json.of_json_error ~json:[%e x]
                       "expected a non empty JSON array with element \
                        being a string"]]
         else [%e not_array_error]
@@ -196,7 +196,7 @@ module Of_json = struct
           in
           Stdlib.Option.Some rest
       in
-      ({ tag = [%e tag]; payload } : Jsonkit.unknown_variant_case)]
+      ({ tag = [%e tag]; payload } : Jsonkit_json.unknown_variant_case)]
 
   let derive_of_variant_case ?(is_compact_variants = false) ~tag ~array
       ~len ~allow_any_constr derive case next =
@@ -306,7 +306,7 @@ module Of_json = struct
              [%e
                build_tuple ~loc self#derive_of_core_type 0 ts [%expr es]]
            else
-             Jsonkit.of_json_error ~json:[%e x]
+             Jsonkit_json.of_json_error ~json:[%e x]
                [%e
                  estring ~loc
                    (sprintf "expected a JSON array of length %i" n)]]
@@ -361,7 +361,7 @@ module Of_json = struct
                    in
                    fun ~array:_ ~len:_ ~tag:_ ->
                      [%expr
-                       Jsonkit.of_json_error ~json:[%e x]
+                       Jsonkit_json.of_json_error ~json:[%e x]
                          [%e estring ~loc error_message]])
              ~f:(fun next case ->
                self#variant_case_link ~compact ~allow_any_constr ~case
@@ -396,7 +396,7 @@ module Of_json = struct
                in
                fun ~array:_ ~len:_ ~tag:_ ->
                  [%expr
-                   Jsonkit.of_json_unexpected_variant ~json:x
+                   Jsonkit_json.of_json_unexpected_variant ~json:x
                      [%e estring ~loc error_message]]
          in
          let link cases next =
@@ -412,7 +412,8 @@ module Of_json = struct
                match [%e maybe_e] with
                | e -> (e :> [%t t])
                | exception
-                   Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
+                   Jsonkit_json.Of_json_error
+                     (Jsonkit_json.Unexpected_variant _) ->
                    [%e next ~array ~len ~tag]]
          in
          let body =
@@ -440,7 +441,7 @@ module To_json = struct
       | Stdlib.Option.Some xs ->
           let head = (Obj.magic ([%e tag] : string) : Js.Json.t) in
           let rest =
-            Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs
+            Stdlib.List.map (fun (j : Jsonkit_json.t) -> Obj.magic j) xs
           in
           (Obj.magic
              (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
@@ -465,7 +466,7 @@ module To_json = struct
             | `Drop_default_if_json_equal def ->
                 [%expr
                   let json = [%e v] in
-                  if Jsonkit.equal json [%e derive f.type_ def] then
+                  if Jsonkit_json.equal json [%e derive f.type_ def] then
                     Js.Undefined.empty
                   else Js.Undefined.return json]
           in

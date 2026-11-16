@@ -2537,10 +2537,10 @@ include
                      | `Assoc ppx_fields ->
                          `Assoc
                            (("default",
-                              (Jsonkit.Jsonschema.classify
+                              (Jsonkit_jsonschema.classify
                                  ((range_to_json
                                      (fun ppx_x ->
-                                        Jsonkit.Jsonschema.declassify
+                                        Jsonkit_jsonschema.declassify
                                           (`Int ppx_x)))
                                     { from = 0; to_ = 100 })))
                            :: ppx_fields)
@@ -2565,7 +2565,7 @@ include
                     | `Assoc ppx_fields ->
                         `Assoc
                           (("default",
-                             (Jsonkit.Jsonschema.classify
+                             (Jsonkit_jsonschema.classify
                                 (record_for_default_to_json { score = None })))
                           :: ppx_fields)
                     | ppx_other -> ppx_other)));
@@ -2574,7 +2574,7 @@ include
                     | `Assoc ppx_fields ->
                         `Assoc
                           (("default",
-                             (Jsonkit.Jsonschema.classify
+                             (Jsonkit_jsonschema.classify
                                 (variant_for_default_to_json A)))
                           :: ppx_fields)
                     | ppx_other -> ppx_other)));
@@ -2696,7 +2696,7 @@ include
                      | `Assoc ppx_fields ->
                          `Assoc
                            (("default",
-                              (Jsonkit.Jsonschema.classify
+                              (Jsonkit_jsonschema.classify
                                  (Status.to_json Status.Active)))
                            :: ppx_fields)
                      | ppx_other -> ppx_other)))]));
@@ -2757,7 +2757,7 @@ include
                      | `Assoc ppx_fields ->
                          `Assoc
                            (("default",
-                              (Jsonkit.Jsonschema.classify
+                              (Jsonkit_jsonschema.classify
                                  (inner_with_option_field_to_json
                                     empty_inner_with_option_field)))
                            :: ppx_fields)
