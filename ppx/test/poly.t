@@ -17,7 +17,7 @@ We can alias poly variants:
            | `List ((`String "A")::[]) -> `A
            | `List ((`String "B")::[]) -> `B
            | x ->
-               Jsonkit.of_json_unexpected_variant ~json:x
+               Jsonkit_json.of_json_unexpected_variant ~json:x
                  "expected [\"A\"] or [\"B\"]" : Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -63,7 +63,7 @@ We can alias poly variants:
                     then
                       (if Stdlib.(<>) len 1
                        then
-                         Jsonkit.of_json_error ~json:x
+                         Jsonkit_json.of_json_error ~json:x
                            "expected a JSON array of length 1"
                        else `A)
                     else
@@ -71,19 +71,21 @@ We can alias poly variants:
                       then
                         (if Stdlib.(<>) len 1
                          then
-                           Jsonkit.of_json_error ~json:x
+                           Jsonkit_json.of_json_error ~json:x
                              "expected a JSON array of length 1"
                          else `B)
                       else
-                        Jsonkit.of_json_unexpected_variant ~json:x
+                        Jsonkit_json.of_json_unexpected_variant ~json:x
                           "expected [\"A\"] or [\"B\"]")
                  else
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
-           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Jsonkit.Json.t -> t)
+                Jsonkit_json.of_json_error ~json:x
+                  "expected a non empty JSON array")
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array" : Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
@@ -135,7 +137,7 @@ We can extend aliased polyvariants:
            | `List ((`String "A")::[]) -> `A
            | `List ((`String "B")::[]) -> `B
            | x ->
-               Jsonkit.of_json_unexpected_variant ~json:x
+               Jsonkit_json.of_json_unexpected_variant ~json:x
                  "expected [\"A\"] or [\"B\"]" : Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -157,9 +159,9 @@ We can extend aliased polyvariants:
            | x ->
                (match (of_json : Jsonkit.Json.t -> t) x with
                 | x -> (x :> [ | t | `C ])
-                | exception Jsonkit.Of_json_error (Jsonkit.Unexpected_variant
-                    _) ->
-                    Jsonkit.of_json_unexpected_variant ~json:x
+                | exception Jsonkit_json.Of_json_error
+                    (Jsonkit_json.Unexpected_variant _) ->
+                    Jsonkit_json.of_json_unexpected_variant ~json:x
                       "expected [\"C\"]") : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -195,7 +197,7 @@ We can extend aliased polyvariants:
                     then
                       (if Stdlib.(<>) len 1
                        then
-                         Jsonkit.of_json_error ~json:x
+                         Jsonkit_json.of_json_error ~json:x
                            "expected a JSON array of length 1"
                        else `A)
                     else
@@ -203,19 +205,21 @@ We can extend aliased polyvariants:
                       then
                         (if Stdlib.(<>) len 1
                          then
-                           Jsonkit.of_json_error ~json:x
+                           Jsonkit_json.of_json_error ~json:x
                              "expected a JSON array of length 1"
                          else `B)
                       else
-                        Jsonkit.of_json_unexpected_variant ~json:x
+                        Jsonkit_json.of_json_unexpected_variant ~json:x
                           "expected [\"A\"] or [\"B\"]")
                  else
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
-           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Jsonkit.Json.t -> t)
+                Jsonkit_json.of_json_error ~json:x
+                  "expected a non empty JSON array")
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array" : Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
@@ -246,23 +250,25 @@ We can extend aliased polyvariants:
                     then
                       (if Stdlib.(<>) len 1
                        then
-                         Jsonkit.of_json_error ~json:x
+                         Jsonkit_json.of_json_error ~json:x
                            "expected a JSON array of length 1"
                        else `C)
                     else
                       (match (of_json : Jsonkit.Json.t -> t) x with
                        | e -> (e :> [ | t | `C ])
-                       | exception Jsonkit.Of_json_error
-                           (Jsonkit.Unexpected_variant _) ->
-                           Jsonkit.of_json_unexpected_variant ~json:x
+                       | exception Jsonkit_json.Of_json_error
+                           (Jsonkit_json.Unexpected_variant _) ->
+                           Jsonkit_json.of_json_unexpected_variant ~json:x
                              "expected [\"C\"]"))
                  else
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
-           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Jsonkit.Json.t -> u)
+                Jsonkit_json.of_json_error ~json:x
+                  "expected a non empty JSON array")
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array" : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
@@ -320,7 +326,7 @@ We can extend poly variants which are placed behind signatures:
                | `List ((`String "A")::[]) -> `A
                | `List ((`String "B")::[]) -> `B
                | x ->
-                   Jsonkit.of_json_unexpected_variant ~json:x
+                   Jsonkit_json.of_json_unexpected_variant ~json:x
                      "expected [\"A\"] or [\"B\"]" : Jsonkit.Json.t -> t)
           let _ = of_json
           [@@@ocaml.warning "-39-11-27"]
@@ -344,9 +350,9 @@ We can extend poly variants which are placed behind signatures:
            | x ->
                (match (P.of_json : Jsonkit.Json.t -> P.t) x with
                 | x -> (x :> [ | P.t | `C ])
-                | exception Jsonkit.Of_json_error (Jsonkit.Unexpected_variant
-                    _) ->
-                    Jsonkit.of_json_unexpected_variant ~json:x
+                | exception Jsonkit_json.Of_json_error
+                    (Jsonkit_json.Unexpected_variant _) ->
+                    Jsonkit_json.of_json_unexpected_variant ~json:x
                       "expected [\"C\"]") : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -393,7 +399,7 @@ We can extend poly variants which are placed behind signatures:
                         then
                           (if Stdlib.(<>) len 1
                            then
-                             Jsonkit.of_json_error ~json:x
+                             Jsonkit_json.of_json_error ~json:x
                                "expected a JSON array of length 1"
                            else `A)
                         else
@@ -401,20 +407,20 @@ We can extend poly variants which are placed behind signatures:
                           then
                             (if Stdlib.(<>) len 1
                              then
-                               Jsonkit.of_json_error ~json:x
+                               Jsonkit_json.of_json_error ~json:x
                                  "expected a JSON array of length 1"
                              else `B)
                           else
-                            Jsonkit.of_json_unexpected_variant ~json:x
+                            Jsonkit_json.of_json_unexpected_variant ~json:x
                               "expected [\"A\"] or [\"B\"]")
                      else
-                       Jsonkit.of_json_error ~json:x
+                       Jsonkit_json.of_json_error ~json:x
                          "expected a non empty JSON array with element being a string")
                   else
-                    Jsonkit.of_json_error ~json:x
+                    Jsonkit_json.of_json_error ~json:x
                       "expected a non empty JSON array")
                else
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected a non empty JSON array" : Jsonkit.Json.t -> t)
           let _ = of_json
           [@@@ocaml.warning "-39-11-27"]
@@ -447,23 +453,25 @@ We can extend poly variants which are placed behind signatures:
                     then
                       (if Stdlib.(<>) len 1
                        then
-                         Jsonkit.of_json_error ~json:x
+                         Jsonkit_json.of_json_error ~json:x
                            "expected a JSON array of length 1"
                        else `C)
                     else
                       (match (P.of_json : Jsonkit.Json.t -> P.t) x with
                        | e -> (e :> [ | P.t | `C ])
-                       | exception Jsonkit.Of_json_error
-                           (Jsonkit.Unexpected_variant _) ->
-                           Jsonkit.of_json_unexpected_variant ~json:x
+                       | exception Jsonkit_json.Of_json_error
+                           (Jsonkit_json.Unexpected_variant _) ->
+                           Jsonkit_json.of_json_unexpected_variant ~json:x
                              "expected [\"C\"]"))
                  else
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
-           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Jsonkit.Json.t -> u)
+                Jsonkit_json.of_json_error ~json:x
+                  "expected a non empty JSON array")
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array" : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
@@ -518,9 +526,10 @@ this way):
                       | `List ((`String s)::payload) ->
                           (s, (Stdlib.Option.Some payload))
                       | _ -> assert false in
-                    `Other ({ tag; payload } : Jsonkit.unknown_variant_case)
+                    `Other
+                      ({ tag; payload } : Jsonkit_json.unknown_variant_case)
                 | _ ->
-                    Jsonkit.of_json_unexpected_variant ~json:x
+                    Jsonkit_json.of_json_unexpected_variant ~json:x
                       "expected [\"A\"] or [\"Other\", _]") : Jsonkit.Json.t ->
                                                                 t)
       let _ = of_json
@@ -548,9 +557,9 @@ this way):
            | x ->
                (match (of_json : Jsonkit.Json.t -> t) x with
                 | x -> (x :> [ | t | `B ])
-                | exception Jsonkit.Of_json_error (Jsonkit.Unexpected_variant
-                    _) ->
-                    Jsonkit.of_json_unexpected_variant ~json:x
+                | exception Jsonkit_json.Of_json_error
+                    (Jsonkit_json.Unexpected_variant _) ->
+                    Jsonkit_json.of_json_unexpected_variant ~json:x
                       "expected [\"B\"]") : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -588,7 +597,7 @@ this way):
                     then
                       (if Stdlib.(<>) len 1
                        then
-                         Jsonkit.of_json_error ~json:x
+                         Jsonkit_json.of_json_error ~json:x
                            "expected a JSON array of length 1"
                        else `A)
                     else
@@ -608,14 +617,16 @@ this way):
                                      (Stdlib.List.map (fun j -> Obj.magic j)) in
                                  Stdlib.Option.Some rest) in
                           ({ tag = (Obj.magic tag : string); payload } : 
-                            Jsonkit.unknown_variant_case))))
+                            Jsonkit_json.unknown_variant_case))))
                  else
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
-           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Jsonkit.Json.t -> t)
+                Jsonkit_json.of_json_error ~json:x
+                  "expected a non empty JSON array")
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array" : Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec to_json =
@@ -629,7 +640,8 @@ this way):
                 | Stdlib.Option.Some xs ->
                     let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
                     let rest =
-                      Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs in
+                      Stdlib.List.map (fun (j : Jsonkit_json.t) -> Obj.magic j)
+                        xs in
                     (Obj.magic
                        (Stdlib.Array.of_list (head :: rest) : Js.Json.t array) : 
                       Js.Json.t)) : t -> Jsonkit.Json.t)
@@ -655,23 +667,25 @@ this way):
                     then
                       (if Stdlib.(<>) len 1
                        then
-                         Jsonkit.of_json_error ~json:x
+                         Jsonkit_json.of_json_error ~json:x
                            "expected a JSON array of length 1"
                        else `B)
                     else
                       (match (of_json : Jsonkit.Json.t -> t) x with
                        | e -> (e :> [ | t | `B ])
-                       | exception Jsonkit.Of_json_error
-                           (Jsonkit.Unexpected_variant _) ->
-                           Jsonkit.of_json_unexpected_variant ~json:x
+                       | exception Jsonkit_json.Of_json_error
+                           (Jsonkit_json.Unexpected_variant _) ->
+                           Jsonkit_json.of_json_unexpected_variant ~json:x
                              "expected [\"B\"]"))
                  else
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
-           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Jsonkit.Json.t -> u)
+                Jsonkit_json.of_json_error ~json:x
+                  "expected a non empty JSON array")
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array" : Jsonkit.Json.t -> u)
       let _ = u_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec u_to_json =
@@ -720,7 +734,7 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
            | `List ((`String "Alpha")::[]) -> `Alpha
            | `List ((`String "Beta")::[]) -> `Beta
            | x ->
-               Jsonkit.of_json_unexpected_variant ~json:x
+               Jsonkit_json.of_json_unexpected_variant ~json:x
                  "expected [\"Alpha\"] or [\"Beta\"]" : Jsonkit.Json.t ->
                                                           poly_known)
       let _ = poly_known_of_json
@@ -749,8 +763,8 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                     (x :> [ | poly_known
                           | `Other of Jsonkit.unknown_variant_case
                               [@json.catch_all ]])
-                | exception Jsonkit.Of_json_error (Jsonkit.Unexpected_variant
-                    _) ->
+                | exception Jsonkit_json.Of_json_error
+                    (Jsonkit_json.Unexpected_variant _) ->
                     (match x with
                      | `String _ | `List ((`String _)::_) as v ->
                          let (tag, payload) =
@@ -760,9 +774,9 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                                (s, (Stdlib.Option.Some payload))
                            | _ -> assert false in
                          `Other
-                           ({ tag; payload } : Jsonkit.unknown_variant_case)
+                           ({ tag; payload } : Jsonkit_json.unknown_variant_case)
                      | _ ->
-                         Jsonkit.of_json_unexpected_variant ~json:x
+                         Jsonkit_json.of_json_unexpected_variant ~json:x
                            "expected [\"Other\", _]")) : Jsonkit.Json.t ->
                                                            poly_own_catch_all)
       let _ = poly_own_catch_all_of_json
@@ -810,7 +824,7 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                     then
                       (if Stdlib.(<>) len 1
                        then
-                         Jsonkit.of_json_error ~json:x
+                         Jsonkit_json.of_json_error ~json:x
                            "expected a JSON array of length 1"
                        else `Alpha)
                     else
@@ -818,19 +832,21 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                       then
                         (if Stdlib.(<>) len 1
                          then
-                           Jsonkit.of_json_error ~json:x
+                           Jsonkit_json.of_json_error ~json:x
                              "expected a JSON array of length 1"
                          else `Beta)
                       else
-                        Jsonkit.of_json_unexpected_variant ~json:x
+                        Jsonkit_json.of_json_unexpected_variant ~json:x
                           "expected [\"Alpha\"] or [\"Beta\"]")
                  else
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
-           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Jsonkit.Json.t -> poly_known)
+                Jsonkit_json.of_json_error ~json:x
+                  "expected a non empty JSON array")
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array" : Jsonkit.Json.t -> poly_known)
       let _ = poly_known_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_known_to_json =
@@ -867,8 +883,8 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                        (e :> [ | poly_known
                              | `Other of Jsonkit.unknown_variant_case
                                  [@json.catch_all ]])
-                   | exception Jsonkit.Of_json_error
-                       (Jsonkit.Unexpected_variant _) ->
+                   | exception Jsonkit_json.Of_json_error
+                       (Jsonkit_json.Unexpected_variant _) ->
                        `Other
                          (let payload =
                             if Stdlib.(=) len 0
@@ -885,14 +901,17 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                                      (Stdlib.List.map (fun j -> Obj.magic j)) in
                                  Stdlib.Option.Some rest) in
                           ({ tag = (Obj.magic tag : string); payload } : 
-                            Jsonkit.unknown_variant_case))
+                            Jsonkit_json.unknown_variant_case))
                  else
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
-           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Jsonkit.Json.t -> poly_own_catch_all)
+                Jsonkit_json.of_json_error ~json:x
+                  "expected a non empty JSON array")
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array" : Jsonkit.Json.t ->
+                                                     poly_own_catch_all)
       let _ = poly_own_catch_all_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_own_catch_all_to_json =
@@ -907,7 +926,8 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                 | Stdlib.Option.Some xs ->
                     let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
                     let rest =
-                      Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs in
+                      Stdlib.List.map (fun (j : Jsonkit_json.t) -> Obj.magic j)
+                        xs in
                     (Obj.magic
                        (Stdlib.Array.of_list (head :: rest) : Js.Json.t array) : 
                       Js.Json.t)) : poly_own_catch_all -> Jsonkit.Json.t)
@@ -957,7 +977,7 @@ backends:
            | `List ((`String "Alpha")::[]) -> `Alpha
            | `List ((`String "Beta")::[]) -> `Beta
            | x ->
-               Jsonkit.of_json_unexpected_variant ~json:x
+               Jsonkit_json.of_json_unexpected_variant ~json:x
                  "expected [\"Alpha\"] or [\"Beta\"]" : Jsonkit.Json.t ->
                                                           poly_known)
       let _ = poly_known_of_json
@@ -987,8 +1007,8 @@ backends:
                             `Other of Jsonkit.unknown_variant_case
                               [@json.catch_all ]
                           | poly_known])
-                | exception Jsonkit.Of_json_error (Jsonkit.Unexpected_variant
-                    _) ->
+                | exception Jsonkit_json.Of_json_error
+                    (Jsonkit_json.Unexpected_variant _) ->
                     (match x with
                      | `String _ | `List ((`String _)::_) as v ->
                          let (tag, payload) =
@@ -998,9 +1018,9 @@ backends:
                                (s, (Stdlib.Option.Some payload))
                            | _ -> assert false in
                          `Other
-                           ({ tag; payload } : Jsonkit.unknown_variant_case)
+                           ({ tag; payload } : Jsonkit_json.unknown_variant_case)
                      | _ ->
-                         Jsonkit.of_json_unexpected_variant ~json:x
+                         Jsonkit_json.of_json_unexpected_variant ~json:x
                            "expected [\"Other\", _]")) : Jsonkit.Json.t ->
                                                            poly_catch_all_inherit_second)
       let _ = poly_catch_all_inherit_second_of_json
@@ -1051,7 +1071,7 @@ backends:
                     then
                       (if Stdlib.(<>) len 1
                        then
-                         Jsonkit.of_json_error ~json:x
+                         Jsonkit_json.of_json_error ~json:x
                            "expected a JSON array of length 1"
                        else `Alpha)
                     else
@@ -1059,19 +1079,21 @@ backends:
                       then
                         (if Stdlib.(<>) len 1
                          then
-                           Jsonkit.of_json_error ~json:x
+                           Jsonkit_json.of_json_error ~json:x
                              "expected a JSON array of length 1"
                          else `Beta)
                       else
-                        Jsonkit.of_json_unexpected_variant ~json:x
+                        Jsonkit_json.of_json_unexpected_variant ~json:x
                           "expected [\"Alpha\"] or [\"Beta\"]")
                  else
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
-           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Jsonkit.Json.t -> poly_known)
+                Jsonkit_json.of_json_error ~json:x
+                  "expected a non empty JSON array")
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array" : Jsonkit.Json.t -> poly_known)
       let _ = poly_known_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_known_to_json =
@@ -1109,8 +1131,8 @@ backends:
                                `Other of Jsonkit.unknown_variant_case
                                  [@json.catch_all ]
                              | poly_known])
-                   | exception Jsonkit.Of_json_error
-                       (Jsonkit.Unexpected_variant _) ->
+                   | exception Jsonkit_json.Of_json_error
+                       (Jsonkit_json.Unexpected_variant _) ->
                        `Other
                          (let payload =
                             if Stdlib.(=) len 0
@@ -1127,14 +1149,17 @@ backends:
                                      (Stdlib.List.map (fun j -> Obj.magic j)) in
                                  Stdlib.Option.Some rest) in
                           ({ tag = (Obj.magic tag : string); payload } : 
-                            Jsonkit.unknown_variant_case))
+                            Jsonkit_json.unknown_variant_case))
                  else
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
               else
-                Jsonkit.of_json_error ~json:x "expected a non empty JSON array")
-           else Jsonkit.of_json_error ~json:x "expected a non empty JSON array" : 
-        Jsonkit.Json.t -> poly_catch_all_inherit_second)
+                Jsonkit_json.of_json_error ~json:x
+                  "expected a non empty JSON array")
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array" : Jsonkit.Json.t ->
+                                                     poly_catch_all_inherit_second)
       let _ = poly_catch_all_inherit_second_of_json
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_catch_all_inherit_second_to_json =
@@ -1147,7 +1172,8 @@ backends:
                 | Stdlib.Option.Some xs ->
                     let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
                     let rest =
-                      Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs in
+                      Stdlib.List.map (fun (j : Jsonkit_json.t) -> Obj.magic j)
+                        xs in
                     (Obj.magic
                        (Stdlib.Array.of_list (head :: rest) : Js.Json.t array) : 
                       Js.Json.t))

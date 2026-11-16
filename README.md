@@ -68,6 +68,8 @@ opam install jsonkit-melange
   (pps jsonkit-melange.ppx)))
 ```
 
+`Jsonkit` gives you both halves, JSON and JSON Schema, and a browser bundle that names it carries both. If you only derive `json`, open `Jsonkit_json.Primitives` and write `Jsonkit_json` instead.
+
 Each package contains both the runtime library and its [ppx deriver
 plugin](https://ocaml.org/docs/metaprogramming#attributes-and-derivers); there
 is nothing else to install.

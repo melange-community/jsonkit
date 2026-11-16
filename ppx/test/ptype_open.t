@@ -22,7 +22,7 @@ We can use the `Ptyp_open` AST node:
                    (((int_of_json : Jsonkit.Json.t -> int) x_0),
                      ((int_of_json : Jsonkit.Json.t -> int) x_1))
                | _ ->
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2" : Jsonkit.Json.t -> x)
           let _ = x_of_json
           [@@@ocaml.warning "-39-11-27"]
@@ -73,7 +73,7 @@ We can use the `Ptyp_open` AST node:
                    ((int_of_json : Jsonkit.Json.t -> int)
                       (Js.Array.unsafe_get es 1)))
                else
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected a JSON array of length 2" : Jsonkit.Json.t -> x)
           let _ = x_of_json
           [@@@ocaml.warning "-39-11-27"]

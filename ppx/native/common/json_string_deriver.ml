@@ -51,7 +51,7 @@ module Of_json_string = struct
   let expand =
     expand_via ~what:"of_json_string" ~through:"of_json"
       (fun ~loc of_json ->
-        [%expr fun _json -> [%e of_json] (Jsonkit.of_string _json)])
+        [%expr fun _json -> [%e of_json] (Jsonkit_json.of_string _json)])
 
   let register ~of_json () =
     Deriving.add "of_json_string"
@@ -64,7 +64,7 @@ module To_json_string = struct
   let expand =
     expand_via ~what:"to_json_string" ~through:"to_json"
       (fun ~loc to_json ->
-        [%expr fun _data -> Jsonkit.to_string ([%e to_json] _data)])
+        [%expr fun _data -> Jsonkit_json.to_string ([%e to_json] _data)])
 
   let register ~to_json () =
     Deriving.add "to_json_string"

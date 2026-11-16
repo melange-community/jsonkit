@@ -59,12 +59,12 @@
            (~a:((match Stdlib.(!) x_a with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x "expected field \"a\"")),
+                     Jsonkit_json.of_json_error ~json:x "expected field \"a\"")),
              ~b:((match Stdlib.(!) x_b with
                   | Stdlib.Option.Some v -> v
                   | Stdlib.Option.None ->
-                      Jsonkit.of_json_error ~json:x "expected field \"b\""))))
-      | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
+                      Jsonkit_json.of_json_error ~json:x "expected field \"b\""))))
+      | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object"
   === ppx output:browser ===
   let _ =
     fun x ->
@@ -73,7 +73,7 @@
           (Stdlib.(&&) (Stdlib.(=) (Js.typeof x) "object")
              (Stdlib.(&&) (Stdlib.not (Js.Array.isArray x))
                 (Stdlib.not (Stdlib.(==) (Obj.magic x : 'a Js.null) Js.null))))
-      then Jsonkit.of_json_error ~json:x "expected a JSON object";
+      then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
       (let fs =
          (Obj.magic x : <
                           a: Js.Json.t Js.undefined  ;b: Js.Json.t Js.undefined
@@ -83,12 +83,12 @@
             | Stdlib.Option.Some v ->
                 (string_of_json : Jsonkit.Json.t -> string) v
             | Stdlib.Option.None ->
-                Jsonkit.of_json_error ~json:x
+                Jsonkit_json.of_json_error ~json:x
                   "expected field \"a\" to be present"),
          ~b:(match Js.Undefined.toOption (fs ## b) with
              | Stdlib.Option.Some v -> (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected field \"b\" to be present")))
   === stdout:native ===
   === stdout:js ===
@@ -154,12 +154,12 @@
            (~x:((match Stdlib.(!) x_x with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x "expected field \"x\"")),
+                     Jsonkit_json.of_json_error ~json:x "expected field \"x\"")),
              ((match Stdlib.(!) x_1 with
                | Stdlib.Option.Some v -> v
                | Stdlib.Option.None ->
-                   Jsonkit.of_json_error ~json:x "expected field \"1\""))))
-      | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
+                   Jsonkit_json.of_json_error ~json:x "expected field \"1\""))))
+      | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object"
   === ppx output:browser ===
   let _ =
     fun x ->
@@ -168,7 +168,7 @@
           (Stdlib.(&&) (Stdlib.(=) (Js.typeof x) "object")
              (Stdlib.(&&) (Stdlib.not (Js.Array.isArray x))
                 (Stdlib.not (Stdlib.(==) (Obj.magic x : 'a Js.null) Js.null))))
-      then Jsonkit.of_json_error ~json:x "expected a JSON object";
+      then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
       (let fs =
          (Obj.magic x : <
                           x: Js.Json.t Js.undefined  ;1: Js.Json.t Js.undefined
@@ -177,13 +177,13 @@
        (~x:(match Js.Undefined.toOption (fs ## x) with
             | Stdlib.Option.Some v -> (int_of_json : Jsonkit.Json.t -> int) v
             | Stdlib.Option.None ->
-                Jsonkit.of_json_error ~json:x
+                Jsonkit_json.of_json_error ~json:x
                   "expected field \"x\" to be present"),
          (match Js.Undefined.toOption (fs ## 1) with
           | Stdlib.Option.Some v ->
               (string_of_json : Jsonkit.Json.t -> string) v
           | Stdlib.Option.None ->
-              Jsonkit.of_json_error ~json:x
+              Jsonkit_json.of_json_error ~json:x
                 "expected field \"1\" to be present")))
   === stdout:native ===
   === stdout:js ===
@@ -223,12 +223,14 @@
                 (~x:((match Stdlib.(!) x_x with
                       | Stdlib.Option.Some v -> v
                       | Stdlib.Option.None ->
-                          Jsonkit.of_json_error ~json:x "expected field \"x\"")),
+                          Jsonkit_json.of_json_error ~json:x
+                            "expected field \"x\"")),
                   ~y:((match Stdlib.(!) x_y with
                        | Stdlib.Option.Some v -> v
                        | Stdlib.Option.None ->
-                           Jsonkit.of_json_error ~json:x "expected field \"y\""))))
-           | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object" : 
+                           Jsonkit_json.of_json_error ~json:x
+                             "expected field \"y\""))))
+           | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object" : 
         Jsonkit.Json.t -> point)
       let _ = point_of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -261,7 +263,7 @@
                   (Stdlib.(&&) (Stdlib.not (Js.Array.isArray x))
                      (Stdlib.not
                         (Stdlib.(==) (Obj.magic x : 'a Js.null) Js.null))))
-           then Jsonkit.of_json_error ~json:x "expected a JSON object";
+           then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
            (let fs =
               (Obj.magic x : <
                                x: Js.Json.t Js.undefined  ;y: Js.Json.t
@@ -271,13 +273,13 @@
                  | Stdlib.Option.Some v ->
                      (int_of_json : Jsonkit.Json.t -> int) v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x
+                     Jsonkit_json.of_json_error ~json:x
                        "expected field \"x\" to be present"),
               ~y:(match Js.Undefined.toOption (fs ## y) with
                   | Stdlib.Option.Some v ->
                       (int_of_json : Jsonkit.Json.t -> int) v
                   | Stdlib.Option.None ->
-                      Jsonkit.of_json_error ~json:x
+                      Jsonkit_json.of_json_error ~json:x
                         "expected field \"y\" to be present"))) : Jsonkit.Json.t
                                                                     -> 
                                                                     point)
@@ -333,12 +335,14 @@
                 (~x:((match Stdlib.(!) x_x with
                       | Stdlib.Option.Some v -> v
                       | Stdlib.Option.None ->
-                          Jsonkit.of_json_error ~json:x "expected field \"x\"")),
+                          Jsonkit_json.of_json_error ~json:x
+                            "expected field \"x\"")),
                   ((match Stdlib.(!) x_1 with
                     | Stdlib.Option.Some v -> v
                     | Stdlib.Option.None ->
-                        Jsonkit.of_json_error ~json:x "expected field \"1\""))))
-           | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object" : 
+                        Jsonkit_json.of_json_error ~json:x
+                          "expected field \"1\""))))
+           | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object" : 
         Jsonkit.Json.t -> t)
       let _ = of_json
       [@@@ocaml.warning "-39-11-27"]
@@ -371,7 +375,7 @@
                   (Stdlib.(&&) (Stdlib.not (Js.Array.isArray x))
                      (Stdlib.not
                         (Stdlib.(==) (Obj.magic x : 'a Js.null) Js.null))))
-           then Jsonkit.of_json_error ~json:x "expected a JSON object";
+           then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
            (let fs =
               (Obj.magic x : <
                                x: Js.Json.t Js.undefined  ;1: Js.Json.t
@@ -381,13 +385,13 @@
                  | Stdlib.Option.Some v ->
                      (int_of_json : Jsonkit.Json.t -> int) v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x
+                     Jsonkit_json.of_json_error ~json:x
                        "expected field \"x\" to be present"),
               (match Js.Undefined.toOption (fs ## 1) with
                | Stdlib.Option.Some v ->
                    (string_of_json : Jsonkit.Json.t -> string) v
                | Stdlib.Option.None ->
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected field \"1\" to be present"))) : Jsonkit.Json.t
                                                                  -> t)
       let _ = of_json

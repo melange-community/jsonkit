@@ -162,7 +162,8 @@
              (string_of_json : Jsonkit.Json.t -> string)
                (Js.Array.unsafe_get es 1) )
          else
-           Jsonkit.of_json_error ~json:x "expected a JSON array of length 2"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a JSON array of length 2"
         : Jsonkit.Json.t -> tuple)
   
     let _ = tuple_of_json
@@ -204,7 +205,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Jsonkit.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < name : Js.Json.t Js.undefined
@@ -217,14 +218,14 @@
              | Stdlib.Option.Some v ->
                  (string_of_json : Jsonkit.Json.t -> string) v
              | Stdlib.Option.None ->
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected field \"name\" to be present");
            age =
              (match Js.Undefined.toOption fs##age with
              | Stdlib.Option.Some v ->
                  (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected field \"age\" to be present");
          }
         : Jsonkit.Json.t -> record)
@@ -274,7 +275,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Jsonkit.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < my_name : Js.Json.t Js.undefined
@@ -287,7 +288,7 @@
              | Stdlib.Option.Some v ->
                  (string_of_json : Jsonkit.Json.t -> string) v
              | Stdlib.Option.None ->
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected field \"my_name\" to be present");
            age =
              (match Js.Undefined.toOption fs##my_age with
@@ -338,7 +339,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Jsonkit.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
          let fs = (Obj.magic x : < k : Js.Json.t Js.undefined > Js.t) in
          {
            k =
@@ -393,12 +394,12 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else A
                else if Stdlib.( = ) (Obj.magic tag : string) "B" then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    B
@@ -406,7 +407,7 @@
                         (Js.Array.unsafe_get array 1))
                else if Stdlib.( = ) (Obj.magic tag : string) "C" then (
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    let fs = Js.Array.unsafe_get array 1 in
@@ -421,7 +422,8 @@
                                    (Obj.magic fs : 'a Js.null)
                                    Js.null))))
                    then
-                     Jsonkit.of_json_error ~json:fs "expected a JSON object";
+                     Jsonkit_json.of_json_error ~json:fs
+                       "expected a JSON object";
                    let fs =
                      (Obj.magic fs : < name : Js.Json.t Js.undefined > Js.t)
                    in
@@ -432,20 +434,22 @@
                          | Stdlib.Option.Some v ->
                              (string_of_json : Jsonkit.Json.t -> string) v
                          | Stdlib.Option.None ->
-                             Jsonkit.of_json_error ~json:x
+                             Jsonkit_json.of_json_error ~json:x
                                "expected field \"name\" to be present");
                      })
                else
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected [\"C\", { _ }] or [\"B\", _] or [\"A\"]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> sum)
   
     let _ = sum_of_json
@@ -502,7 +506,7 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "S2" then
                  if Stdlib.( <> ) len 3 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 3"
                  else
                    S2
@@ -510,15 +514,19 @@
                          (Js.Array.unsafe_get array 1),
                        (string_of_json : Jsonkit.Json.t -> string)
                          (Js.Array.unsafe_get array 2) )
-               else Jsonkit.of_json_error ~json:x "expected [\"S2\", _, _]"
+               else
+                 Jsonkit_json.of_json_error ~json:x
+                   "expected [\"S2\", _, _]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> sum2)
   
     let _ = sum2_of_json
@@ -561,20 +569,22 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "C" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `C
                else
-                 Jsonkit.of_json_unexpected_variant ~json:x
+                 Jsonkit_json.of_json_unexpected_variant ~json:x
                    "expected [\"C\"]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> other)
   
     let _ = other_of_json
@@ -607,12 +617,12 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `A
                else if Stdlib.( = ) (Obj.magic tag : string) "B" then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    `B
@@ -622,17 +632,20 @@
                  match (other_of_json : Jsonkit.Json.t -> other) x with
                  | e -> (e :> [ `A | `B of int | other ])
                  | exception
-                     Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
-                     Jsonkit.of_json_unexpected_variant ~json:x
+                     Jsonkit_json.Of_json_error
+                       (Jsonkit_json.Unexpected_variant _) ->
+                     Jsonkit_json.of_json_unexpected_variant ~json:x
                        "expected [\"A\"] or [\"B\", _]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> poly)
   
     let _ = poly_of_json
@@ -676,7 +689,7 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "P2" then
                  if Stdlib.( <> ) len 3 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 3"
                  else
                    `P2
@@ -685,16 +698,18 @@
                        (string_of_json : Jsonkit.Json.t -> string)
                          (Js.Array.unsafe_get array 2) )
                else
-                 Jsonkit.of_json_unexpected_variant ~json:x
+                 Jsonkit_json.of_json_unexpected_variant ~json:x
                    "expected [\"P2\", _, _]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> poly2)
   
     let _ = poly2_of_json
@@ -737,20 +752,22 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "C" then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else `C (of_json__a (Js.Array.unsafe_get array 1))
                else
-                 Jsonkit.of_json_unexpected_variant ~json:x
+                 Jsonkit_json.of_json_unexpected_variant ~json:x
                    "expected [\"C\", _]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> 'a c)
   
     let _ = c_of_json
@@ -788,28 +805,30 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else A
                else if Stdlib.( = ) (Obj.magic tag : string) "Fix" then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    Fix
                      ((recur_of_json : Jsonkit.Json.t -> recur)
                         (Js.Array.unsafe_get array 1))
                else
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected [\"Fix\", _] or [\"A\"]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> recur)
   
     let _ = recur_of_json
@@ -852,28 +871,30 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `A
                else if Stdlib.( = ) (Obj.magic tag : string) "Fix" then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    `Fix
                      ((polyrecur_of_json : Jsonkit.Json.t -> polyrecur)
                         (Js.Array.unsafe_get array 1))
                else
-                 Jsonkit.of_json_unexpected_variant ~json:x
+                 Jsonkit_json.of_json_unexpected_variant ~json:x
                    "expected [\"A\"] or [\"Fix\", _]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> polyrecur)
   
     let _ = polyrecur_of_json
@@ -916,26 +937,28 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else A
                else if Stdlib.( = ) (Obj.magic tag : string) "b_aliased"
                then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else B
                else
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected [\"b_aliased\"] or [\"A\"]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> evar)
   
     let _ = evar_of_json
@@ -974,25 +997,27 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A_aliased" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `a
                else if Stdlib.( = ) (Obj.magic tag : string) "b" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `b
                else
-                 Jsonkit.of_json_unexpected_variant ~json:x
+                 Jsonkit_json.of_json_unexpected_variant ~json:x
                    "expected [\"A_aliased\"] or [\"b\"]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> epoly)
   
     let _ = epoly_of_json
@@ -1031,25 +1056,27 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else A (of_json__a (Js.Array.unsafe_get array 1))
                else if Stdlib.( = ) (Obj.magic tag : string) "B" then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else B (of_json__b (Js.Array.unsafe_get array 1))
                else
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected [\"B\", _] or [\"A\", _]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> ('a, 'b) p2)
   
     let _ = p2_of_json
@@ -1091,7 +1118,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Jsonkit.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
          let fs = (Obj.magic x : < a : Js.Json.t Js.undefined > Js.t) in
          {
            a =
@@ -1099,7 +1126,7 @@
              | Stdlib.Option.Some v ->
                  (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected field \"a\" to be present");
          }
         : Jsonkit.Json.t -> allow_extra_fields)
@@ -1141,7 +1168,7 @@
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "A" then (
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    let fs = Js.Array.unsafe_get array 1 in
@@ -1156,7 +1183,8 @@
                                    (Obj.magic fs : 'a Js.null)
                                    Js.null))))
                    then
-                     Jsonkit.of_json_error ~json:fs "expected a JSON object";
+                     Jsonkit_json.of_json_error ~json:fs
+                       "expected a JSON object";
                    let fs =
                      (Obj.magic fs : < a : Js.Json.t Js.undefined > Js.t)
                    in
@@ -1167,18 +1195,22 @@
                          | Stdlib.Option.Some v ->
                              (int_of_json : Jsonkit.Json.t -> int) v
                          | Stdlib.Option.None ->
-                             Jsonkit.of_json_error ~json:x
+                             Jsonkit_json.of_json_error ~json:x
                                "expected field \"a\" to be present");
                      })
-               else Jsonkit.of_json_error ~json:x "expected [\"A\", { _ }]"
+               else
+                 Jsonkit_json.of_json_error ~json:x
+                   "expected [\"A\", { _ }]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> allow_extra_fields2)
   
     let _ = allow_extra_fields2_of_json
@@ -1227,7 +1259,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Jsonkit.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < a : Js.Json.t Js.undefined
@@ -1240,7 +1272,7 @@
              | Stdlib.Option.Some v ->
                  (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b_opt =
              (match Js.Undefined.toOption fs##b_opt with
@@ -1303,7 +1335,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Jsonkit.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < a : Js.Json.t Js.undefined ; b : Js.Json.t Js.undefined >
@@ -1315,7 +1347,7 @@
              | Stdlib.Option.Some v ->
                  (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b =
              (match Js.Undefined.toOption fs##b with
@@ -1416,7 +1448,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Jsonkit.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < a : Js.Json.t Js.undefined ; b : Js.Json.t Js.undefined >
@@ -1428,7 +1460,7 @@
              | Stdlib.Option.Some v ->
                  (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b =
              (match Js.Undefined.toOption fs##b with
@@ -1489,7 +1521,7 @@
                    (Stdlib.not (Js.Array.isArray x))
                    (Stdlib.not
                       (Stdlib.( == ) (Obj.magic x : 'a Js.null) Js.null))))
-         then Jsonkit.of_json_error ~json:x "expected a JSON object";
+         then Jsonkit_json.of_json_error ~json:x "expected a JSON object";
          let fs =
            (Obj.magic x
              : < a : Js.Json.t Js.undefined ; b : Js.Json.t Js.undefined >
@@ -1501,7 +1533,7 @@
              | Stdlib.Option.Some v ->
                  (int_of_json : Jsonkit.Json.t -> int) v
              | Stdlib.Option.None ->
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected field \"a\" to be present");
            b =
              (match Js.Undefined.toOption fs##b with
@@ -1528,7 +1560,7 @@
                          (int_to_json : int -> Jsonkit.Json.t) x_b
                        in
                        if
-                         Jsonkit.equal json
+                         Jsonkit_json.equal json
                            ((int_to_json : int -> Jsonkit.Json.t) 1)
                        then Js.Undefined.empty
                        else Js.Undefined.return json);
@@ -1602,26 +1634,30 @@
                if Stdlib.( = ) (Obj.magic tag : string) "A" then A
                else if Stdlib.( = ) (Obj.magic tag : string) "B" then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    B
                      ((int_of_json : Jsonkit.Json.t -> int)
                         (Js.Array.unsafe_get array 1))
                else
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    "expected [\"B\", _] or \"A\""
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else if Stdlib.( = ) (Js.typeof x) "string" then
            if Stdlib.( = ) (Obj.magic x : string) "A" then A
-           else Jsonkit.of_json_error ~json:x "expected [\"B\", _] or \"A\""
+           else
+             Jsonkit_json.of_json_error ~json:x
+               "expected [\"B\", _] or \"A\""
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> compact_variant)
   
     let _ = compact_variant_of_json
@@ -1676,7 +1712,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                    "Catch_all_variant_of_int"
                then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    Catch_all_variant_of_int
@@ -1696,13 +1732,14 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                         Stdlib.Option.Some rest
                     in
                     ({ tag = (Obj.magic tag : string); payload }
-                      : Jsonkit.unknown_variant_case))
+                      : Jsonkit_json.unknown_variant_case))
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else if Stdlib.( = ) (Js.typeof x) "string" then
            if Stdlib.( = ) (Obj.magic x : string) "Catch_all_variant" then
              Catch_all_variant
@@ -1722,9 +1759,10 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                     Stdlib.Option.Some rest
                 in
                 ({ tag = (Obj.magic x : string); payload }
-                  : Jsonkit.unknown_variant_case))
+                  : Jsonkit_json.unknown_variant_case))
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> catch_all_variant)
   
     let _ = catch_all_variant_of_json
@@ -1749,7 +1787,9 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              | Stdlib.Option.Some xs ->
                  let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
                  let rest =
-                   Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs
+                   Stdlib.List.map
+                     (fun (j : Jsonkit_json.t) -> Obj.magic j)
+                     xs
                  in
                  (Obj.magic
                     (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
@@ -1792,7 +1832,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                    "Catch_all_polyvariant_of_int"
                then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    `Catch_all_polyvariant_of_int
@@ -1812,13 +1852,14 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                         Stdlib.Option.Some rest
                     in
                     ({ tag = (Obj.magic tag : string); payload }
-                      : Jsonkit.unknown_variant_case))
+                      : Jsonkit_json.unknown_variant_case))
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else if Stdlib.( = ) (Js.typeof x) "string" then
            if Stdlib.( = ) (Obj.magic x : string) "Catch_all_polyvariant"
            then `Catch_all_polyvariant
@@ -1838,9 +1879,10 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                     Stdlib.Option.Some rest
                 in
                 ({ tag = (Obj.magic x : string); payload }
-                  : Jsonkit.unknown_variant_case))
+                  : Jsonkit_json.unknown_variant_case))
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> catch_all_polyvariant)
   
     let _ = catch_all_polyvariant_of_json
@@ -1866,7 +1908,9 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              | Stdlib.Option.Some xs ->
                  let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
                  let rest =
-                   Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs
+                   Stdlib.List.map
+                     (fun (j : Jsonkit_json.t) -> Obj.magic j)
+                     xs
                  in
                  (Obj.magic
                     (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
@@ -1904,7 +1948,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                    "Catch_all_noncompact_of_int"
                then
                  if Stdlib.( <> ) len 2 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 2"
                  else
                    Catch_all_noncompact_of_int
@@ -1924,15 +1968,17 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                         Stdlib.Option.Some rest
                     in
                     ({ tag = (Obj.magic tag : string); payload }
-                      : Jsonkit.unknown_variant_case))
+                      : Jsonkit_json.unknown_variant_case))
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> catch_all_noncompact)
   
     let _ = catch_all_noncompact_of_json
@@ -1956,7 +2002,9 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              | Stdlib.Option.Some xs ->
                  let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
                  let rest =
-                   Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs
+                   Stdlib.List.map
+                     (fun (j : Jsonkit_json.t) -> Obj.magic j)
+                     xs
                  in
                  (Obj.magic
                     (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
@@ -1988,20 +2036,22 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "C" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `C
                else
-                 Jsonkit.of_json_unexpected_variant ~json:x
+                 Jsonkit_json.of_json_unexpected_variant ~json:x
                    "expected [\"C\"]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> one)
   
     let _ = one_of_json
@@ -2034,20 +2084,22 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "C" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `C
                else
-                 Jsonkit.of_json_unexpected_variant ~json:x
+                 Jsonkit_json.of_json_unexpected_variant ~json:x
                    "expected [\"C\"]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> other)
   
     let _ = other_of_json
@@ -2081,22 +2133,25 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                match (one_of_json : Jsonkit.Json.t -> one) x with
                | e -> (e :> [ one | other ])
                | exception
-                   Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) -> (
+                   Jsonkit_json.Of_json_error
+                     (Jsonkit_json.Unexpected_variant _) -> (
                    match (other_of_json : Jsonkit.Json.t -> other) x with
                    | e -> (e :> [ one | other ])
                    | exception
-                       Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _)
-                     ->
-                       Jsonkit.of_json_unexpected_variant ~json:x
+                       Jsonkit_json.Of_json_error
+                         (Jsonkit_json.Unexpected_variant _) ->
+                       Jsonkit_json.of_json_unexpected_variant ~json:x
                          "expected ")
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> poly)
   
     let _ = poly_of_json
@@ -2133,25 +2188,27 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              if Stdlib.( = ) (Js.typeof tag) "string" then
                if Stdlib.( = ) (Obj.magic tag : string) "Alpha" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `Alpha
                else if Stdlib.( = ) (Obj.magic tag : string) "Beta" then
                  if Stdlib.( <> ) len 1 then
-                   Jsonkit.of_json_error ~json:x
+                   Jsonkit_json.of_json_error ~json:x
                      "expected a JSON array of length 1"
                  else `Beta
                else
-                 Jsonkit.of_json_unexpected_variant ~json:x
+                 Jsonkit_json.of_json_unexpected_variant ~json:x
                    "expected [\"Alpha\"] or [\"Beta\"]"
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> poly_known)
   
     let _ = poly_known_of_json
@@ -2199,7 +2256,8 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                         | `Other of Jsonkit.unknown_variant_case
                           [@json.catch_all] ])
                | exception
-                   Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
+                   Jsonkit_json.Of_json_error
+                     (Jsonkit_json.Unexpected_variant _) ->
                    `Other
                      (let payload =
                         if Stdlib.( = ) len 0 then Stdlib.Option.None
@@ -2214,15 +2272,17 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                           Stdlib.Option.Some rest
                       in
                       ({ tag = (Obj.magic tag : string); payload }
-                        : Jsonkit.unknown_variant_case))
+                        : Jsonkit_json.unknown_variant_case))
              else
-               Jsonkit.of_json_error ~json:x
+               Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
                   string"
            else
-             Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+             Jsonkit_json.of_json_error ~json:x
+               "expected a non empty JSON array"
          else
-           Jsonkit.of_json_error ~json:x "expected a non empty JSON array"
+           Jsonkit_json.of_json_error ~json:x
+             "expected a non empty JSON array"
         : Jsonkit.Json.t -> poly_own_catch_all)
   
     let _ = poly_own_catch_all_of_json
@@ -2241,7 +2301,9 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              | Stdlib.Option.Some xs ->
                  let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
                  let rest =
-                   Stdlib.List.map (fun (j : Jsonkit.t) -> Obj.magic j) xs
+                   Stdlib.List.map
+                     (fun (j : Jsonkit_json.t) -> Obj.magic j)
+                     xs
                  in
                  (Obj.magic
                     (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)

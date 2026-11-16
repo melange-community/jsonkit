@@ -16,6 +16,12 @@
   crashed past a few hundred thousand elements. Both now go through a
   `[@tail_mod_cons]` map, which walks the list once and allocates one cell
   per element, the same as the OCaml 5.1 `List.map` it replaces.
+- `[@@deriving json]` generates code against `Jsonkit_json` and
+  `[@@deriving jsonschema]` against `Jsonkit_jsonschema`, where both named
+  `Jsonkit`, which carries the two halves. Code that names `Jsonkit` is
+  unaffected. What changes is that a Melange build deriving only one of them
+  can now leave the other runtime out of its JavaScript, by opening that
+  half's `Primitives` and naming its module.
 - **[breaking]** JSON Schema: a derived schema now carries a single `$defs`
   at its root. Recursive types used inside other types no longer leave nested
   `$defs` with a generated `file://` `$id`; their definitions are collected

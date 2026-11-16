@@ -156,7 +156,7 @@
              ( (int_of_json : Jsonkit.Json.t -> int) x_0,
                (string_of_json : Jsonkit.Json.t -> string) x_1 )
          | _ ->
-             Jsonkit.of_json_error ~json:x
+             Jsonkit_json.of_json_error ~json:x
                "expected a JSON array of length 2"
         : Jsonkit.Json.t -> tuple)
   
@@ -215,14 +215,16 @@
                  (match Stdlib.( ! ) x_name with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x "expected field \"name\"");
+                     Jsonkit_json.of_json_error ~json:x
+                       "expected field \"name\"");
                age =
                  (match Stdlib.( ! ) x_age with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x "expected field \"age\"");
+                     Jsonkit_json.of_json_error ~json:x
+                       "expected field \"age\"");
              }
-         | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
+         | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object"
         : Jsonkit.Json.t -> record)
   
     let _ = record_of_json
@@ -291,14 +293,14 @@
                  (match Stdlib.( ! ) x_name with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x
+                     Jsonkit_json.of_json_error ~json:x
                        "expected field \"my_name\"");
                age =
                  (match Stdlib.( ! ) x_age with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None -> 100);
              }
-         | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
+         | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object"
         : Jsonkit.Json.t -> record_aliased)
   
     let _ = record_aliased_of_json
@@ -362,7 +364,7 @@
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None -> Stdlib.Option.None);
              }
-         | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
+         | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object"
         : Jsonkit.Json.t -> record_opt)
   
     let _ = record_opt_of_json
@@ -424,11 +426,11 @@
                    (match Stdlib.( ! ) x_name with
                    | Stdlib.Option.Some v -> v
                    | Stdlib.Option.None ->
-                       Jsonkit.of_json_error ~json:x
+                       Jsonkit_json.of_json_error ~json:x
                          "expected field \"name\"");
                }
          | _ ->
-             Jsonkit.of_json_error ~json:x
+             Jsonkit_json.of_json_error ~json:x
                "expected [\"A\"] or [\"B\", _] or [\"C\", { _ }]"
         : Jsonkit.Json.t -> sum)
   
@@ -479,7 +481,7 @@
              S2
                ( (int_of_json : Jsonkit.Json.t -> int) x_0,
                  (string_of_json : Jsonkit.Json.t -> string) x_1 )
-         | _ -> Jsonkit.of_json_error ~json:x "expected [\"S2\", _, _]"
+         | _ -> Jsonkit_json.of_json_error ~json:x "expected [\"S2\", _, _]"
         : Jsonkit.Json.t -> sum2)
   
     let _ = sum2_of_json
@@ -516,7 +518,8 @@
          match x with
          | `List (`String "C" :: []) -> `C
          | x ->
-             Jsonkit.of_json_unexpected_variant ~json:x "expected [\"C\"]"
+             Jsonkit_json.of_json_unexpected_variant ~json:x
+               "expected [\"C\"]"
         : Jsonkit.Json.t -> other)
   
     let _ = other_of_json
@@ -547,8 +550,9 @@
              match (other_of_json : Jsonkit.Json.t -> other) x with
              | x -> (x :> [ `A | `B of int | other ])
              | exception
-                 Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
-                 Jsonkit.of_json_unexpected_variant ~json:x
+                 Jsonkit_json.Of_json_error
+                   (Jsonkit_json.Unexpected_variant _) ->
+                 Jsonkit_json.of_json_unexpected_variant ~json:x
                    "expected [\"A\"] or [\"B\", _]")
         : Jsonkit.Json.t -> poly)
   
@@ -587,7 +591,7 @@
                ( (int_of_json : Jsonkit.Json.t -> int) x_0,
                  (string_of_json : Jsonkit.Json.t -> string) x_1 )
          | x ->
-             Jsonkit.of_json_unexpected_variant ~json:x
+             Jsonkit_json.of_json_unexpected_variant ~json:x
                "expected [\"P2\", _, _]"
         : Jsonkit.Json.t -> poly2)
   
@@ -625,7 +629,7 @@
          match x with
          | `List [ `String "C"; x_0 ] -> `C (of_json__a x_0)
          | x ->
-             Jsonkit.of_json_unexpected_variant ~json:x
+             Jsonkit_json.of_json_unexpected_variant ~json:x
                "expected [\"C\", _]"
         : Jsonkit.Json.t -> 'a c)
   
@@ -658,7 +662,7 @@
          | `List [ `String "Fix"; x_0 ] ->
              Fix ((recur_of_json : Jsonkit.Json.t -> recur) x_0)
          | _ ->
-             Jsonkit.of_json_error ~json:x
+             Jsonkit_json.of_json_error ~json:x
                "expected [\"A\"] or [\"Fix\", _]"
         : Jsonkit.Json.t -> recur)
   
@@ -698,7 +702,7 @@
          | `List [ `String "Fix"; x_0 ] ->
              `Fix ((polyrecur_of_json : Jsonkit.Json.t -> polyrecur) x_0)
          | x ->
-             Jsonkit.of_json_unexpected_variant ~json:x
+             Jsonkit_json.of_json_unexpected_variant ~json:x
                "expected [\"A\"] or [\"Fix\", _]"
         : Jsonkit.Json.t -> polyrecur)
   
@@ -737,7 +741,7 @@
          | `List (`String "A" :: []) -> A
          | `List (`String "b_aliased" :: []) -> B
          | _ ->
-             Jsonkit.of_json_error ~json:x
+             Jsonkit_json.of_json_error ~json:x
                "expected [\"A\"] or [\"b_aliased\"]"
         : Jsonkit.Json.t -> evar)
   
@@ -771,7 +775,7 @@
          | `List (`String "A_aliased" :: []) -> `a
          | `List (`String "b" :: []) -> `b
          | x ->
-             Jsonkit.of_json_unexpected_variant ~json:x
+             Jsonkit_json.of_json_unexpected_variant ~json:x
                "expected [\"A_aliased\"] or [\"b\"]"
         : Jsonkit.Json.t -> epoly)
   
@@ -805,7 +809,7 @@
          | `List [ `String "A"; x_0 ] -> A (of_json__a x_0)
          | `List [ `String "B"; x_0 ] -> B (of_json__b x_0)
          | _ ->
-             Jsonkit.of_json_error ~json:x
+             Jsonkit_json.of_json_error ~json:x
                "expected [\"A\", _] or [\"B\", _]"
         : Jsonkit.Json.t -> ('a, 'b) p2)
   
@@ -856,9 +860,10 @@
                  (match Stdlib.( ! ) x_a with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x "expected field \"a\"");
+                     Jsonkit_json.of_json_error ~json:x
+                       "expected field \"a\"");
              }
-         | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
+         | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object"
         : Jsonkit.Json.t -> allow_extra_fields)
   
     let _ = allow_extra_fields_of_json
@@ -915,9 +920,10 @@
                    (match Stdlib.( ! ) x_a with
                    | Stdlib.Option.Some v -> v
                    | Stdlib.Option.None ->
-                       Jsonkit.of_json_error ~json:x "expected field \"a\"");
+                       Jsonkit_json.of_json_error ~json:x
+                         "expected field \"a\"");
                }
-         | _ -> Jsonkit.of_json_error ~json:x "expected [\"A\", { _ }]"
+         | _ -> Jsonkit_json.of_json_error ~json:x "expected [\"A\", { _ }]"
         : Jsonkit.Json.t -> allow_extra_fields2)
   
     let _ = allow_extra_fields2_of_json
@@ -961,7 +967,9 @@
          | `String "A" | `List (`String "A" :: []) -> A
          | `List [ `String "B"; x_0 ] ->
              B ((int_of_json : Jsonkit.Json.t -> int) x_0)
-         | _ -> Jsonkit.of_json_error ~json:x "expected \"A\" or [\"B\", _]"
+         | _ ->
+             Jsonkit_json.of_json_error ~json:x
+               "expected \"A\" or [\"B\", _]"
         : Jsonkit.Json.t -> compact_variant)
   
     let _ = compact_variant_of_json
@@ -1019,9 +1027,9 @@
                | _ -> assert false
              in
              Catch_all_other
-               ({ tag; payload } : Jsonkit.unknown_variant_case)
+               ({ tag; payload } : Jsonkit_json.unknown_variant_case)
          | _ ->
-             Jsonkit.of_json_error ~json:x
+             Jsonkit_json.of_json_error ~json:x
                "expected \"Catch_all_variant\" or \
                 [\"Catch_all_variant_of_int\", _] or [\"Catch_all_other\", \
                 _]"
@@ -1084,9 +1092,9 @@
                    | _ -> assert false
                  in
                  `Catch_all_other
-                   ({ tag; payload } : Jsonkit.unknown_variant_case)
+                   ({ tag; payload } : Jsonkit_json.unknown_variant_case)
              | _ ->
-                 Jsonkit.of_json_unexpected_variant ~json:x
+                 Jsonkit_json.of_json_unexpected_variant ~json:x
                    "expected \"Catch_all_polyvariant\" or \
                     [\"Catch_all_polyvariant_of_int\", _] or \
                     [\"Catch_all_other\", _]")
@@ -1144,9 +1152,9 @@
                | _ -> assert false
              in
              Catch_all_noncompact_other
-               ({ tag; payload } : Jsonkit.unknown_variant_case)
+               ({ tag; payload } : Jsonkit_json.unknown_variant_case)
          | _ ->
-             Jsonkit.of_json_error ~json:x
+             Jsonkit_json.of_json_error ~json:x
                "expected [\"Catch_all_noncompact_of_int\", _] or \
                 [\"Catch_all_noncompact_other\", _]"
         : Jsonkit.Json.t -> catch_all_noncompact)
@@ -1217,13 +1225,14 @@
                  (match Stdlib.( ! ) x_a with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x "expected field \"a\"");
+                     Jsonkit_json.of_json_error ~json:x
+                       "expected field \"a\"");
                b_opt =
                  (match Stdlib.( ! ) x_b_opt with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None -> Stdlib.Option.None);
              }
-         | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
+         | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object"
         : Jsonkit.Json.t -> drop_default_option)
   
     let _ = drop_default_option_of_json
@@ -1300,13 +1309,14 @@
                  (match Stdlib.( ! ) x_a with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x "expected field \"a\"");
+                     Jsonkit_json.of_json_error ~json:x
+                       "expected field \"a\"");
                b =
                  (match Stdlib.( ! ) x_b with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None -> 1);
              }
-         | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
+         | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object"
         : Jsonkit.Json.t -> drop_default)
   
     let _ = drop_default_of_json
@@ -1378,13 +1388,14 @@
                  (match Stdlib.( ! ) x_a with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x "expected field \"a\"");
+                     Jsonkit_json.of_json_error ~json:x
+                       "expected field \"a\"");
                b =
                  (match Stdlib.( ! ) x_b with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None -> 1);
              }
-         | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
+         | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object"
         : Jsonkit.Json.t -> drop_default_default_eq)
   
     let _ = drop_default_default_eq_of_json
@@ -1453,13 +1464,14 @@
                  (match Stdlib.( ! ) x_a with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None ->
-                     Jsonkit.of_json_error ~json:x "expected field \"a\"");
+                     Jsonkit_json.of_json_error ~json:x
+                       "expected field \"a\"");
                b =
                  (match Stdlib.( ! ) x_b with
                  | Stdlib.Option.Some v -> v
                  | Stdlib.Option.None -> 1);
              }
-         | _ -> Jsonkit.of_json_error ~json:x "expected a JSON object"
+         | _ -> Jsonkit_json.of_json_error ~json:x "expected a JSON object"
         : Jsonkit.Json.t -> drop_default_if_json_equal)
   
     let _ = drop_default_if_json_equal_of_json
@@ -1475,7 +1487,7 @@
                 let bnds__001_ =
                   let json = (int_to_json : int -> Jsonkit.Json.t) x_b in
                   if
-                    Jsonkit.equal json
+                    Jsonkit_json.equal json
                       ((int_to_json : int -> Jsonkit.Json.t) 1)
                   then bnds__001_
                   else ("b", json) :: bnds__001_
@@ -1509,7 +1521,8 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
          match x with
          | `List (`String "C" :: []) -> `C
          | x ->
-             Jsonkit.of_json_unexpected_variant ~json:x "expected [\"C\"]"
+             Jsonkit_json.of_json_unexpected_variant ~json:x
+               "expected [\"C\"]"
         : Jsonkit.Json.t -> one)
   
     let _ = one_of_json
@@ -1535,7 +1548,8 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
          match x with
          | `List (`String "C" :: []) -> `C
          | x ->
-             Jsonkit.of_json_unexpected_variant ~json:x "expected [\"C\"]"
+             Jsonkit_json.of_json_unexpected_variant ~json:x
+               "expected [\"C\"]"
         : Jsonkit.Json.t -> other)
   
     let _ = other_of_json
@@ -1563,13 +1577,15 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              match (one_of_json : Jsonkit.Json.t -> one) x with
              | x -> (x :> [ one | other ])
              | exception
-                 Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) -> (
+                 Jsonkit_json.Of_json_error
+                   (Jsonkit_json.Unexpected_variant _) -> (
                  match (other_of_json : Jsonkit.Json.t -> other) x with
                  | x -> (x :> [ one | other ])
                  | exception
-                     Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) ->
-                     Jsonkit.of_json_unexpected_variant ~json:x "expected ")
-             )
+                     Jsonkit_json.Of_json_error
+                       (Jsonkit_json.Unexpected_variant _) ->
+                     Jsonkit_json.of_json_unexpected_variant ~json:x
+                       "expected "))
         : Jsonkit.Json.t -> poly)
   
     let _ = poly_of_json
@@ -1602,7 +1618,7 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
          | `List (`String "Alpha" :: []) -> `Alpha
          | `List (`String "Beta" :: []) -> `Beta
          | x ->
-             Jsonkit.of_json_unexpected_variant ~json:x
+             Jsonkit_json.of_json_unexpected_variant ~json:x
                "expected [\"Alpha\"] or [\"Beta\"]"
         : Jsonkit.Json.t -> poly_known)
   
@@ -1645,7 +1661,8 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                       | `Other of Jsonkit.unknown_variant_case
                         [@json.catch_all] ])
              | exception
-                 Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _) -> (
+                 Jsonkit_json.Of_json_error
+                   (Jsonkit_json.Unexpected_variant _) -> (
                  match x with
                  | (`String _ | `List (`String _ :: _)) as v ->
                      let tag, payload =
@@ -1656,9 +1673,10 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                        | _ -> assert false
                      in
                      `Other
-                       ({ tag; payload } : Jsonkit.unknown_variant_case)
+                       ({ tag; payload }
+                         : Jsonkit_json.unknown_variant_case)
                  | _ ->
-                     Jsonkit.of_json_unexpected_variant ~json:x
+                     Jsonkit_json.of_json_unexpected_variant ~json:x
                        "expected [\"Other\", _]"))
         : Jsonkit.Json.t -> poly_own_catch_all)
   

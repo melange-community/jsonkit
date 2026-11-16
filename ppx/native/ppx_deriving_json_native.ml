@@ -54,7 +54,7 @@ module Of_json = struct
       else
         [%pat? name]
         --> [%expr
-              Jsonkit.of_json_error ~json:x
+              Jsonkit_json.of_json_error ~json:x
                 (Stdlib.Printf.sprintf {|did not expect field "%s"|} name)]
     in
     let handle_field key value =
@@ -68,7 +68,7 @@ module Of_json = struct
         | Some default -> default
         | None ->
             [%expr
-              Jsonkit.of_json_error ~json:x
+              Jsonkit_json.of_json_error ~json:x
                 [%e
                   estring ~loc:key.loc
                     (sprintf "expected field %S" key.txt)]]
@@ -98,7 +98,7 @@ module Of_json = struct
         [%pat? `List [%p xpatt]] --> build_tuple ~loc of_json xexprs ts;
         [%pat? _]
         --> [%expr
-              Jsonkit.of_json_error ~json:[%e json]
+              Jsonkit_json.of_json_error ~json:[%e json]
                 [%e
                   estring ~loc
                     (sprintf "expected a JSON array of length %i" length)]];
@@ -111,7 +111,7 @@ module Of_json = struct
         --> build_record ~json_fields:[%expr fs] ~loc of_json record build;
         [%pat? _]
         --> [%expr
-              Jsonkit.of_json_error ~json:[%e x]
+              Jsonkit_json.of_json_error ~json:[%e x]
                 [%e estring ~loc (sprintf "expected a JSON object")]];
       ]
 
@@ -153,7 +153,8 @@ module Of_json = struct
                 construct
                   (Some
                      [%expr
-                       ({ tag; payload } : Jsonkit.unknown_variant_case)])]]
+                       ({ tag; payload }
+                         : Jsonkit_json.unknown_variant_case)])]]
     | Vcs_tuple { name; tag; types; _ } ->
         let loc = name.loc in
         let arity = List.length types in
@@ -241,7 +242,7 @@ module Of_json = struct
          let error =
            [%pat? _]
            --> [%expr
-                 Jsonkit.of_json_error ~json:x
+                 Jsonkit_json.of_json_error ~json:x
                    [%e estring ~loc error_message]]
          in
          pexp_match ~loc x
@@ -264,7 +265,7 @@ module Of_json = struct
          let derive = self#derive_of_core_type in
          let error =
            [%expr
-             Jsonkit.of_json_unexpected_variant ~json:x
+             Jsonkit_json.of_json_unexpected_variant ~json:x
                [%e estring ~loc error_message]]
          in
          let catch_alls, ctors =
@@ -285,8 +286,8 @@ module Of_json = struct
                  match [%e maybe] with
                  | x -> (x :> [%t t])
                  | exception
-                     Jsonkit.Of_json_error (Jsonkit.Unexpected_variant _)
-                   ->
+                     Jsonkit_json.Of_json_error
+                       (Jsonkit_json.Unexpected_variant _) ->
                      [%e next]])
          in
          pexp_match ~loc x
@@ -336,8 +337,8 @@ module To_json = struct
                | `Drop_default_if_json_equal def ->
                    [%expr
                      let json = [%e v] in
-                     if Jsonkit.equal json [%e derive f.type_ def] then
-                       [%e ebnds]
+                     if Jsonkit_json.equal json [%e derive f.type_ def]
+                     then [%e ebnds]
                      else ([%e k], json) :: [%e ebnds]]
              in
              [%expr
