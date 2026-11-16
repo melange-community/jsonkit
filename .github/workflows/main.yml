@@ -38,12 +38,12 @@ jobs:
           opam-repositories: |
             default: https://github.com/ocaml/opam-repository.git
 
-      - run: opam install . --deps-only --with-test --with-dev-setup
+      - run: opam install . --deps-only --with-test
 
       - run: opam exec -- dune build
 
       - run: pipx install check-jsonschema
 
-      - run: opam exec -- dune fmt
+      - uses: ocaml/setup-ocaml/lint-fmt@v3
 
       - run: opam exec -- dune runtest
