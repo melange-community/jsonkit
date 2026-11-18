@@ -602,22 +602,11 @@ this way):
                        else `A)
                     else
                       `Other
-                        ((let payload =
-                            if Stdlib.(=) len 0
-                            then Stdlib.Option.None
-                            else
-                              if Stdlib.(=) len 1
-                              then Stdlib.Option.Some []
-                              else
-                                (let rest =
-                                   ((Stdlib.Array.sub array 1
-                                       (Stdlib.(-) len 1))
-                                      |> Stdlib.Array.to_list)
-                                     |>
-                                     (Stdlib.List.map (fun j -> Obj.magic j)) in
-                                 Stdlib.Option.Some rest) in
-                          ({ tag = (Obj.magic tag : string); payload } : 
-                            Jsonkit_json.unknown_variant_case))))
+                        ({
+                           tag = (Obj.magic tag : string);
+                           payload =
+                             (Jsonkit_json.unknown_variant_payload array len)
+                         } : Jsonkit_json.unknown_variant_case))
                  else
                    Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
@@ -634,17 +623,10 @@ this way):
            match x with
            | `A -> (Obj.magic [|(Obj.magic "A" : Js.Json.t)|] : Js.Json.t)
            | `Other x_0 ->
-               (match x_0.payload with
-                | Stdlib.Option.None ->
-                    (Obj.magic (x_0.tag : string) : Js.Json.t)
-                | Stdlib.Option.Some xs ->
-                    let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
-                    let rest =
-                      Stdlib.List.map (fun (j : Jsonkit_json.t) -> Obj.magic j)
-                        xs in
-                    (Obj.magic
-                       (Stdlib.Array.of_list (head :: rest) : Js.Json.t array) : 
-                      Js.Json.t)) : t -> Jsonkit.Json.t)
+               (Obj.magic
+                  (Jsonkit_json.unknown_variant_case_to_json
+                     ({ tag = (x_0.tag); payload = (x_0.payload) } : Jsonkit_json.unknown_variant_case)) : 
+               Js.Json.t) : t -> Jsonkit.Json.t)
       let _ = to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   type u = [ | t | `B ][@@deriving json]
@@ -886,22 +868,11 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
                    | exception Jsonkit_json.Of_json_error
                        (Jsonkit_json.Unexpected_variant _) ->
                        `Other
-                         (let payload =
-                            if Stdlib.(=) len 0
-                            then Stdlib.Option.None
-                            else
-                              if Stdlib.(=) len 1
-                              then Stdlib.Option.Some []
-                              else
-                                (let rest =
-                                   ((Stdlib.Array.sub array 1
-                                       (Stdlib.(-) len 1))
-                                      |> Stdlib.Array.to_list)
-                                     |>
-                                     (Stdlib.List.map (fun j -> Obj.magic j)) in
-                                 Stdlib.Option.Some rest) in
-                          ({ tag = (Obj.magic tag : string); payload } : 
-                            Jsonkit_json.unknown_variant_case))
+                         ({
+                            tag = (Obj.magic tag : string);
+                            payload =
+                              (Jsonkit_json.unknown_variant_payload array len)
+                          } : Jsonkit_json.unknown_variant_case)
                  else
                    Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
@@ -920,17 +891,10 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
            | #poly_known as x ->
                (poly_known_to_json : poly_known -> Jsonkit.Json.t) x
            | `Other x_0 ->
-               (match x_0.payload with
-                | Stdlib.Option.None ->
-                    (Obj.magic (x_0.tag : string) : Js.Json.t)
-                | Stdlib.Option.Some xs ->
-                    let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
-                    let rest =
-                      Stdlib.List.map (fun (j : Jsonkit_json.t) -> Obj.magic j)
-                        xs in
-                    (Obj.magic
-                       (Stdlib.Array.of_list (head :: rest) : Js.Json.t array) : 
-                      Js.Json.t)) : poly_own_catch_all -> Jsonkit.Json.t)
+               (Obj.magic
+                  (Jsonkit_json.unknown_variant_case_to_json
+                     ({ tag = (x_0.tag); payload = (x_0.payload) } : Jsonkit_json.unknown_variant_case)) : 
+               Js.Json.t) : poly_own_catch_all -> Jsonkit.Json.t)
       let _ = poly_own_catch_all_to_json
     end[@@ocaml.doc "@inline"][@@merlin.hide ]
   let () =
@@ -1134,22 +1098,11 @@ backends:
                    | exception Jsonkit_json.Of_json_error
                        (Jsonkit_json.Unexpected_variant _) ->
                        `Other
-                         (let payload =
-                            if Stdlib.(=) len 0
-                            then Stdlib.Option.None
-                            else
-                              if Stdlib.(=) len 1
-                              then Stdlib.Option.Some []
-                              else
-                                (let rest =
-                                   ((Stdlib.Array.sub array 1
-                                       (Stdlib.(-) len 1))
-                                      |> Stdlib.Array.to_list)
-                                     |>
-                                     (Stdlib.List.map (fun j -> Obj.magic j)) in
-                                 Stdlib.Option.Some rest) in
-                          ({ tag = (Obj.magic tag : string); payload } : 
-                            Jsonkit_json.unknown_variant_case))
+                         ({
+                            tag = (Obj.magic tag : string);
+                            payload =
+                              (Jsonkit_json.unknown_variant_payload array len)
+                          } : Jsonkit_json.unknown_variant_case)
                  else
                    Jsonkit_json.of_json_error ~json:x
                      "expected a non empty JSON array with element being a string")
@@ -1166,17 +1119,10 @@ backends:
         (fun x ->
            match x with
            | `Other x_0 ->
-               (match x_0.payload with
-                | Stdlib.Option.None ->
-                    (Obj.magic (x_0.tag : string) : Js.Json.t)
-                | Stdlib.Option.Some xs ->
-                    let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
-                    let rest =
-                      Stdlib.List.map (fun (j : Jsonkit_json.t) -> Obj.magic j)
-                        xs in
-                    (Obj.magic
-                       (Stdlib.Array.of_list (head :: rest) : Js.Json.t array) : 
-                      Js.Json.t))
+               (Obj.magic
+                  (Jsonkit_json.unknown_variant_case_to_json
+                     ({ tag = (x_0.tag); payload = (x_0.payload) } : Jsonkit_json.unknown_variant_case)) : 
+               Js.Json.t)
            | #poly_known as x ->
                (poly_known_to_json : poly_known -> Jsonkit.Json.t) x : 
         poly_catch_all_inherit_second -> Jsonkit.Json.t)

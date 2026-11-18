@@ -36,13 +36,15 @@ let classify :
     | "boolean" -> `Bool (Obj.magic json : bool)
     | "object" ->
         if Js.Array.isArray json then
-          let xs = Array.to_list (Obj.magic json : t array) in
+          let xs =
+            Jsonkit_json_lists.array_to_list (Obj.magic json : t array)
+          in
           `List xs
         else
           `Assoc
             (dict_to_list_without_undefined
                (Obj.magic json : t Js.Dict.t))
-    | typ -> failwith ("unknown JSON value type: " ^ typ)
+    | typ -> raise (Invalid_argument ("unknown JSON value type: " ^ typ))
 
 let declassify :
     [ `Null
@@ -58,5 +60,5 @@ let declassify :
   | `Float f -> J.number f
   | `Int i -> J.number (Js.Int.toFloat i)
   | `Bool b -> J.boolean b
-  | `List li -> J.array (Array.of_list li)
+  | `List li -> J.array (Jsonkit_json_lists.list_to_array li)
   | `Assoc assoc -> J.object_ (Js.Dict.fromList assoc)

@@ -185,18 +185,12 @@ module Of_json = struct
      n-element array ↔ payload=Some(rest). *)
   let build_unknown_variant_case_record ~loc ~tag ~array ~len =
     [%expr
-      let payload =
-        if Stdlib.( = ) [%e len] 0 then Stdlib.Option.None
-        else if Stdlib.( = ) [%e len] 1 then Stdlib.Option.Some []
-        else
-          let rest =
-            Stdlib.Array.sub [%e array] 1 (Stdlib.( - ) [%e len] 1)
-            |> Stdlib.Array.to_list
-            |> Stdlib.List.map (fun j -> Obj.magic j)
-          in
-          Stdlib.Option.Some rest
-      in
-      ({ tag = [%e tag]; payload } : Jsonkit_json.unknown_variant_case)]
+      ({
+         tag = [%e tag];
+         payload =
+           Jsonkit_json.unknown_variant_payload [%e array] [%e len];
+       }
+        : Jsonkit_json.unknown_variant_case)]
 
   let derive_of_variant_case ?(is_compact_variants = false) ~tag ~array
       ~len ~allow_any_constr derive case next =
@@ -436,16 +430,11 @@ module To_json = struct
 
   let catch_all_encode ~loc ~tag ~payload =
     [%expr
-      match [%e payload] with
-      | Stdlib.Option.None -> (Obj.magic ([%e tag] : string) : Js.Json.t)
-      | Stdlib.Option.Some xs ->
-          let head = (Obj.magic ([%e tag] : string) : Js.Json.t) in
-          let rest =
-            Stdlib.List.map (fun (j : Jsonkit_json.t) -> Obj.magic j) xs
-          in
-          (Obj.magic
-             (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
-            : Js.Json.t)]
+      (Obj.magic
+         (Jsonkit_json.unknown_variant_case_to_json
+            ({ tag = [%e tag]; payload = [%e payload] }
+              : Jsonkit_json.unknown_variant_case))
+        : Js.Json.t)]
 
   let derive_of_record ~loc derive fields es =
     let fs =

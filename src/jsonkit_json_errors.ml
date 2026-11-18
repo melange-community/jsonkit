@@ -4,10 +4,27 @@ type of_json_error = Json_error of string | Unexpected_variant of string
 
 exception Of_json_error of of_json_error
 
+external js_length : string -> int = "length" [@@mel.get]
+external js_slice : string -> int -> int -> string = "slice" [@@mel.send]
+external js_index_of : string -> string -> int = "indexOf" [@@mel.send]
+
+let quoted str = Js.Json.stringify (Js.Json.string str)
+
+(* [string_of_float] spells these "nan", "inf" and "-inf", and always leaves a
+   decimal point behind; JavaScript does neither. Error messages are compared
+   against the native backend's, so follow OCaml here. *)
+let float_to_string f =
+  if f <> f then "nan"
+  else if not (Js.Float.isFinite f) then if f > 0. then "inf" else "-inf"
+  else
+    let s = Js.Float.toString f in
+    if js_index_of s "." >= 0 || js_index_of s "e" >= 0 then s
+    else s ^ "."
+
 let with_buffer f =
-  let buffer = Buffer.create 1 in
-  f (Buffer.add_string buffer);
-  Buffer.contents buffer
+  let parts = [||] in
+  f (fun piece -> ignore (Js.Array.push ~value:piece parts));
+  Js.Array.join ~sep:"" parts
 
 let iteri_last f li =
   let rec loop i li =
@@ -34,7 +51,9 @@ let show_json_error ?depth ?width json =
   with_buffer (fun emit ->
       let rec loop ?depth json =
         let json = Jsonkit_json_classify.classify json in
-        let depth = Option.map (fun i -> i - 1) depth in
+        let depth =
+          match depth with Some i -> Some (i - 1) | None -> None
+        in
         match depth with
         | Some 0 -> emit "_"
         | _ -> (
@@ -50,14 +69,18 @@ let show_json_error ?depth ?width json =
                         emit {|"|};
                         emit k;
                         emit {|": |};
-                        let depth = Option.map (fun i -> i - 1) depth in
+                        let depth =
+                          match depth with
+                          | Some i -> Some (i - 1)
+                          | None -> None
+                        in
                         loop ?depth v;
                         if not is_last then emit {|, |})
                   assoc;
                 emit "}"
             | `Bool bool -> emit (if bool then "true" else "false")
-            | `Float float -> emit (string_of_float float)
-            | `Int int -> emit (string_of_int int)
+            | `Float float -> emit (float_to_string float)
+            | `Int int -> emit (Js.Int.toString int)
             | `List li ->
                 emit "[";
                 iteri_last
@@ -72,23 +95,20 @@ let show_json_error ?depth ?width json =
                 emit "]"
             | `Null -> emit "null"
             | `String str -> (
-                let len = String.length str in
+                let len = js_length str in
                 match width with
                 | Some width
                   when len > (width * 2) + 5
                        (* I add 5 to account for the [" ... "] I am adding in that case *)
                   ->
-                    emit {|"|};
-                    emit (String.escaped (String.sub str 0 width));
-                    emit " ... ";
-                    emit {|"|}
-                | _ ->
-                    emit {|"|};
-                    emit (String.escaped str);
-                    emit {|"|}))
+                    emit (quoted (js_slice str 0 width ^ " ... "))
+                | _ -> emit (quoted str)))
       in
 
-      (loop ?depth:(Option.map (fun i -> i + 1) depth)) json)
+      let depth =
+        match depth with Some i -> Some (i + 1) | None -> None
+      in
+      (loop ?depth) json)
 
 let of_json_msg_error msg = raise (Of_json_error (Json_error msg))
 
@@ -104,14 +124,6 @@ let of_json_msg_unexpected_variant msg =
 
 let of_json_unexpected_variant ?(depth = 2) ?(width = 8) ~json msg =
   of_json_msg_unexpected_variant
-    (with_buffer (fun emit ->
-         emit msg;
-         emit " but got ";
-         emit (show_json_error ~depth ~width json)))
-
-(* only use for cases where we need granular handling of the error (e.g. arr)*)
-let dangerous_of_json_error ?(depth = 2) ?(width = 8) ~json msg =
-  of_json_msg_error
     (with_buffer (fun emit ->
          emit msg;
          emit " but got ";

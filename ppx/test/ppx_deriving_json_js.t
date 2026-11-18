@@ -1720,19 +1720,12 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                         (Js.Array.unsafe_get array 1))
                else
                  Catch_all_other
-                   (let payload =
-                      if Stdlib.( = ) len 0 then Stdlib.Option.None
-                      else if Stdlib.( = ) len 1 then Stdlib.Option.Some []
-                      else
-                        let rest =
-                          Stdlib.Array.sub array 1 (Stdlib.( - ) len 1)
-                          |> Stdlib.Array.to_list
-                          |> Stdlib.List.map (fun j -> Obj.magic j)
-                        in
-                        Stdlib.Option.Some rest
-                    in
-                    ({ tag = (Obj.magic tag : string); payload }
-                      : Jsonkit_json.unknown_variant_case))
+                   ({
+                      tag = (Obj.magic tag : string);
+                      payload =
+                        Jsonkit_json.unknown_variant_payload array len;
+                    }
+                     : Jsonkit_json.unknown_variant_case)
              else
                Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
@@ -1745,21 +1738,14 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
              Catch_all_variant
            else
              Catch_all_other
-               (let payload =
-                  if Stdlib.( = ) 0 0 then Stdlib.Option.None
-                  else if Stdlib.( = ) 0 1 then Stdlib.Option.Some []
-                  else
-                    let rest =
-                      Stdlib.Array.sub
-                        (Obj.magic [||] : Js.Json.t array)
-                        1 (Stdlib.( - ) 0 1)
-                      |> Stdlib.Array.to_list
-                      |> Stdlib.List.map (fun j -> Obj.magic j)
-                    in
-                    Stdlib.Option.Some rest
-                in
-                ({ tag = (Obj.magic x : string); payload }
-                  : Jsonkit_json.unknown_variant_case))
+               ({
+                  tag = (Obj.magic x : string);
+                  payload =
+                    Jsonkit_json.unknown_variant_payload
+                      (Obj.magic [||] : Js.Json.t array)
+                      0;
+                }
+                 : Jsonkit_json.unknown_variant_case)
          else
            Jsonkit_json.of_json_error ~json:x
              "expected a non empty JSON array"
@@ -1780,20 +1766,12 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                   (int_to_json : int -> Jsonkit.Json.t) x_0;
                 |]
                : Js.Json.t)
-         | Catch_all_other x_0 -> (
-             match x_0.payload with
-             | Stdlib.Option.None ->
-                 (Obj.magic (x_0.tag : string) : Js.Json.t)
-             | Stdlib.Option.Some xs ->
-                 let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
-                 let rest =
-                   Stdlib.List.map
-                     (fun (j : Jsonkit_json.t) -> Obj.magic j)
-                     xs
-                 in
-                 (Obj.magic
-                    (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
-                   : Js.Json.t))
+         | Catch_all_other x_0 ->
+             (Obj.magic
+                (Jsonkit_json.unknown_variant_case_to_json
+                   ({ tag = x_0.tag; payload = x_0.payload }
+                     : Jsonkit_json.unknown_variant_case))
+               : Js.Json.t)
         : catch_all_variant -> Jsonkit.Json.t)
   
     let _ = catch_all_variant_to_json
@@ -1840,19 +1818,12 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                         (Js.Array.unsafe_get array 1))
                else
                  `Catch_all_other
-                   (let payload =
-                      if Stdlib.( = ) len 0 then Stdlib.Option.None
-                      else if Stdlib.( = ) len 1 then Stdlib.Option.Some []
-                      else
-                        let rest =
-                          Stdlib.Array.sub array 1 (Stdlib.( - ) len 1)
-                          |> Stdlib.Array.to_list
-                          |> Stdlib.List.map (fun j -> Obj.magic j)
-                        in
-                        Stdlib.Option.Some rest
-                    in
-                    ({ tag = (Obj.magic tag : string); payload }
-                      : Jsonkit_json.unknown_variant_case))
+                   ({
+                      tag = (Obj.magic tag : string);
+                      payload =
+                        Jsonkit_json.unknown_variant_payload array len;
+                    }
+                     : Jsonkit_json.unknown_variant_case)
              else
                Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
@@ -1865,21 +1836,14 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
            then `Catch_all_polyvariant
            else
              `Catch_all_other
-               (let payload =
-                  if Stdlib.( = ) 0 0 then Stdlib.Option.None
-                  else if Stdlib.( = ) 0 1 then Stdlib.Option.Some []
-                  else
-                    let rest =
-                      Stdlib.Array.sub
-                        (Obj.magic [||] : Js.Json.t array)
-                        1 (Stdlib.( - ) 0 1)
-                      |> Stdlib.Array.to_list
-                      |> Stdlib.List.map (fun j -> Obj.magic j)
-                    in
-                    Stdlib.Option.Some rest
-                in
-                ({ tag = (Obj.magic x : string); payload }
-                  : Jsonkit_json.unknown_variant_case))
+               ({
+                  tag = (Obj.magic x : string);
+                  payload =
+                    Jsonkit_json.unknown_variant_payload
+                      (Obj.magic [||] : Js.Json.t array)
+                      0;
+                }
+                 : Jsonkit_json.unknown_variant_case)
          else
            Jsonkit_json.of_json_error ~json:x
              "expected a non empty JSON array"
@@ -1901,20 +1865,12 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                   (int_to_json : int -> Jsonkit.Json.t) x_0;
                 |]
                : Js.Json.t)
-         | `Catch_all_other x_0 -> (
-             match x_0.payload with
-             | Stdlib.Option.None ->
-                 (Obj.magic (x_0.tag : string) : Js.Json.t)
-             | Stdlib.Option.Some xs ->
-                 let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
-                 let rest =
-                   Stdlib.List.map
-                     (fun (j : Jsonkit_json.t) -> Obj.magic j)
-                     xs
-                 in
-                 (Obj.magic
-                    (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
-                   : Js.Json.t))
+         | `Catch_all_other x_0 ->
+             (Obj.magic
+                (Jsonkit_json.unknown_variant_case_to_json
+                   ({ tag = x_0.tag; payload = x_0.payload }
+                     : Jsonkit_json.unknown_variant_case))
+               : Js.Json.t)
         : catch_all_polyvariant -> Jsonkit.Json.t)
   
     let _ = catch_all_polyvariant_to_json
@@ -1956,19 +1912,12 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                         (Js.Array.unsafe_get array 1))
                else
                  Catch_all_noncompact_other
-                   (let payload =
-                      if Stdlib.( = ) len 0 then Stdlib.Option.None
-                      else if Stdlib.( = ) len 1 then Stdlib.Option.Some []
-                      else
-                        let rest =
-                          Stdlib.Array.sub array 1 (Stdlib.( - ) len 1)
-                          |> Stdlib.Array.to_list
-                          |> Stdlib.List.map (fun j -> Obj.magic j)
-                        in
-                        Stdlib.Option.Some rest
-                    in
-                    ({ tag = (Obj.magic tag : string); payload }
-                      : Jsonkit_json.unknown_variant_case))
+                   ({
+                      tag = (Obj.magic tag : string);
+                      payload =
+                        Jsonkit_json.unknown_variant_payload array len;
+                    }
+                     : Jsonkit_json.unknown_variant_case)
              else
                Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
@@ -1995,20 +1944,12 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                   (int_to_json : int -> Jsonkit.Json.t) x_0;
                 |]
                : Js.Json.t)
-         | Catch_all_noncompact_other x_0 -> (
-             match x_0.payload with
-             | Stdlib.Option.None ->
-                 (Obj.magic (x_0.tag : string) : Js.Json.t)
-             | Stdlib.Option.Some xs ->
-                 let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
-                 let rest =
-                   Stdlib.List.map
-                     (fun (j : Jsonkit_json.t) -> Obj.magic j)
-                     xs
-                 in
-                 (Obj.magic
-                    (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
-                   : Js.Json.t))
+         | Catch_all_noncompact_other x_0 ->
+             (Obj.magic
+                (Jsonkit_json.unknown_variant_case_to_json
+                   ({ tag = x_0.tag; payload = x_0.payload }
+                     : Jsonkit_json.unknown_variant_case))
+               : Js.Json.t)
         : catch_all_noncompact -> Jsonkit.Json.t)
   
     let _ = catch_all_noncompact_to_json
@@ -2259,20 +2200,12 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
                    Jsonkit_json.Of_json_error
                      (Jsonkit_json.Unexpected_variant _) ->
                    `Other
-                     (let payload =
-                        if Stdlib.( = ) len 0 then Stdlib.Option.None
-                        else if Stdlib.( = ) len 1 then
-                          Stdlib.Option.Some []
-                        else
-                          let rest =
-                            Stdlib.Array.sub array 1 (Stdlib.( - ) len 1)
-                            |> Stdlib.Array.to_list
-                            |> Stdlib.List.map (fun j -> Obj.magic j)
-                          in
-                          Stdlib.Option.Some rest
-                      in
-                      ({ tag = (Obj.magic tag : string); payload }
-                        : Jsonkit_json.unknown_variant_case))
+                     ({
+                        tag = (Obj.magic tag : string);
+                        payload =
+                          Jsonkit_json.unknown_variant_payload array len;
+                      }
+                       : Jsonkit_json.unknown_variant_case)
              else
                Jsonkit_json.of_json_error ~json:x
                  "expected a non empty JSON array with element being a \
@@ -2294,20 +2227,12 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
          match x with
          | #poly_known as x ->
              (poly_known_to_json : poly_known -> Jsonkit.Json.t) x
-         | `Other x_0 -> (
-             match x_0.payload with
-             | Stdlib.Option.None ->
-                 (Obj.magic (x_0.tag : string) : Js.Json.t)
-             | Stdlib.Option.Some xs ->
-                 let head = (Obj.magic (x_0.tag : string) : Js.Json.t) in
-                 let rest =
-                   Stdlib.List.map
-                     (fun (j : Jsonkit_json.t) -> Obj.magic j)
-                     xs
-                 in
-                 (Obj.magic
-                    (Stdlib.Array.of_list (head :: rest) : Js.Json.t array)
-                   : Js.Json.t))
+         | `Other x_0 ->
+             (Obj.magic
+                (Jsonkit_json.unknown_variant_case_to_json
+                   ({ tag = x_0.tag; payload = x_0.payload }
+                     : Jsonkit_json.unknown_variant_case))
+               : Js.Json.t)
         : poly_own_catch_all -> Jsonkit.Json.t)
   
     let _ = poly_own_catch_all_to_json

@@ -1,5 +1,14 @@
 ## Unreleased
 
+- Melange: a bundle that derives only `json` is about 60% smaller (446 KB to 176 KB before minification, 44.8 KB to 19.7 KB minified and gzipped, measured with esbuild on a small app).
+  The JSON runtime and the code `[@@deriving json]` generates no longer name `List`, `Array`, `String`, `Buffer` or `Option`, so those stdlib modules and what they carry stay out of the JavaScript.
+  Bundles that also use `Jsonkit.Jsonschema` shrink by about 3%.
+- **[breaking]** Melange: the text of `Of_json_error` messages changed where it quotes the offending JSON.
+  Floats are printed as JavaScript prints them (`0.30000000000000004`, where it was `0.3`), control characters as `\u0001` instead of `\001`, and non-ASCII characters are no longer escaped.
+  Native messages are unchanged.
+- **[breaking]** Melange: `Jsonkit.classify` raises `Invalid_argument` instead of `Failure` on a value that is not JSON.
+- Melange: `Jsonkit.Json.unknown_variant_payload` and `Jsonkit.Json.unknown_variant_case_to_json` are new.
+  They are what `[@json.catch_all]` generates calls to; decoding and encoding a catch-all case is about 1.9x faster on Melange.
 - **[breaking]** A handwritten converter with the wrong type is now an error
   on the field that uses it, instead of one pointing at the whole type
   declaration (#69). On Melange such a converter used to compile and emit

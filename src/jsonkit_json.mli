@@ -113,6 +113,15 @@ type unknown_variant_case = { tag : string; payload : t list option }
 
     Captures any unknown-variant wire shape, lossless. *)
 
+val unknown_variant_payload : t array -> int -> t list option
+(** Builds the payload of an [unknown_variant_case] from a decoded JSON
+    array and its length. Called by the code [@json.catch_all] generates.
+*)
+
+val unknown_variant_case_to_json : unknown_variant_case -> t
+(** Encodes an [unknown_variant_case] back to its wire shape. Called by
+    the code [@json.catch_all] generates. *)
+
 val unknown_variant_case_jsonschema :
   [> `Assoc of
      (string

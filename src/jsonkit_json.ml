@@ -38,6 +38,39 @@ let to_string t = Js.Json.stringify t
 external _unsafeCreateUninitializedArray : int -> 'a array = "Array"
 [@@mel.new]
 
+external js_length : string -> int = "length" [@@mel.get]
+
+external js_char_code_at : string -> int -> int = "charCodeAt"
+[@@mel.send]
+
+external js_from_char_code : int -> string = "fromCharCode"
+[@@mel.scope "String"]
+
+let unknown_variant_payload (array : t array) (len : int) =
+  if len = 0 then None
+  else if len = 1 then Some []
+  else
+    let rec loop i acc =
+      if i < 1 then acc
+      else loop (i - 1) (Js.Array.unsafe_get array i :: acc)
+    in
+    Some (loop (len - 1) [])
+
+let unknown_variant_case_to_json ({ tag; payload } : unknown_variant_case)
+    : t =
+  match payload with
+  | None -> Obj.magic tag
+  | Some xs ->
+      let a = [| (Obj.magic tag : t) |] in
+      let rec loop = function
+        | [] -> ()
+        | x :: xs ->
+            ignore (Js.Array.push ~value:x a);
+            loop xs
+      in
+      loop xs;
+      Obj.magic a
+
 let of_string s =
   try Js.Json.parseExn s
   with exn ->
@@ -48,7 +81,9 @@ let of_string s =
     in
     let msg =
       (* msg really cannot be None in browser or any sane JS runtime *)
-      Option.value msg ~default:"JSON error"
+      match msg with
+      | Some msg -> msg
+      | None -> "JSON error"
     in
     raise (Of_string_error msg)
 
@@ -60,7 +95,7 @@ module Of_json = struct
   let char (json : t) =
     if Js.typeof json = "string" then
       let s = (Obj.magic json : string) in
-      if String.length s = 1 then String.get s 0
+      if js_length s = 1 then (Obj.magic (js_char_code_at s 0) : char)
       else of_json_error ~json "expected a single-character string"
     else of_json_error ~json "expected a string"
 
@@ -106,7 +141,7 @@ module Of_json = struct
             of_json_msg_error
               (of_json_error_to_string err
               ^ "\n\tin array at index "
-              ^ string_of_int i)
+              ^ Js.Int.toString i)
         in
         Array.unsafe_set target i value
       done;
@@ -114,7 +149,7 @@ module Of_json = struct
     else of_json_error ~json "expected an array"
 
   let list v_of_json (json : t) : _ list =
-    array v_of_json json |> Array.to_list
+    array v_of_json json |> Jsonkit_json_lists.array_to_list
 
   let option v_of_json (json : t) : _ option =
     if (Obj.magic json : 'a Js.null) == Js.null then None
@@ -257,7 +292,9 @@ module Of_json = struct
       | [] ->
           let formattedErrors =
             "\n- "
-            ^ Js.Array.join ~sep:"\n- " (Array.of_list (List.rev errors))
+            ^ Js.Array.join ~sep:"\n- "
+                (Jsonkit_json_lists.list_to_array
+                   (Jsonkit_json_lists.list_rev errors))
           in
           of_json_msg_error
             ({j|All decoders given to oneOf failed. Here are all the errors: $formattedErrors\nAnd the JSON being decoded: |j}
@@ -296,7 +333,7 @@ module To_json = struct
     Obj.magic vs
 
   let list v_to_json vs : t =
-    let vs = Array.of_list vs in
+    let vs = Jsonkit_json_lists.list_to_array vs in
     array v_to_json vs
 
   let option v_to_json v : t =
@@ -307,7 +344,7 @@ module To_json = struct
     | Ok x -> Obj.magic [| string "Ok"; a_to_json x |]
     | Error x -> Obj.magic [| string "Error"; b_to_json x |]
 
-  let char c = string (String.make 1 c)
+  let char c = string (js_from_char_code (Obj.magic c : int))
   let js_date d = string (Js.Date.toJSONUnsafe d)
 
   let js_null v_to_json v =
@@ -319,7 +356,9 @@ module To_json = struct
 
   let js_dict encode d =
     let pairs = Js.Dict.entries d in
-    let encodedPairs = Array.map (fun (k, v) -> k, encode v) pairs in
+    let encodedPairs =
+      Js.Array.map ~f:(fun (k, v) -> k, encode v) pairs
+    in
     json_dict (Js.Dict.fromArray encodedPairs)
 
   external json_array : Js.Json.t array -> Js.Json.t = "%identity"
