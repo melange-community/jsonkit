@@ -10,6 +10,13 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec user_to_json_buffer =
+      (fun x -> int_to_json_buffer x : user -> Stdlib.Buffer.t -> unit)
+  
+    let _ = user_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec user_of_json = (fun x -> int_of_json x : Yojson.Basic.t -> user)
     let _ = user_of_json
   
@@ -26,6 +33,13 @@
   
   include struct
     let _ = fun (_ : floaty) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec floaty_to_json_buffer =
+      (fun x -> float_to_json_buffer x : floaty -> Stdlib.Buffer.t -> unit)
+  
+    let _ = floaty_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -52,6 +66,13 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec param_to_json_buffer a_to_json_buffer =
+      (fun x -> a_to_json_buffer x : 'a param -> Stdlib.Buffer.t -> unit)
+  
+    let _ = param_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec param_of_json a_of_json =
       (fun x -> a_of_json x : Yojson.Basic.t -> 'a param)
   
@@ -72,6 +93,14 @@
   
   include struct
     let _ = fun (_ : opt) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec opt_to_json_buffer =
+      (fun x -> (option_to_json_buffer string_to_json_buffer) x
+        : opt -> Stdlib.Buffer.t -> unit)
+  
+    let _ = opt_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -98,6 +127,15 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec res_to_json_buffer =
+      (fun x ->
+         (result_to_json_buffer int_to_json_buffer string_to_json_buffer) x
+        : res -> Stdlib.Buffer.t -> unit)
+  
+    let _ = res_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec res_of_json =
       (fun x -> (result_of_json int_of_json string_of_json) x
         : Yojson.Basic.t -> res)
@@ -120,6 +158,22 @@
   
   include struct
     let _ = fun (_ : tuple) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec tuple_to_json_buffer =
+      (fun x ->
+         match x with
+         | x_0, x_1 ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_char _buf__001_ '[';
+               (int_to_json_buffer x_0) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ',';
+               (string_to_json_buffer x_1) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ']'
+        : tuple -> Stdlib.Buffer.t -> unit)
+  
+    let _ = tuple_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -152,6 +206,22 @@
   
   include struct
     let _ = fun (_ : record) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec record_to_json_buffer =
+      (fun x ->
+         match x with
+         | { name = x_name; age = x_age } ->
+             fun _buf__002_ ->
+               Stdlib.Buffer.add_string _buf__002_ "{\"name\":";
+               (string_to_json_buffer x_name) _buf__002_;
+               Stdlib.Buffer.add_string _buf__002_ ",\"age\":";
+               (int_to_json_buffer x_age) _buf__002_;
+               Stdlib.Buffer.add_char _buf__002_ '}'
+        : record -> Stdlib.Buffer.t -> unit)
+  
+    let _ = record_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -221,6 +291,22 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec record_aliased_to_json_buffer =
+      (fun x ->
+         match x with
+         | { name = x_name; age = x_age } ->
+             fun _buf__002_ ->
+               Stdlib.Buffer.add_string _buf__002_ "{\"my_name\":";
+               (string_to_json_buffer x_name) _buf__002_;
+               Stdlib.Buffer.add_string _buf__002_ ",\"my_age\":";
+               (int_to_json_buffer x_age) _buf__002_;
+               Stdlib.Buffer.add_char _buf__002_ '}'
+        : record_aliased -> Stdlib.Buffer.t -> unit)
+  
+    let _ = record_aliased_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec record_aliased_of_json =
       (fun x ->
          match x with
@@ -285,6 +371,20 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec record_opt_to_json_buffer =
+      (fun x ->
+         match x with
+         | { k = x_k } ->
+             fun _buf__002_ ->
+               Stdlib.Buffer.add_string _buf__002_ "{\"k\":";
+               ((option_to_json_buffer int_to_json_buffer) x_k) _buf__002_;
+               Stdlib.Buffer.add_char _buf__002_ '}'
+        : record_opt -> Stdlib.Buffer.t -> unit)
+  
+    let _ = record_opt_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec record_opt_of_json =
       (fun x ->
          match x with
@@ -336,6 +436,31 @@
   
   include struct
     let _ = fun (_ : sum) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec sum_to_json_buffer =
+      (fun x ->
+         match x with
+         | A ->
+             fun _buf__002_ -> Stdlib.Buffer.add_string _buf__002_ "[\"A\"]"
+         | B x_0 ->
+             fun _buf__003_ ->
+               Stdlib.Buffer.add_string _buf__003_ "[\"B\",";
+               (int_to_json_buffer x_0) _buf__003_;
+               Stdlib.Buffer.add_char _buf__003_ ']'
+         | C { name = x_name } ->
+             fun _buf__005_ ->
+               Stdlib.Buffer.add_string _buf__005_ "[\"C\",";
+               (fun _buf__004_ ->
+                 Stdlib.Buffer.add_string _buf__004_ "{\"name\":";
+                 (string_to_json_buffer x_name) _buf__004_;
+                 Stdlib.Buffer.add_char _buf__004_ '}')
+                 _buf__005_;
+               Stdlib.Buffer.add_char _buf__005_ ']'
+        : sum -> Stdlib.Buffer.t -> unit)
+  
+    let _ = sum_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -405,6 +530,22 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec sum2_to_json_buffer =
+      (fun x ->
+         match x with
+         | S2 (x_0, x_1) ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_string _buf__001_ "[\"S2\",";
+               (int_to_json_buffer x_0) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ',';
+               (string_to_json_buffer x_1) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ']'
+        : sum2 -> Stdlib.Buffer.t -> unit)
+  
+    let _ = sum2_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec sum2_of_json =
       (fun x ->
          match x with
@@ -437,6 +578,17 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec other_to_json_buffer =
+      (fun x ->
+         match x with
+         | `C ->
+             fun _buf__001_ -> Stdlib.Buffer.add_string _buf__001_ "[\"C\"]"
+        : other -> Stdlib.Buffer.t -> unit)
+  
+    let _ = other_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec other_of_json =
       (fun x ->
          match x with
@@ -460,6 +612,23 @@
   
   include struct
     let _ = fun (_ : poly) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_to_json_buffer =
+      (fun x ->
+         match x with
+         | `A ->
+             fun _buf__002_ -> Stdlib.Buffer.add_string _buf__002_ "[\"A\"]"
+         | `B x_0 ->
+             fun _buf__003_ ->
+               Stdlib.Buffer.add_string _buf__003_ "[\"B\",";
+               (int_to_json_buffer x_0) _buf__003_;
+               Stdlib.Buffer.add_char _buf__003_ ']'
+         | #other as x -> other_to_json_buffer x
+        : poly -> Stdlib.Buffer.t -> unit)
+  
+    let _ = poly_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -502,6 +671,22 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec poly2_to_json_buffer =
+      (fun x ->
+         match x with
+         | `P2 (x_0, x_1) ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_string _buf__001_ "[\"P2\",";
+               (int_to_json_buffer x_0) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ',';
+               (string_to_json_buffer x_1) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ']'
+        : poly2 -> Stdlib.Buffer.t -> unit)
+  
+    let _ = poly2_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec poly2_of_json =
       (fun x ->
          match x with
@@ -536,6 +721,20 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec c_to_json_buffer a_to_json_buffer =
+      (fun x ->
+         match x with
+         | `C x_0 ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_string _buf__001_ "[\"C\",";
+               (a_to_json_buffer x_0) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ']'
+        : 'a c -> Stdlib.Buffer.t -> unit)
+  
+    let _ = c_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec c_of_json a_of_json =
       (fun x ->
          match x with
@@ -564,6 +763,22 @@
   
   include struct
     let _ = fun (_ : recur) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec recur_to_json_buffer =
+      (fun x ->
+         match x with
+         | A ->
+             fun _buf__001_ -> Stdlib.Buffer.add_string _buf__001_ "[\"A\"]"
+         | Fix x_0 ->
+             fun _buf__002_ ->
+               Stdlib.Buffer.add_string _buf__002_ "[\"Fix\",";
+               (recur_to_json_buffer x_0) _buf__002_;
+               Stdlib.Buffer.add_char _buf__002_ ']'
+        : recur -> Stdlib.Buffer.t -> unit)
+  
+    let _ = recur_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -601,6 +816,22 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec polyrecur_to_json_buffer =
+      (fun x ->
+         match x with
+         | `A ->
+             fun _buf__001_ -> Stdlib.Buffer.add_string _buf__001_ "[\"A\"]"
+         | `Fix x_0 ->
+             fun _buf__002_ ->
+               Stdlib.Buffer.add_string _buf__002_ "[\"Fix\",";
+               (polyrecur_to_json_buffer x_0) _buf__002_;
+               Stdlib.Buffer.add_char _buf__002_ ']'
+        : polyrecur -> Stdlib.Buffer.t -> unit)
+  
+    let _ = polyrecur_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec polyrecur_of_json =
       (fun x ->
          match x with
@@ -632,6 +863,20 @@
   
   include struct
     let _ = fun (_ : evar) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec evar_to_json_buffer =
+      (fun x ->
+         match x with
+         | A ->
+             fun _buf__001_ -> Stdlib.Buffer.add_string _buf__001_ "[\"A\"]"
+         | B ->
+             fun _buf__002_ ->
+               Stdlib.Buffer.add_string _buf__002_ "[\"b_aliased\"]"
+        : evar -> Stdlib.Buffer.t -> unit)
+  
+    let _ = evar_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -669,6 +914,20 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec epoly_to_json_buffer =
+      (fun x ->
+         match x with
+         | `a ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_string _buf__001_ "[\"A_aliased\"]"
+         | `b ->
+             fun _buf__002_ -> Stdlib.Buffer.add_string _buf__002_ "[\"b\"]"
+        : epoly -> Stdlib.Buffer.t -> unit)
+  
+    let _ = epoly_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec epoly_of_json =
       (fun x ->
          match x with
@@ -700,6 +959,25 @@
   
   include struct
     let _ = fun (_ : ('a, 'b) p2) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec p2_to_json_buffer a_to_json_buffer b_to_json_buffer =
+      (fun x ->
+         match x with
+         | A x_0 ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_string _buf__001_ "[\"A\",";
+               (a_to_json_buffer x_0) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ']'
+         | B x_0 ->
+             fun _buf__002_ ->
+               Stdlib.Buffer.add_string _buf__002_ "[\"B\",";
+               (b_to_json_buffer x_0) _buf__002_;
+               Stdlib.Buffer.add_char _buf__002_ ']'
+        : ('a, 'b) p2 -> Stdlib.Buffer.t -> unit)
+  
+    let _ = p2_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -735,6 +1013,20 @@
   
   include struct
     let _ = fun (_ : allow_extra_fields) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec allow_extra_fields_to_json_buffer =
+      (fun x ->
+         match x with
+         | { a = x_a } ->
+             fun _buf__002_ ->
+               Stdlib.Buffer.add_string _buf__002_ "{\"a\":";
+               (int_to_json_buffer x_a) _buf__002_;
+               Stdlib.Buffer.add_char _buf__002_ '}'
+        : allow_extra_fields -> Stdlib.Buffer.t -> unit)
+  
+    let _ = allow_extra_fields_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -787,6 +1079,24 @@
   
   include struct
     let _ = fun (_ : allow_extra_fields2) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec allow_extra_fields2_to_json_buffer =
+      (fun x ->
+         match x with
+         | A { a = x_a } ->
+             fun _buf__003_ ->
+               Stdlib.Buffer.add_string _buf__003_ "[\"A\",";
+               (fun _buf__002_ ->
+                 Stdlib.Buffer.add_string _buf__002_ "{\"a\":";
+                 (int_to_json_buffer x_a) _buf__002_;
+                 Stdlib.Buffer.add_char _buf__002_ '}')
+                 _buf__003_;
+               Stdlib.Buffer.add_char _buf__003_ ']'
+        : allow_extra_fields2 -> Stdlib.Buffer.t -> unit)
+  
+    let _ = allow_extra_fields2_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -847,6 +1157,21 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec compact_variant_to_json_buffer =
+      (fun x ->
+         match x with
+         | A -> Jsonkit.Writer.literal "\"A\""
+         | B x_0 ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_string _buf__001_ "[\"B\",";
+               (int_to_json_buffer x_0) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ']'
+        : compact_variant -> Stdlib.Buffer.t -> unit)
+  
+    let _ = compact_variant_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec compact_variant_of_json =
       (fun x ->
          match x with
@@ -887,6 +1212,37 @@
   
   include struct
     let _ = fun (_ : catch_all_variant) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_variant_to_json_buffer =
+      (fun x ->
+         match x with
+         | Catch_all_variant ->
+             Jsonkit.Writer.literal "\"Catch_all_variant\""
+         | Catch_all_variant_of_int x_0 ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_string _buf__001_
+                 "[\"Catch_all_variant_of_int\",";
+               (int_to_json_buffer x_0) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ']'
+         | Catch_all_other x_0 -> (
+             fun _buf__002_ ->
+               match x_0.payload with
+               | Stdlib.Option.None ->
+                   Jsonkit.Writer.string x_0.tag _buf__002_
+               | Stdlib.Option.Some xs ->
+                   Stdlib.Buffer.add_char _buf__002_ '[';
+                   Jsonkit.Writer.string x_0.tag _buf__002_;
+                   Stdlib.List.iter
+                     (fun x ->
+                       Stdlib.Buffer.add_char _buf__002_ ',';
+                       Jsonkit.Writer.json x _buf__002_)
+                     xs;
+                   Stdlib.Buffer.add_char _buf__002_ ']')
+        : catch_all_variant -> Stdlib.Buffer.t -> unit)
+  
+    let _ = catch_all_variant_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -945,6 +1301,37 @@
   
   include struct
     let _ = fun (_ : catch_all_polyvariant) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec catch_all_polyvariant_to_json_buffer =
+      (fun x ->
+         match x with
+         | `Catch_all_polyvariant ->
+             Jsonkit.Writer.literal "\"Catch_all_polyvariant\""
+         | `Catch_all_polyvariant_of_int x_0 ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_string _buf__001_
+                 "[\"Catch_all_polyvariant_of_int\",";
+               (int_to_json_buffer x_0) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ']'
+         | `Catch_all_other x_0 -> (
+             fun _buf__002_ ->
+               match x_0.payload with
+               | Stdlib.Option.None ->
+                   Jsonkit.Writer.string x_0.tag _buf__002_
+               | Stdlib.Option.Some xs ->
+                   Stdlib.Buffer.add_char _buf__002_ '[';
+                   Jsonkit.Writer.string x_0.tag _buf__002_;
+                   Stdlib.List.iter
+                     (fun x ->
+                       Stdlib.Buffer.add_char _buf__002_ ',';
+                       Jsonkit.Writer.json x _buf__002_)
+                     xs;
+                   Stdlib.Buffer.add_char _buf__002_ ']')
+        : catch_all_polyvariant -> Stdlib.Buffer.t -> unit)
+  
+    let _ = catch_all_polyvariant_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -1009,6 +1396,35 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec catch_all_noncompact_to_json_buffer =
+      (fun x ->
+         match x with
+         | Catch_all_noncompact_of_int x_0 ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_string _buf__001_
+                 "[\"Catch_all_noncompact_of_int\",";
+               (int_to_json_buffer x_0) _buf__001_;
+               Stdlib.Buffer.add_char _buf__001_ ']'
+         | Catch_all_noncompact_other x_0 -> (
+             fun _buf__002_ ->
+               match x_0.payload with
+               | Stdlib.Option.None ->
+                   Jsonkit.Writer.string x_0.tag _buf__002_
+               | Stdlib.Option.Some xs ->
+                   Stdlib.Buffer.add_char _buf__002_ '[';
+                   Jsonkit.Writer.string x_0.tag _buf__002_;
+                   Stdlib.List.iter
+                     (fun x ->
+                       Stdlib.Buffer.add_char _buf__002_ ',';
+                       Jsonkit.Writer.json x _buf__002_)
+                     xs;
+                   Stdlib.Buffer.add_char _buf__002_ ']')
+        : catch_all_noncompact -> Stdlib.Buffer.t -> unit)
+  
+    let _ = catch_all_noncompact_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec catch_all_noncompact_of_json =
       (fun x ->
          match x with
@@ -1060,6 +1476,25 @@
   
   include struct
     let _ = fun (_ : drop_default_option) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec drop_default_option_to_json_buffer =
+      (fun x ->
+         match x with
+         | { a = x_a; b_opt = x_b_opt } ->
+             fun _buf__003_ ->
+               Jsonkit.Writer.obj _buf__003_ (fun _obj__002_ ->
+                   (int_to_json_buffer x_a)
+                     (Jsonkit.Writer.key _obj__002_ "\"a\":");
+                   match x_b_opt with
+                   | Stdlib.Option.None -> ()
+                   | Stdlib.Option.Some _ ->
+                       ((option_to_json_buffer int_to_json_buffer) x_b_opt)
+                         (Jsonkit.Writer.key _obj__002_ "\"b_opt\":"))
+        : drop_default_option -> Stdlib.Buffer.t -> unit)
+  
+    let _ = drop_default_option_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -1135,6 +1570,27 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec drop_default_to_json_buffer =
+      (fun x ->
+         match x with
+         | { a = x_a; b = x_b } ->
+             fun _buf__003_ ->
+               Jsonkit.Writer.obj _buf__003_ (fun _obj__002_ ->
+                   (int_to_json_buffer x_a)
+                     (Jsonkit.Writer.key _obj__002_ "\"a\":");
+                   if
+                     (fun a b -> if compare a b = 0 then true else false)
+                       x_b 1
+                   then ()
+                   else
+                     (int_to_json_buffer x_b)
+                       (Jsonkit.Writer.key _obj__002_ "\"b\":"))
+        : drop_default -> Stdlib.Buffer.t -> unit)
+  
+    let _ = drop_default_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec drop_default_of_json =
       (fun x ->
          match x with
@@ -1202,6 +1658,24 @@
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec drop_default_default_eq_to_json_buffer =
+      (fun x ->
+         match x with
+         | { a = x_a; b = x_b } ->
+             fun _buf__003_ ->
+               Jsonkit.Writer.obj _buf__003_ (fun _obj__002_ ->
+                   (int_to_json_buffer x_a)
+                     (Jsonkit.Writer.key _obj__002_ "\"a\":");
+                   if equal_int x_b 1 then ()
+                   else
+                     (int_to_json_buffer x_b)
+                       (Jsonkit.Writer.key _obj__002_ "\"b\":"))
+        : drop_default_default_eq -> Stdlib.Buffer.t -> unit)
+  
+    let _ = drop_default_default_eq_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec drop_default_default_eq_of_json =
       (fun x ->
          match x with
@@ -1263,6 +1737,35 @@
   
   include struct
     let _ = fun (_ : drop_default_if_json_equal) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec drop_default_if_json_equal_to_json_buffer =
+      (fun x ->
+         match x with
+         | { a = x_a; b = x_b } ->
+             fun _buf__003_ ->
+               Jsonkit.Writer.obj _buf__003_ (fun _obj__002_ ->
+                   (int_to_json_buffer x_a)
+                     (Jsonkit.Writer.key _obj__002_ "\"a\":");
+                   let written =
+                     Jsonkit.Writer.to_string
+                       (fun () -> int_to_json_buffer x_b)
+                       ()
+                   in
+                   if
+                     Stdlib.String.equal written
+                       (Jsonkit.Writer.to_string
+                          (fun () -> int_to_json_buffer 1)
+                          ())
+                   then ()
+                   else
+                     Stdlib.Buffer.add_string
+                       (Jsonkit.Writer.key _obj__002_ "\"b\":")
+                       written)
+        : drop_default_if_json_equal -> Stdlib.Buffer.t -> unit)
+  
+    let _ = drop_default_if_json_equal_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -1332,6 +1835,17 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec one_to_json_buffer =
+      (fun x ->
+         match x with
+         | `C ->
+             fun _buf__001_ -> Stdlib.Buffer.add_string _buf__001_ "[\"C\"]"
+        : one -> Stdlib.Buffer.t -> unit)
+  
+    let _ = one_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec one_of_json =
       (fun x ->
          match x with
@@ -1358,6 +1872,17 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec other_to_json_buffer =
+      (fun x ->
+         match x with
+         | `C ->
+             fun _buf__002_ -> Stdlib.Buffer.add_string _buf__002_ "[\"C\"]"
+        : other -> Stdlib.Buffer.t -> unit)
+  
+    let _ = other_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec other_of_json =
       (fun x ->
          match x with
@@ -1381,6 +1906,17 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
   
   include struct
     let _ = fun (_ : poly) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_to_json_buffer =
+      (fun x ->
+         match x with
+         | #one as x -> one_to_json_buffer x
+         | #other as x -> other_to_json_buffer x
+        : poly -> Stdlib.Buffer.t -> unit)
+  
+    let _ = poly_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   
@@ -1424,6 +1960,21 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
   
     [@@@ocaml.warning "-39-11-27"]
   
+    let rec poly_known_to_json_buffer =
+      (fun x ->
+         match x with
+         | `Alpha ->
+             fun _buf__001_ ->
+               Stdlib.Buffer.add_string _buf__001_ "[\"Alpha\"]"
+         | `Beta ->
+             fun _buf__002_ ->
+               Stdlib.Buffer.add_string _buf__002_ "[\"Beta\"]"
+        : poly_known -> Stdlib.Buffer.t -> unit)
+  
+    let _ = poly_known_to_json_buffer
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
     let rec poly_known_of_json =
       (fun x ->
          match x with
@@ -1457,6 +2008,30 @@ Test for polyvariant without own cases (only inherits) - should not produce unus
   
   include struct
     let _ = fun (_ : poly_own_catch_all) -> ()
+  
+    [@@@ocaml.warning "-39-11-27"]
+  
+    let rec poly_own_catch_all_to_json_buffer =
+      (fun x ->
+         match x with
+         | #poly_known as x -> poly_known_to_json_buffer x
+         | `Other x_0 -> (
+             fun _buf__001_ ->
+               match x_0.payload with
+               | Stdlib.Option.None ->
+                   Jsonkit.Writer.string x_0.tag _buf__001_
+               | Stdlib.Option.Some xs ->
+                   Stdlib.Buffer.add_char _buf__001_ '[';
+                   Jsonkit.Writer.string x_0.tag _buf__001_;
+                   Stdlib.List.iter
+                     (fun x ->
+                       Stdlib.Buffer.add_char _buf__001_ ',';
+                       Jsonkit.Writer.json x _buf__001_)
+                     xs;
+                   Stdlib.Buffer.add_char _buf__001_ ']')
+        : poly_own_catch_all -> Stdlib.Buffer.t -> unit)
+  
+    let _ = poly_own_catch_all_to_json_buffer
   
     [@@@ocaml.warning "-39-11-27"]
   

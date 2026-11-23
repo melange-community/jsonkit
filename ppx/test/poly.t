@@ -11,6 +11,16 @@ We can alias poly variants:
     struct
       let _ = fun (_ : t) -> ()
       [@@@ocaml.warning "-39-11-27"]
+      let rec to_json_buffer =
+        (fun x ->
+           match x with
+           | `A ->
+               (fun _buf__001_ -> Stdlib.Buffer.add_string _buf__001_ "[\"A\"]")
+           | `B ->
+               (fun _buf__002_ -> Stdlib.Buffer.add_string _buf__002_ "[\"B\"]") : 
+        t -> Stdlib.Buffer.t -> unit)
+      let _ = to_json_buffer
+      [@@@ocaml.warning "-39-11-27"]
       let rec of_json =
         (fun x ->
            match x with
@@ -31,6 +41,10 @@ We can alias poly variants:
   include
     struct
       let _ = fun (_ : u) -> ()
+      [@@@ocaml.warning "-39-11-27"]
+      let rec u_to_json_buffer =
+        (fun x -> to_json_buffer x : u -> Stdlib.Buffer.t -> unit)
+      let _ = u_to_json_buffer
       [@@@ocaml.warning "-39-11-27"]
       let rec u_of_json = (fun x -> of_json x : Yojson.Basic.t -> u)
       let _ = u_of_json
@@ -125,6 +139,16 @@ We can extend aliased polyvariants:
     struct
       let _ = fun (_ : t) -> ()
       [@@@ocaml.warning "-39-11-27"]
+      let rec to_json_buffer =
+        (fun x ->
+           match x with
+           | `A ->
+               (fun _buf__001_ -> Stdlib.Buffer.add_string _buf__001_ "[\"A\"]")
+           | `B ->
+               (fun _buf__002_ -> Stdlib.Buffer.add_string _buf__002_ "[\"B\"]") : 
+        t -> Stdlib.Buffer.t -> unit)
+      let _ = to_json_buffer
+      [@@@ocaml.warning "-39-11-27"]
       let rec of_json =
         (fun x ->
            match x with
@@ -145,6 +169,15 @@ We can extend aliased polyvariants:
   include
     struct
       let _ = fun (_ : u) -> ()
+      [@@@ocaml.warning "-39-11-27"]
+      let rec u_to_json_buffer =
+        (fun x ->
+           match x with
+           | #t as x -> to_json_buffer x
+           | `C ->
+               (fun _buf__003_ -> Stdlib.Buffer.add_string _buf__003_ "[\"C\"]") : 
+        u -> Stdlib.Buffer.t -> unit)
+      let _ = u_to_json_buffer
       [@@@ocaml.warning "-39-11-27"]
       let rec u_of_json =
         (fun x ->
@@ -299,6 +332,7 @@ We can extend poly variants which are placed behind signatures:
       include
         sig
           [@@@ocaml.warning "-32"]
+          val to_json_buffer : t -> Stdlib.Buffer.t -> unit
           val of_json : Yojson.Basic.t -> t
           val to_json : t -> Yojson.Basic.t
         end[@@ocaml.doc "@inline"][@@merlin.hide ]
@@ -308,6 +342,18 @@ We can extend poly variants which are placed behind signatures:
       include
         struct
           let _ = fun (_ : t) -> ()
+          [@@@ocaml.warning "-39-11-27"]
+          let rec to_json_buffer =
+            (fun x ->
+               match x with
+               | `A ->
+                   (fun _buf__001_ ->
+                      Stdlib.Buffer.add_string _buf__001_ "[\"A\"]")
+               | `B ->
+                   (fun _buf__002_ ->
+                      Stdlib.Buffer.add_string _buf__002_ "[\"B\"]") : 
+            t -> Stdlib.Buffer.t -> unit)
+          let _ = to_json_buffer
           [@@@ocaml.warning "-39-11-27"]
           let rec of_json =
             (fun x ->
@@ -331,6 +377,15 @@ We can extend poly variants which are placed behind signatures:
   include
     struct
       let _ = fun (_ : u) -> ()
+      [@@@ocaml.warning "-39-11-27"]
+      let rec u_to_json_buffer =
+        (fun x ->
+           match x with
+           | #P.t as x -> P.to_json_buffer x
+           | `C ->
+               (fun _buf__003_ -> Stdlib.Buffer.add_string _buf__003_ "[\"C\"]") : 
+        u -> Stdlib.Buffer.t -> unit)
+      let _ = u_to_json_buffer
       [@@@ocaml.warning "-39-11-27"]
       let rec u_of_json =
         (fun x ->
@@ -499,6 +554,29 @@ this way):
     struct
       let _ = fun (_ : t) -> ()
       [@@@ocaml.warning "-39-11-27"]
+      let rec to_json_buffer =
+        (fun x ->
+           match x with
+           | `A ->
+               (fun _buf__001_ -> Stdlib.Buffer.add_string _buf__001_ "[\"A\"]")
+           | `Other x_0 ->
+               (fun _buf__002_ ->
+                  match x_0.payload with
+                  | Stdlib.Option.None ->
+                      Jsonkit.Writer.string x_0.tag _buf__002_
+                  | Stdlib.Option.Some xs ->
+                      (Stdlib.Buffer.add_char _buf__002_ '[';
+                       Jsonkit.Writer.string x_0.tag _buf__002_;
+                       Stdlib.List.iter
+                         (fun x ->
+                            Stdlib.Buffer.add_char _buf__002_ ',';
+                            Jsonkit.Writer.json x _buf__002_) xs;
+                       Stdlib.Buffer.add_char _buf__002_ ']')) : t ->
+                                                                   Stdlib.Buffer.t
+                                                                     -> 
+                                                                     unit)
+      let _ = to_json_buffer
+      [@@@ocaml.warning "-39-11-27"]
       let rec of_json =
         (fun x ->
            match x with
@@ -534,6 +612,15 @@ this way):
   include
     struct
       let _ = fun (_ : u) -> ()
+      [@@@ocaml.warning "-39-11-27"]
+      let rec u_to_json_buffer =
+        (fun x ->
+           match x with
+           | #t as x -> to_json_buffer x
+           | `B ->
+               (fun _buf__003_ -> Stdlib.Buffer.add_string _buf__003_ "[\"B\"]") : 
+        u -> Stdlib.Buffer.t -> unit)
+      let _ = u_to_json_buffer
       [@@@ocaml.warning "-39-11-27"]
       let rec u_of_json =
         (fun x ->
@@ -707,6 +794,21 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
     struct
       let _ = fun (_ : poly_known) -> ()
       [@@@ocaml.warning "-39-11-27"]
+      let rec poly_known_to_json_buffer =
+        (fun x ->
+           match x with
+           | `Alpha ->
+               (fun _buf__001_ ->
+                  Stdlib.Buffer.add_string _buf__001_ "[\"Alpha\"]")
+           | `Beta ->
+               (fun _buf__002_ ->
+                  Stdlib.Buffer.add_string _buf__002_ "[\"Beta\"]") : poly_known
+                                                                      ->
+                                                                      Stdlib.Buffer.t
+                                                                      -> 
+                                                                      unit)
+      let _ = poly_known_to_json_buffer
+      [@@@ocaml.warning "-39-11-27"]
       let rec poly_known_of_json =
         (fun x ->
            match x with
@@ -731,6 +833,29 @@ every tag the inherited type knows how to decode (["Alpha"] must be `Alpha, not
   include
     struct
       let _ = fun (_ : poly_own_catch_all) -> ()
+      [@@@ocaml.warning "-39-11-27"]
+      let rec poly_own_catch_all_to_json_buffer =
+        (fun x ->
+           match x with
+           | #poly_known as x -> poly_known_to_json_buffer x
+           | `Other x_0 ->
+               (fun _buf__003_ ->
+                  match x_0.payload with
+                  | Stdlib.Option.None ->
+                      Jsonkit.Writer.string x_0.tag _buf__003_
+                  | Stdlib.Option.Some xs ->
+                      (Stdlib.Buffer.add_char _buf__003_ '[';
+                       Jsonkit.Writer.string x_0.tag _buf__003_;
+                       Stdlib.List.iter
+                         (fun x ->
+                            Stdlib.Buffer.add_char _buf__003_ ',';
+                            Jsonkit.Writer.json x _buf__003_) xs;
+                       Stdlib.Buffer.add_char _buf__003_ ']')) : poly_own_catch_all
+                                                                   ->
+                                                                   Stdlib.Buffer.t
+                                                                     -> 
+                                                                     unit)
+      let _ = poly_own_catch_all_to_json_buffer
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_own_catch_all_of_json =
         (fun x ->
@@ -940,6 +1065,21 @@ backends:
     struct
       let _ = fun (_ : poly_known) -> ()
       [@@@ocaml.warning "-39-11-27"]
+      let rec poly_known_to_json_buffer =
+        (fun x ->
+           match x with
+           | `Alpha ->
+               (fun _buf__001_ ->
+                  Stdlib.Buffer.add_string _buf__001_ "[\"Alpha\"]")
+           | `Beta ->
+               (fun _buf__002_ ->
+                  Stdlib.Buffer.add_string _buf__002_ "[\"Beta\"]") : poly_known
+                                                                      ->
+                                                                      Stdlib.Buffer.t
+                                                                      -> 
+                                                                      unit)
+      let _ = poly_known_to_json_buffer
+      [@@@ocaml.warning "-39-11-27"]
       let rec poly_known_of_json =
         (fun x ->
            match x with
@@ -964,6 +1104,28 @@ backends:
   include
     struct
       let _ = fun (_ : poly_catch_all_inherit_second) -> ()
+      [@@@ocaml.warning "-39-11-27"]
+      let rec poly_catch_all_inherit_second_to_json_buffer =
+        (fun x ->
+           match x with
+           | `Other x_0 ->
+               (fun _buf__003_ ->
+                  match x_0.payload with
+                  | Stdlib.Option.None ->
+                      Jsonkit.Writer.string x_0.tag _buf__003_
+                  | Stdlib.Option.Some xs ->
+                      (Stdlib.Buffer.add_char _buf__003_ '[';
+                       Jsonkit.Writer.string x_0.tag _buf__003_;
+                       Stdlib.List.iter
+                         (fun x ->
+                            Stdlib.Buffer.add_char _buf__003_ ',';
+                            Jsonkit.Writer.json x _buf__003_) xs;
+                       Stdlib.Buffer.add_char _buf__003_ ']'))
+           | #poly_known as x -> poly_known_to_json_buffer x : poly_catch_all_inherit_second
+                                                                 ->
+                                                                 Stdlib.Buffer.t
+                                                                   -> unit)
+      let _ = poly_catch_all_inherit_second_to_json_buffer
       [@@@ocaml.warning "-39-11-27"]
       let rec poly_catch_all_inherit_second_of_json =
         (fun x ->

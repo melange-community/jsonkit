@@ -1,0 +1,7 @@
+(tests
+ (names test_reader test_writer test_writer_derived test_float_parity)
+ (libraries jsonkit yojson)
+ (flags
+  (:standard -w -37-69 -open Jsonkit.Primitives))
+ (preprocess
+  (pps jsonkit.ppx)))

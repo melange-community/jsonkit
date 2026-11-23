@@ -352,14 +352,22 @@ module To_json = struct
   let deriving : Conv.deriving =
     deriving_to () ~name:"to_json"
       ~t_to:(fun ~loc -> [%type: Yojson.Basic.t])
-      ~json_array ~json_string ~catch_all_encode ~derive_of_record
+      ~json_array ~json_string ~catch_all_encode
+      ~allow_any_encode:(fun ~loc:_ x -> x)
+      ~derive_of_record
 end
+
+let () =
+  Driver.add_arg "-parser" (Arg.String Json_writer_mode.set)
+    ~doc:Json_writer_mode.doc
 
 let () =
   let of_json = Conv.register Of_json.deriving in
   let to_json = Conv.register To_json.deriving in
   let (json : Deriving.t) =
-    Conv.(register_combined "json" [ To_json.deriving; Of_json.deriving ])
+    Conv.(
+      register_combined "json"
+        [ To_json.deriving; Of_json.deriving; Json_writer.deriving ])
   in
   let (_ : Deriving.t) = Of_json_string.register ~of_json () in
   let (_ : Deriving.t) = To_json_string.register ~to_json () in

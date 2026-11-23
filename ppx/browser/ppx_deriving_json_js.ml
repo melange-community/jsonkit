@@ -477,8 +477,16 @@ module To_json = struct
   let deriving : Conv.deriving =
     deriving_to () ~name:"to_json"
       ~t_to:(fun ~loc -> [%type: Js.Json.t])
-      ~json_array ~json_string ~catch_all_encode ~derive_of_record
+      ~json_array ~json_string ~catch_all_encode
+      ~allow_any_encode:(fun ~loc:_ x -> x)
+      ~derive_of_record
 end
+
+let () =
+  Driver.add_arg "-parser"
+    (Arg.String (fun _ -> ()))
+    ~doc:
+      "=direct|yojson  accepted for parity with the native ppx, ignored"
 
 let () =
   let of_json = Conv.register Of_json.deriving in

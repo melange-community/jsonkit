@@ -7,6 +7,10 @@
       include
         sig
           [@@@ocaml.warning "-32"]
+          val either_to_json_buffer :
+            ('a -> Stdlib.Buffer.t -> unit) ->
+              ('b -> Stdlib.Buffer.t -> unit) ->
+                ('a, 'b) either -> Stdlib.Buffer.t -> unit
           val either_of_json :
             (Yojson.Basic.t -> 'a) ->
               (Yojson.Basic.t -> 'b) -> Yojson.Basic.t -> ('a, 'b) either

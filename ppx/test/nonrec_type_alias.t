@@ -14,6 +14,13 @@
   
       [@@@ocaml.warning "-39-11-27"]
   
+      let foo_to_json_buffer =
+        (fun x -> foo_to_json_buffer x : foo -> Stdlib.Buffer.t -> unit)
+  
+      let _ = foo_to_json_buffer
+  
+      [@@@ocaml.warning "-39-11-27"]
+  
       let foo_of_json = (fun x -> foo_of_json x : Yojson.Basic.t -> foo)
       let _ = foo_of_json
   

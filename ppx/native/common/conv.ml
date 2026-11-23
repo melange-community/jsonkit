@@ -530,7 +530,8 @@ type derive_of_core_type = core_type -> expression -> expression
    original wire shape, and [derive_of_record] emits a JSON object from
    resolved record fields. Everything else — tuple, variant and
    labeled-tuple encoding — is shared here. *)
-let deriving_to ~name ~t_to ~json_array ~json_string ~catch_all_encode
+let deriving_to ~name ~t_to ?type_ref ~json_array ~json_string
+    ~catch_all_encode ~allow_any_encode
     ~(derive_of_record :
        loc:location ->
        derive_of_core_type ->
@@ -547,9 +548,9 @@ let deriving_to ~name ~t_to ~json_array ~json_string ~catch_all_encode
   let derive_of_variant_case ?(is_compact_variants = false) derive case es
       =
     match case with
-    | Vcs_tuple { attr = { allow_any = true; _ }; _ } -> (
+    | Vcs_tuple { name; attr = { allow_any = true; _ }; _ } -> (
         match es with
-        | [ x ] -> x
+        | [ x ] -> allow_any_encode ~loc:name.loc x
         | es ->
             failwith
               (Printf.sprintf "expected a tuple of length 1, got %i"
@@ -582,9 +583,17 @@ let deriving_to ~name ~t_to ~json_array ~json_string ~catch_all_encode
             (json_string ~loc tag :: List.map2 types es ~f:derive)
   in
   (object (self)
-     inherit deriving_fn
+     inherit deriving_fn as super
      method name = name
      method t ~loc _name t = [%type: [%t t] -> [%t t_to ~loc]]
+
+     method! private derive_type_ref' ~loc deriver n ts =
+       match type_ref with
+       | Some resolve -> (
+           match resolve ~loc n ts with
+           | Some expr -> As_val expr
+           | None -> super#derive_type_ref' ~loc deriver n ts)
+       | None -> super#derive_type_ref' ~loc deriver n ts
 
      method! derive_of_tuple t ts x =
        let loc = t.ptyp_loc in

@@ -5,11 +5,9 @@
  (libraries
   (re_export yojson)))
 
-; Platform-neutral sources shared with the Melange library in ../ ; only the
-; classify layer and [Jsonkit_json] itself are backend-specific.
-
-(copy_files
- (files ../jsonkit.ml))
+; Platform-neutral sources shared with the Melange library in ../ ; the
+; classify layer, [Jsonkit_json], [Jsonkit_reader] and the [Jsonkit] umbrella
+; that exposes the reader are backend-specific.
 
 (copy_files
  (files ../jsonkit_json_errors.ml))

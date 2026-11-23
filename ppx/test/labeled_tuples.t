@@ -172,6 +172,20 @@
     struct
       let _ = fun (_ : point) -> ()
       [@@@ocaml.warning "-39-11-27"]
+      let rec point_to_json_buffer =
+        (fun x ->
+           match x with
+           | (~x:x_x, ~y:x_y) ->
+               (fun _buf__002_ ->
+                  Stdlib.Buffer.add_string _buf__002_ "{\"x\":";
+                  (int_to_json_buffer x_x) _buf__002_;
+                  Stdlib.Buffer.add_string _buf__002_ ",\"y\":";
+                  (int_to_json_buffer x_y) _buf__002_;
+                  Stdlib.Buffer.add_char _buf__002_ '}') : point ->
+                                                             Stdlib.Buffer.t ->
+                                                               unit)
+      let _ = point_to_json_buffer
+      [@@@ocaml.warning "-39-11-27"]
       let rec point_of_json =
         (fun x ->
            match x with
@@ -265,6 +279,20 @@
   include
     struct
       let _ = fun (_ : t) -> ()
+      [@@@ocaml.warning "-39-11-27"]
+      let rec to_json_buffer =
+        (fun x ->
+           match x with
+           | (~x:x_x, x_1) ->
+               (fun _buf__002_ ->
+                  Stdlib.Buffer.add_string _buf__002_ "{\"x\":";
+                  (int_to_json_buffer x_x) _buf__002_;
+                  Stdlib.Buffer.add_string _buf__002_ ",\"1\":";
+                  (string_to_json_buffer x_1) _buf__002_;
+                  Stdlib.Buffer.add_char _buf__002_ '}') : t ->
+                                                             Stdlib.Buffer.t ->
+                                                               unit)
+      let _ = to_json_buffer
       [@@@ocaml.warning "-39-11-27"]
       let rec of_json =
         (fun x ->

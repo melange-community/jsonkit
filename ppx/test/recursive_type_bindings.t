@@ -12,14 +12,20 @@
   >   | Empty
   >   | Base of 'a tree * 'a forest [@@deriving json]
   > EOF
+    let rec a_to_json_buffer =
+    and b_to_json_buffer =
     let rec a_of_json =
     and b_of_json = (fun x -> int_of_json x : Yojson.Basic.t -> b)
     let rec a_to_json =
     and b_to_json = (fun x -> int_to_json x : b -> Yojson.Basic.t)
+    let rec to_json_buffer =
     let rec of_json =
     let rec to_json =
+    let rec lst_to_json_buffer a_to_json_buffer =
     let rec lst_of_json a_of_json =
     let rec lst_to_json a_to_json =
+    let rec tree_to_json_buffer a_to_json_buffer =
+    and forest_to_json_buffer a_to_json_buffer =
     let rec tree_of_json a_of_json =
     and forest_of_json a_of_json =
     let rec tree_to_json a_to_json =

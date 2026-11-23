@@ -15,6 +15,20 @@ We can use the `Ptyp_open` AST node:
         struct
           let _ = fun (_ : x) -> ()
           [@@@ocaml.warning "-39-11-27"]
+          let rec x_to_json_buffer =
+            (fun x ->
+               match x with
+               | (x_0, x_1) ->
+                   (fun _buf__001_ ->
+                      Stdlib.Buffer.add_char _buf__001_ '[';
+                      (int_to_json_buffer x_0) _buf__001_;
+                      Stdlib.Buffer.add_char _buf__001_ ',';
+                      (int_to_json_buffer x_1) _buf__001_;
+                      Stdlib.Buffer.add_char _buf__001_ ']') : x ->
+                                                                 Stdlib.Buffer.t
+                                                                   -> unit)
+          let _ = x_to_json_buffer
+          [@@@ocaml.warning "-39-11-27"]
           let rec x_of_json =
             (fun x ->
                match x with
@@ -36,6 +50,10 @@ We can use the `Ptyp_open` AST node:
   include
     struct
       let _ = fun (_ : u) -> ()
+      [@@@ocaml.warning "-39-11-27"]
+      let rec u_to_json_buffer =
+        (fun x -> X.x_to_json_buffer x : u -> Stdlib.Buffer.t -> unit)
+      let _ = u_to_json_buffer
       [@@@ocaml.warning "-39-11-27"]
       let rec u_of_json = (fun x -> X.x_of_json x : Yojson.Basic.t -> u)
       let _ = u_of_json
