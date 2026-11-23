@@ -22,3 +22,6 @@
 
 (copy_files
  (files ../jsonkit_jsonschema_primitives.{ml,mli}))
+
+(copy_files
+ (files ../jsonkit_primitives.ml))
