@@ -3,8 +3,4 @@
 include Jsonkit_json
 module Json = Jsonkit_json
 module Jsonschema = Jsonkit_jsonschema
-
-module Primitives = struct
-  include Jsonschema.Primitives
-  include Json.Primitives
-end
+module Primitives = Jsonkit_primitives
