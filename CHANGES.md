@@ -1,5 +1,14 @@
 ## Unreleased
 
+- **[breaking]** `[@@deriving jsonschema]` derives the schema of a type
+  without parameters as a function, `unit -> Jsonkit_jsonschema.t`, instead
+  of a value. The schema is built on each call and nothing runs at module
+  load, so a bundler drops the schemas that the program never calls. On
+  Melange a derived schema used to call functions at module load, so esbuild
+  kept every schema of every type in the bundle. Schemas of parametric types
+  keep their type. To migrate, call the schema: `t_jsonschema ()`. A
+  hand-written schema that a derived one refers to takes `unit` too, and so
+  does `Jsonkit.unknown_variant_case_jsonschema`.
 - **[breaking]** A handwritten converter with the wrong type is now an error
   on the field that uses it, instead of one pointing at the whole type
   declaration (#69). On Melange such a converter used to compile and emit

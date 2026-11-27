@@ -169,16 +169,16 @@ let () =
       then fail index "faithful to the derived schema")
     (Cases.
        [
-         tree_jsonschema;
-         foo_jsonschema;
-         expr_jsonschema;
-         node_a_jsonschema;
-         outer_rec_jsonschema;
-         same_name_jsonschema;
-         same_ref_jsonschema;
-         described_pair_jsonschema;
-         wrapped_a_jsonschema;
-         wrapped_b_jsonschema;
+         tree_jsonschema ();
+         foo_jsonschema ();
+         expr_jsonschema ();
+         node_a_jsonschema ();
+         outer_rec_jsonschema ();
+         same_name_jsonschema ();
+         same_ref_jsonschema ();
+         described_pair_jsonschema ();
+         wrapped_a_jsonschema ();
+         wrapped_b_jsonschema ();
        ]
     @
     (* One scope nested under two scopes that define [x] differently. *)

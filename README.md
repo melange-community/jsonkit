@@ -479,7 +479,7 @@ type t = {
   age: int;
 } [@@deriving jsonschema]
 
-let schema = Jsonkit.Jsonschema.make t_jsonschema
+let schema = Jsonkit.Jsonschema.make (t_jsonschema ())
 ```
 
 See **[JSONSCHEMA.md](./JSONSCHEMA.md)** for the full documentation: setup,

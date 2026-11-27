@@ -28,18 +28,18 @@
   type event = {
     name: string ;
     count: int }[@@deriving jsonschema]
-  include sig val event_jsonschema : Jsonkit_jsonschema.t end[@@ocaml.doc
-                                                               "@inline"]
+  include sig val event_jsonschema : unit -> Jsonkit_jsonschema.t end[@@ocaml.doc
+                                                                      "@inline"]
   [@@merlin.hide ]
   type kind =
     | Success 
     | Error [@@deriving jsonschema]
-  include sig val kind_jsonschema : Jsonkit_jsonschema.t end[@@ocaml.doc
-                                                              "@inline"]
+  include sig val kind_jsonschema : unit -> Jsonkit_jsonschema.t end[@@ocaml.doc
+                                                                      "@inline"]
   [@@merlin.hide ]
   type alias = event[@@deriving jsonschema]
-  include sig val alias_jsonschema : Jsonkit_jsonschema.t end[@@ocaml.doc
-                                                               "@inline"]
+  include sig val alias_jsonschema : unit -> Jsonkit_jsonschema.t end[@@ocaml.doc
+                                                                      "@inline"]
   [@@merlin.hide ]
   type 'a wrapper = {
     value: 'a }[@@deriving jsonschema]
@@ -60,6 +60,6 @@
     foo: foo option }[@@deriving jsonschema]
   include
     sig
-      val foo_jsonschema : Jsonkit_jsonschema.t
-      val bar_jsonschema : Jsonkit_jsonschema.t
+      val foo_jsonschema : unit -> Jsonkit_jsonschema.t
+      val bar_jsonschema : unit -> Jsonkit_jsonschema.t
     end[@@ocaml.doc "@inline"][@@merlin.hide ]

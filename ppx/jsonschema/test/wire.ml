@@ -13,8 +13,8 @@ open Jsonkit.Primitives
 
 type json = Yojson.Basic.t
 
-let schema_of ?definitions (s : Jsonkit.Jsonschema.t) : json =
-  (Jsonkit.Jsonschema.make ?definitions s :> json)
+let schema_of ?definitions (s : unit -> Jsonkit.Jsonschema.t) : json =
+  (Jsonkit.Jsonschema.make ?definitions (s ()) :> json)
 
 type case = { name : string; schema : json; instances : json list }
 
@@ -232,7 +232,7 @@ type player_scores = {
 let player_scores =
   case "player_scores"
     (schema_of
-       ~definitions:[ "numbers", numbers_jsonschema ]
+       ~definitions:[ "numbers", numbers_jsonschema () ]
        player_scores_jsonschema)
     [ player_scores_to_json { player = "Ada"; scores = [ 10; 20; 30 ] } ]
 
@@ -248,7 +248,7 @@ type contact = {
 let contact =
   case "contact"
     (schema_of
-       ~definitions:[ "shared_address", addr_jsonschema ]
+       ~definitions:[ "shared_address", addr_jsonschema () ]
        contact_jsonschema)
     [
       contact_to_json
@@ -316,7 +316,8 @@ type ('a, 'b) either = Left of 'a | Right of 'b
 
 let either =
   case "either"
-    (schema_of (either_jsonschema int_jsonschema string_jsonschema))
+    (schema_of (fun () ->
+         either_jsonschema int_jsonschema string_jsonschema))
     [
       either_to_json int_to_json string_to_json (Left 1);
       either_to_json int_to_json string_to_json (Right "r");
@@ -327,7 +328,7 @@ type 'url link = { title : string option; url : 'url }
 
 let link =
   case "link"
-    (schema_of (link_jsonschema string_jsonschema))
+    (schema_of (fun () -> link_jsonschema string_jsonschema))
     [
       link_to_json string_to_json { title = Some "t"; url = "http://x" };
       link_to_json string_to_json { title = None; url = "http://y" };

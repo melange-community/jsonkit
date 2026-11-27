@@ -30,8 +30,11 @@ let () =
   ignore (sample.value, sample.tail);
   if ppx_defs_helper_hidden + 1 <> 42 then
     failwith "generated helper escaped its scope";
+  if !probe_calls <> 0 then
+    failwith "recursive schema body was evaluated at module load";
+  ignore (probed_jsonschema ());
   if !probe_calls <> 1 then
-    failwith "recursive schema body was evaluated more than once"
+    failwith "recursive schema body was evaluated more than once per call"
 
 let field name : Jsonkit.Jsonschema.t -> Jsonkit.Jsonschema.t option =
   function
@@ -51,9 +54,9 @@ and wrapped_b = Wrapped_b of wrapped_a wrap [@@deriving jsonschema]
 
 let () =
   ignore (Wrap None, Value (), Wrapped_a (Wrapped_b (Value Wrapped_stop)));
-  if not (List.mem "wrap" (def_names wrapped_a_jsonschema)) then
+  if not (List.mem "wrap" (def_names (wrapped_a_jsonschema ()))) then
     failwith "wrapped_a_jsonschema lost the $defs of wrap";
-  if not (List.mem "wrap" (def_names wrapped_b_jsonschema)) then
+  if not (List.mem "wrap" (def_names (wrapped_b_jsonschema ()))) then
     failwith "wrapped_b_jsonschema lost the $defs of wrap"
 
 type described_a = { b : described_b option }
@@ -66,7 +69,7 @@ type described_pair = { x : described_a; y : described_b }
 [@@deriving jsonschema]
 
 let () =
-  let schema = Jsonkit.Jsonschema.make described_pair_jsonschema in
+  let schema = Jsonkit.Jsonschema.make (described_pair_jsonschema ()) in
   if
     List.sort compare (def_names schema)
     <> [ "described_a"; "described_b" ]
@@ -95,7 +98,7 @@ type same_ref = { a : Same_ref_a.t; b : Same_ref_b.t }
 [@@deriving jsonschema]
 
 let () =
-  let schema = Jsonkit.Jsonschema.make same_ref_jsonschema in
+  let schema = Jsonkit.Jsonschema.make (same_ref_jsonschema ()) in
   let ref_of name =
     match
       Option.bind (field "properties" schema) (fun properties ->
@@ -119,7 +122,7 @@ module Collide = struct
 end
 
 let () =
-  let schema = Collide.t_jsonschema in
+  let schema = Collide.t_jsonschema () in
   let names = def_names schema in
   if List.length names <> List.length (List.sort_uniq compare names) then
     failwith "Collide.t has duplicate $defs keys";
@@ -167,7 +170,7 @@ module Capture = struct
 end
 
 let () =
-  let schema = Jsonkit.Jsonschema.make Capture.u_jsonschema in
+  let schema = Jsonkit.Jsonschema.make (Capture.u_jsonschema ()) in
   let defs =
     match field "$defs" schema with
     | Some defs -> defs

@@ -304,7 +304,7 @@ type jsonkit_defaults = {
 
 type composing_type = string
 
-let composing_type_jsonschema =
+let composing_type_jsonschema () =
   `Assoc [ "type", `String "string"; "description", `String "A string" ]
 
 type composing_record = {

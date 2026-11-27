@@ -37,6 +37,16 @@ let wrap_type_params ~loc params body =
           [%e body]])
     params body
 
+let wrap_exported_schema ~loc params body =
+  match params with
+  | [] -> [%expr fun () -> [%e body]]
+  | params -> wrap_type_params ~loc params body
+
+let apply_schema_of_type ~loc lid args =
+  match args with
+  | [] -> [%expr [%e type_constr_conv ~loc lid ~f:value_name []] ()]
+  | args -> type_constr_conv ~loc lid ~f:value_name args
+
 let name_of_constructor (cd : constructor_declaration) =
   match Attribute.get Attrs.variant_name cd with
   | Some name -> name.txt
@@ -150,8 +160,7 @@ let rec schema_of_core_type ctx ?(compact_variants = false) core_type =
                 args
             in
             {
-              expr =
-                type_constr_conv ~loc lid ~f:value_name (exprs_of args);
+              expr = apply_schema_of_type ~loc lid (exprs_of args);
               needs = needs_of args @ embedded_schema_need ctx;
             }
         | Ptyp_tuple types ->
@@ -375,45 +384,84 @@ let recursive_group ~loc ~path names derive_with_targets =
     List.mem Embedded_schema
       (needs_of (List.map (fun d -> d.body) plain_decls))
   in
-  if embeds_schemas then
-    let group_defs = "ppx_defs_" ^ List.hd names in
-    let group =
+  let group_values =
+    if embeds_schemas then
+      let group_defs = "ppx_defs_" ^ List.hd names in
+      let group =
+        [%expr
+          [%e runtime_ident ~loc "recursive_group"]
+            ~path:[%e estring ~loc path]
+            [%e
+              eapply ~loc (evar ~loc group_defs)
+                (List.map
+                   (fun param -> evar ~loc (type_param_name param))
+                   group_params)]]
+      in
+      let member group name =
+        [%expr
+          [%e runtime_ident ~loc "member"]
+            [%e estring ~loc name] [%e group]]
+      in
+      let values =
+        match group_params with
+        | [] ->
+            [%expr
+              let ppx_group = [%e group] in
+              [%e bind_members (member [%expr ppx_group])]]
+        | _ -> bind_members (member group)
+      in
       [%expr
-        [%e runtime_ident ~loc "recursive_group"]
-          ~path:[%e estring ~loc path]
-          [%e
-            eapply ~loc (evar ~loc group_defs)
-              (List.map
-                 (fun param -> evar ~loc (type_param_name param))
-                 group_params)]]
-    in
-    let member group name =
-      [%expr
-        [%e runtime_ident ~loc "member"] [%e estring ~loc name] [%e group]]
-    in
-    let values =
-      match group_params with
-      | [] ->
-          [%expr
-            let ppx_group = [%e group] in
-            [%e bind_members (member [%expr ppx_group])]]
-      | _ -> bind_members (member group)
-    in
-    [%stri
-      let[@warning "-32-39"] [%p pattern] =
         let [%p pvar ~loc group_defs] =
           [%e
             wrap_type_params ~loc group_params
               (definitions (derive_with_targets marked_targets))]
         in
         [%e values]]
-  else
-    [%stri
-      let[@warning "-32-39"] [%p pattern] =
+    else
+      [%expr
         let ppx_defs = [%e definitions plain_decls] in
         [%e
           bind_members (fun name ->
               Schema.definitions_ref ~loc name [%expr ppx_defs])]]
+  in
+  let group_function = "ppx_group_" ^ List.hd names in
+  let call_group = [%expr [%e evar ~loc group_function] ()] in
+  let member_of_group name =
+    match names with
+    | [ _ ] -> call_group
+    | names ->
+        let only_member =
+          ppat_tuple ~loc
+            (List.map
+               (fun other ->
+                 if String.equal other name then
+                   value_name_pattern ~loc name
+                 else ppat_any ~loc)
+               names)
+        in
+        [%expr
+          let [%p only_member] = [%e call_group] in
+          [%e evar ~loc (value_name name)]]
+  in
+  let exported_member (name, params) =
+    let member = member_of_group name in
+    let applied =
+      match params with
+      | [] -> member
+      | params ->
+          eapply ~loc member
+            (List.map
+               (fun param -> evar ~loc (type_param_name param))
+               params)
+    in
+    create_value ~loc name (wrap_exported_schema ~loc params applied)
+  in
+  [%stri
+    let[@warning "-32-39"] [%p pvar ~loc group_function] =
+     fun () ->
+      let [%p pattern] = [%e group_values] in
+      [%e result]]
+  :: List.map exported_member params_of_member
 
 let str_type_decl ~ctxt (rec_flag, type_decls)
     flag_polymorphic_variant_tuple flag_ocaml_doc =
@@ -439,13 +487,11 @@ let str_type_decl ~ctxt (rec_flag, type_decls)
     List.mem Group_ref (needs_of (List.map (fun d -> d.body) plain_decls))
   in
   if refers_to_group then
-    [
-      recursive_group ~loc
-        ~path:
-          (Code_path.fully_qualified_path
-             (Expansion_context.Deriver.code_path ctxt))
-        names derive_with_targets;
-    ]
+    recursive_group ~loc
+      ~path:
+        (Code_path.fully_qualified_path
+           (Expansion_context.Deriver.code_path ctxt))
+      names derive_with_targets
   else
     List.map
       (fun d ->
@@ -455,7 +501,7 @@ let str_type_decl ~ctxt (rec_flag, type_decls)
               [%e runtime_ident ~loc "non_recursive"] [%e d.body.expr]]
           else d.body.expr
         in
-        create_value ~loc d.name (wrap_type_params ~loc d.params body))
+        create_value ~loc d.name (wrap_exported_schema ~loc d.params body))
       plain_decls
 
 let sig_type_decl ~ctxt (_rec_flag, type_decls)
@@ -469,8 +515,11 @@ let sig_type_decl ~ctxt (_rec_flag, type_decls)
   List.map
     (fun td ->
       let typ =
-        combinator_type_of_type_declaration td ~f:(fun ~loc _core_type ->
-            jsonschema_t ~loc)
+        match td.ptype_params with
+        | [] -> [%type: unit -> [%t jsonschema_t ~loc]]
+        | _ ->
+            combinator_type_of_type_declaration td
+              ~f:(fun ~loc _core_type -> jsonschema_t ~loc)
       in
       let name = { txt = value_name td.ptype_name.txt; loc } in
       psig_value ~loc (value_description ~loc ~name ~type_:typ ~prim:[]))
