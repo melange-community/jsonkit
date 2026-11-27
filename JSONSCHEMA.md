@@ -62,7 +62,7 @@ type t = {
   address: address;
 } [@@deriving jsonschema]
 
-let schema = Jsonkit.Jsonschema.make t_jsonschema
+let schema = Jsonkit.Jsonschema.make (t_jsonschema ())
 ```
 
 Such a type will be turned into a JSON schema like this:
@@ -94,10 +94,13 @@ Such a type will be turned into a JSON schema like this:
 ## Usage
 
 For each type with `[@@deriving jsonschema]`, the deriver generates a
-`<type>_jsonschema` value of type `Jsonkit.Jsonschema.t`.
-Wrap it with `Jsonkit.Jsonschema.make` to get a complete,
+`<type>_jsonschema` function of type `unit -> Jsonkit.Jsonschema.t`.
+Wrap the result with `Jsonkit.Jsonschema.make` to get a complete,
 self-contained schema document (it adds the `$schema` header and any
 `$defs`/metadata).
+
+A hand-written schema that a derived one refers to follows the same
+shape: `let t_jsonschema () = ...` for a type without parameters.
 
 The deriver emits primitive helpers (e.g. `int_jsonschema`, `string_jsonschema`)
 unqualified, so bring a primitives module into scope:
@@ -744,8 +747,8 @@ type t = {
 
 let schema =
   Jsonkit.Jsonschema.make
-    ~definitions:[("shared_address", address_jsonschema)]
-    t_jsonschema
+    ~definitions:[("shared_address", address_jsonschema ())]
+    (t_jsonschema ())
 ```
 
 Would produce the following schema:

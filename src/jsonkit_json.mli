@@ -114,6 +114,7 @@ type unknown_variant_case = { tag : string; payload : t list option }
     Captures any unknown-variant wire shape, lossless. *)
 
 val unknown_variant_case_jsonschema :
+  unit ->
   [> `Assoc of
      (string
      * [> `List of
